@@ -47,7 +47,7 @@ public class EntityAgent : MonoBehaviour
 		rb = GetComponent<Rigidbody>();
 		rb.freezeRotation = true;
 
-		gPlanner = gFactory.CreatePlanner();
+		gPlanner = new GoapPlanner();
 	}
 
 	void Start()
@@ -56,6 +56,8 @@ public class EntityAgent : MonoBehaviour
 		SetupBeliefs();
 		SetupActions();
 		SetupGoals();
+
+		Debug.LogError("beliefs count: " + beliefs.Count + " actions count: " + actions.Count + " goals count: " + goals.Count);
 	}
 
 	void SetupBeliefs()
@@ -154,6 +156,12 @@ public class EntityAgent : MonoBehaviour
 	{
 		goals = new HashSet<EntityGoals>
 		{
+			new EntityGoals.Builder("KeepStaminaUp")
+			.WithPriority(2)
+			.WithDesiredEffect(beliefs["AgentIsRested"])
+			.Build(),
+
+			/*
 			new EntityGoals.Builder("Chill Out")
 			.WithPriority(1)
 			.WithDesiredEffect(beliefs["Nothing"])
@@ -178,6 +186,7 @@ public class EntityAgent : MonoBehaviour
 			.WithPriority(3)
 			.WithDesiredEffect(beliefs["AttackingPlayer"])
 			.Build()
+			*/
 		};
 	}
 
@@ -217,6 +226,10 @@ public class EntityAgent : MonoBehaviour
 	{
 		statsTimer.Tick(Time.deltaTime);
 		//animations.SetSpeed(navMeshAgent.velocity.magnitude);
+
+		Debug.LogError("beliefs count: " + beliefs.Count + " actions count: " + actions.Count + " goals count: " + goals.Count);
+
+
 
 		// Update the plan and current action if there is one
 		if (currentAction == null)

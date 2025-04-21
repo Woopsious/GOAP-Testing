@@ -36,13 +36,13 @@ public class AttackStrategy : IActionStrategy
 	{
 		//this.animations = animations;
 		//timer = new CountdownTimer(animations.GetAnimationLength(animations.attackClip));
-		timer.OnTimerStart += () => Complete = false;
-		timer.OnTimerStop += () => Complete = true;
+		//timer.OnTimerStart += () => Complete = false;
+		//timer.OnTimerStop += () => Complete = true;
 	}
 
 	public void Start()
 	{
-		timer.Start();
+		//timer.Start();
 		//animations.Attack();
 	}
 
