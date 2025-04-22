@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -20,10 +21,14 @@ public class EntityAgent : MonoBehaviour
 	Rigidbody rb;
 
 	[Header("Stats")]
-	public float health = 100;
-	public float stamina = 100;
+	private readonly float maxHealth = 100;
+	public float currentHealth;
+
+	private readonly float maxStamina = 100;
+	public float currentStamina;
 
 	CountdownTimer statsTimer;
+	CountdownTimer goalPriorityTimer;
 
 	GameObject target;
 	Vector3 destination;
@@ -52,12 +57,23 @@ public class EntityAgent : MonoBehaviour
 
 	void Start()
 	{
+		currentHealth = maxHealth;
+		currentStamina = maxStamina;
+
 		SetupTimers();
 		SetupBeliefs();
 		SetupActions();
 		SetupGoals();
 
 		Debug.LogError("beliefs count: " + beliefs.Count + " actions count: " + actions.Count + " goals count: " + goals.Count);
+	}
+
+	void Update()
+	{
+		statsTimer.Tick(Time.deltaTime);
+		goalPriorityTimer.Tick(Time.deltaTime);
+		//animations.SetSpeed(navMeshAgent.velocity.magnitude);
+		CreateNewPlan();
 	}
 
 	void SetupBeliefs()
@@ -69,13 +85,13 @@ public class EntityAgent : MonoBehaviour
 
 		factory.AddBelief("AgentIdle", () => !navMeshAgent.hasPath);
 		factory.AddBelief("AgentMoving", () => navMeshAgent.hasPath);
-		factory.AddBelief("AgentHealthLow", () => health < 30);
-		factory.AddBelief("AgentIsHealthy", () => health >= 50);
-		factory.AddBelief("AgentStaminaLow", () => stamina < 10);
-		factory.AddBelief("AgentIsRested", () => stamina >= 50);
+		factory.AddBelief("AgentHealthLow", () => currentHealth < 20);
+		factory.AddBelief("AgentIsHealthy", () => currentHealth >= 40);
+		factory.AddBelief("AgentStaminaLow", () => currentStamina < 30);
+		factory.AddBelief("AgentIsRested", () => currentStamina >= 50);
 
-		factory.AddLocationBelief("AgentAtDoorOne", 3f, doorOnePosition);
-		factory.AddLocationBelief("AgentAtDoorTwo", 3f, doorTwoPosition);
+		//factory.AddLocationBelief("AgentAtDoorOne", 3f, doorOnePosition);
+		//factory.AddLocationBelief("AgentAtDoorTwo", 3f, doorTwoPosition);
 		factory.AddLocationBelief("AgentAtRestingPosition", 3f, restingPosition);
 		factory.AddLocationBelief("AgentAtFoodShack", 3f, foodShack);
 
@@ -83,7 +99,6 @@ public class EntityAgent : MonoBehaviour
 		factory.AddSensorBelief("PlayerInAttackRange", attackSensor);
 		factory.AddBelief("AttackingPlayer", () => false); // Player can always be attacked, this will never become true
 	}
-
 	void SetupActions()
 	{
 		actions = new HashSet<EntityActions>
@@ -94,7 +109,7 @@ public class EntityAgent : MonoBehaviour
 			.Build(),
 
 			new EntityActions.Builder("Wander Around")
-			.WithStrategy(new WanderStrategy(navMeshAgent, 10))
+			.WithStrategy(new WanderStrategy(navMeshAgent, 20))
 			.AddEffect(beliefs["AgentMoving"])
 			.Build(),
 
@@ -109,6 +124,7 @@ public class EntityAgent : MonoBehaviour
 			.AddEffect(beliefs["AgentIsHealthy"])
 			.Build(),
 
+			/*
 			new EntityActions.Builder("MoveToDoorOne")
 			.WithStrategy(new MoveStrategy(navMeshAgent, () => doorOnePosition.position))
 			.AddEffect(beliefs["AgentAtDoorOne"])
@@ -131,9 +147,15 @@ public class EntityAgent : MonoBehaviour
 			.AddPrecondition(beliefs["AgentAtDoorTwo"])
 			.AddEffect(beliefs["AgentAtRestingPosition"])
 			.Build(),
+			*/
+
+			new EntityActions.Builder("MoveToRestPosition")
+			.WithStrategy(new MoveStrategy(navMeshAgent, () => restingPosition.position))
+			.AddEffect(beliefs["AgentAtRestingPosition"])
+			.Build(),
 
 			new EntityActions.Builder("Rest")
-			.WithStrategy(new IdleStrategy(5))
+			.WithStrategy(new IdleStrategy(3))
 			.AddPrecondition(beliefs["AgentAtRestingPosition"])
 			.AddEffect(beliefs["AgentIsRested"])
 			.Build(),
@@ -151,62 +173,68 @@ public class EntityAgent : MonoBehaviour
 			.Build()
 		};
 	}
-
 	void SetupGoals()
 	{
 		goals = new HashSet<EntityGoals>
-		{
-			new EntityGoals.Builder("KeepStaminaUp")
-			.WithPriority(2)
-			.WithDesiredEffect(beliefs["AgentIsRested"])
-			.Build(),
-
-			/*
-			new EntityGoals.Builder("Chill Out")
-			.WithPriority(1)
-			.WithDesiredEffect(beliefs["Nothing"])
-			.Build(),
-
-			new EntityGoals.Builder("Wander")
-			.WithPriority(1)
-			.WithDesiredEffect(beliefs["AgentMoving"])
+		{    
+			new EntityGoals.Builder("SeekAndDestroy")
+			.WithPriority(80)
+			.WithDesiredEffect(beliefs["AttackingPlayer"])
 			.Build(),
 
 			new EntityGoals.Builder("KeepHealthUp")
-			.WithPriority(2)
+			.WithPriority(1) //adjusted at runtime
 			.WithDesiredEffect(beliefs["AgentIsHealthy"])
 			.Build(),
 
 			new EntityGoals.Builder("KeepStaminaUp")
-			.WithPriority(2)
+			.WithPriority(1) //adjusted at runtime
 			.WithDesiredEffect(beliefs["AgentIsRested"])
 			.Build(),
 
-			new EntityGoals.Builder("SeekAndDestroy")
-			.WithPriority(3)
-			.WithDesiredEffect(beliefs["AttackingPlayer"])
-			.Build()
-			*/
+			new EntityGoals.Builder("Wander")
+			.WithPriority(25)
+			.WithDesiredEffect(beliefs["AgentMoving"])
+			.Build(),
 		};
 	}
-
 	void SetupTimers()
 	{
 		statsTimer = new CountdownTimer(2f);
-		statsTimer.OnTimerStop += () => {
+		statsTimer.OnTimerStop += () => 
+		{
 			UpdateStats();
 			statsTimer.Start();
 		};
 		statsTimer.Start();
+
+		goalPriorityTimer = new CountdownTimer(2f);
+		goalPriorityTimer.OnTimerStop += () =>
+		{
+			UpdateGoalPriorities();
+			goalPriorityTimer.Start();
+		};
+		goalPriorityTimer.Start();
 	}
 
 	// TODO move to stats system
 	void UpdateStats()
 	{
-		stamina += InRangeOf(restingPosition.position, 3f) ? 20 : -10;
-		health += InRangeOf(foodShack.position, 3f) ? 20 : -5;
-		stamina = Mathf.Clamp(stamina, 0, 100);
-		health = Mathf.Clamp(health, 0, 100);
+		currentHealth += InRangeOf(foodShack.position, 3f) ? 30 : -5;
+		currentStamina += InRangeOf(restingPosition.position, 3f) ? 30 : -10;
+
+		currentHealth = Mathf.Clamp(currentHealth, 0, 100);
+		currentStamina = Mathf.Clamp(currentStamina, 0, 100);
+	}
+	void UpdateGoalPriorities()
+	{
+		foreach (EntityGoals goal in goals)
+		{
+			if (goal.Name == "KeepHealthUp")
+				goal.UpdateGoalPriority(Mathf.Abs(maxHealth - currentHealth) * 1.25f);
+			else if (goal.Name == "KeepStaminaUp")
+				goal.UpdateGoalPriority(Mathf.Abs(maxStamina - currentStamina) * 1f);
+		}
 	}
 
 	bool InRangeOf(Vector3 pos, float range) => Vector3.Distance(transform.position, pos) < range;
@@ -222,15 +250,8 @@ public class EntityAgent : MonoBehaviour
 		currentGoal = null;
 	}
 
-	void Update()
+	void CreateNewPlan()
 	{
-		statsTimer.Tick(Time.deltaTime);
-		//animations.SetSpeed(navMeshAgent.velocity.magnitude);
-
-		Debug.LogError("beliefs count: " + beliefs.Count + " actions count: " + actions.Count + " goals count: " + goals.Count);
-
-
-
 		// Update the plan and current action if there is one
 		if (currentAction == null)
 		{
@@ -261,25 +282,8 @@ public class EntityAgent : MonoBehaviour
 
 		// If we have a current action, execute it
 		if (actionPlan != null && currentAction != null)
-		{
-			currentAction.Update(Time.deltaTime);
-
-			if (currentAction.Complete)
-			{
-				Debug.Log($"{currentAction.Name} complete");
-				currentAction.Stop();
-				currentAction = null;
-
-				if (actionPlan.Actions.Count == 0)
-				{
-					Debug.Log("Plan complete");
-					lastGoal = currentGoal;
-					currentGoal = null;
-				}
-			}
-		}
+			ExecuteActionPlan();
 	}
-
 	void CalculatePlan()
 	{
 		var priorityLevel = currentGoal?.Priority ?? 0;
@@ -297,6 +301,24 @@ public class EntityAgent : MonoBehaviour
 		if (potentialPlan != null)
 		{
 			actionPlan = potentialPlan;
+		}
+	}
+	void ExecuteActionPlan()
+	{
+		currentAction.Update(Time.deltaTime);
+
+		if (currentAction.Complete)
+		{
+			Debug.Log($"{currentAction.Name} complete");
+			currentAction.Stop();
+			currentAction = null;
+
+			if (actionPlan.Actions.Count == 0)
+			{
+				Debug.Log("Plan complete");
+				lastGoal = currentGoal;
+				currentGoal = null;
+			}
 		}
 	}
 }

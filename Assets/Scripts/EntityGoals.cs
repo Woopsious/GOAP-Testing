@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class EntityGoals : MonoBehaviour
+public class EntityGoals
 {
 	public string Name { get; }
 	public float Priority { get; private set; }
@@ -10,6 +10,11 @@ public class EntityGoals : MonoBehaviour
 	EntityGoals(string name)
 	{
 		Name = name;
+	}
+
+	public void UpdateGoalPriority(float newPriority)
+	{
+		Priority = newPriority;
 	}
 
 	public class Builder
