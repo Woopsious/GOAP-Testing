@@ -6,6 +6,7 @@ public class EntitySensor : MonoBehaviour
 	[SerializeField] float detectionRadius = 5f;
 	[SerializeField] float timerInterval = 1f;
 
+	EntityAgent entityAgent;
 	SphereCollider detectionRange;
 
 	public event Action OnTargetChanged = delegate { };
@@ -19,6 +20,7 @@ public class EntitySensor : MonoBehaviour
 
 	void Awake()
 	{
+		entityAgent = GetComponentInParent<EntityAgent>();
 		detectionRange = GetComponent<SphereCollider>();
 		detectionRange.isTrigger = true;
 		detectionRange.radius = detectionRadius;

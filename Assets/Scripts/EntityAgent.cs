@@ -7,14 +7,13 @@ using UnityEngine.AI;
 public class EntityAgent : MonoBehaviour
 {
 	[Header("Sensors")]
+	[SerializeField] EntitySensor fleeSensor;
 	[SerializeField] EntitySensor chaseSensor;
 	[SerializeField] EntitySensor attackSensor;
 
 	[Header("Known Locations")]
 	[SerializeField] Transform restingPosition;
 	[SerializeField] Transform foodShack;
-	[SerializeField] Transform doorOnePosition;
-	[SerializeField] Transform doorTwoPosition;
 
 	NavMeshAgent navMeshAgent;
 	//AnimationController animations;
@@ -30,8 +29,12 @@ public class EntityAgent : MonoBehaviour
 	CountdownTimer statsTimer;
 	CountdownTimer goalPriorityTimer;
 
-	GameObject target;
-	Vector3 destination;
+	[Header("Attacks")]
+	public bool lightAttackReady;
+	public bool heavyAttackReady;
+
+	public GameObject target;
+	public Vector3 destination;
 
 	public EntityGoals lastGoal;
 	public EntityGoals currentGoal;
@@ -42,7 +45,6 @@ public class EntityAgent : MonoBehaviour
 	public HashSet<EntityActions> actions;
 	public HashSet<EntityGoals> goals;
 
-	public GoapFactory gFactory;
 	IGoapPlanner gPlanner;
 
 	void Awake()
@@ -71,7 +73,7 @@ public class EntityAgent : MonoBehaviour
 	void Update()
 	{
 		statsTimer.Tick(Time.deltaTime);
-		goalPriorityTimer.Tick(Time.deltaTime);
+		//goalPriorityTimer.Tick(Time.deltaTime);
 		//animations.SetSpeed(navMeshAgent.velocity.magnitude);
 		CreateNewPlan();
 	}
@@ -79,7 +81,7 @@ public class EntityAgent : MonoBehaviour
 	void SetupBeliefs()
 	{
 		beliefs = new Dictionary<string, EntityBeliefs>();
-		BeliefFactory factory = new BeliefFactory(this, beliefs);
+		BeliefFactory factory = new(this, beliefs);
 
 		factory.AddBelief("Nothing", () => false);
 
@@ -90,8 +92,9 @@ public class EntityAgent : MonoBehaviour
 		factory.AddBelief("AgentStaminaLow", () => currentStamina < 30);
 		factory.AddBelief("AgentIsRested", () => currentStamina >= 50);
 
-		//factory.AddLocationBelief("AgentAtDoorOne", 3f, doorOnePosition);
-		//factory.AddLocationBelief("AgentAtDoorTwo", 3f, doorTwoPosition);
+		factory.AddBelief("LightAttackReady", () => lightAttackReady);
+		factory.AddBelief("HeavyAttackReady", () => heavyAttackReady);
+
 		factory.AddLocationBelief("AgentAtRestingPosition", 3f, restingPosition);
 		factory.AddLocationBelief("AgentAtFoodShack", 3f, foodShack);
 
@@ -124,31 +127,6 @@ public class EntityAgent : MonoBehaviour
 			.AddEffect(beliefs["AgentIsHealthy"])
 			.Build(),
 
-			/*
-			new EntityActions.Builder("MoveToDoorOne")
-			.WithStrategy(new MoveStrategy(navMeshAgent, () => doorOnePosition.position))
-			.AddEffect(beliefs["AgentAtDoorOne"])
-			.Build(),
-
-			new EntityActions.Builder("MoveToDoorTwo")
-			.WithStrategy(new MoveStrategy(navMeshAgent, () => doorTwoPosition.position))
-			.AddEffect(beliefs["AgentAtDoorTwo"])
-			.Build(),
-
-			new EntityActions.Builder("MoveFromDoorOneToRestArea")
-			.WithCost(2)
-			.WithStrategy(new MoveStrategy(navMeshAgent, () => restingPosition.position))
-			.AddPrecondition(beliefs["AgentAtDoorOne"])
-			.AddEffect(beliefs["AgentAtRestingPosition"])
-			.Build(),
-
-			new EntityActions.Builder("MoveFromDoorTwoRestArea")
-			.WithStrategy(new MoveStrategy(navMeshAgent, () => restingPosition.position))
-			.AddPrecondition(beliefs["AgentAtDoorTwo"])
-			.AddEffect(beliefs["AgentAtRestingPosition"])
-			.Build(),
-			*/
-
 			new EntityActions.Builder("MoveToRestPosition")
 			.WithStrategy(new MoveStrategy(navMeshAgent, () => restingPosition.position))
 			.AddEffect(beliefs["AgentAtRestingPosition"])
@@ -166,8 +144,14 @@ public class EntityAgent : MonoBehaviour
 			.AddEffect(beliefs["PlayerInAttackRange"])
 			.Build(),
 
-			new EntityActions.Builder("AttackPlayer")
-			.WithStrategy(new AttackStrategy())
+			new EntityActions.Builder("LightAttackPlayer")
+			.WithStrategy(new LightAttackStrategy(this))
+			.AddPrecondition(beliefs["PlayerInAttackRange"])
+			.AddEffect(beliefs["AttackingPlayer"])
+			.Build(),
+
+			new EntityActions.Builder("HeavyAttackPlayer")
+			.WithStrategy(new HeavyAttackStrategy(this))
 			.AddPrecondition(beliefs["PlayerInAttackRange"])
 			.AddEffect(beliefs["AttackingPlayer"])
 			.Build()
@@ -178,22 +162,22 @@ public class EntityAgent : MonoBehaviour
 		goals = new HashSet<EntityGoals>
 		{    
 			new EntityGoals.Builder("SeekAndDestroy")
-			.WithPriority(80)
+			.WithPriority(100)
 			.WithDesiredEffect(beliefs["AttackingPlayer"])
 			.Build(),
 
 			new EntityGoals.Builder("KeepHealthUp")
-			.WithPriority(1) //adjusted at runtime
+			.WithPriority(80)
 			.WithDesiredEffect(beliefs["AgentIsHealthy"])
 			.Build(),
 
 			new EntityGoals.Builder("KeepStaminaUp")
-			.WithPriority(1) //adjusted at runtime
+			.WithPriority(60)
 			.WithDesiredEffect(beliefs["AgentIsRested"])
 			.Build(),
 
 			new EntityGoals.Builder("Wander")
-			.WithPriority(25)
+			.WithPriority(40)
 			.WithDesiredEffect(beliefs["AgentMoving"])
 			.Build(),
 		};
@@ -208,6 +192,7 @@ public class EntityAgent : MonoBehaviour
 		};
 		statsTimer.Start();
 
+		/*
 		goalPriorityTimer = new CountdownTimer(2f);
 		goalPriorityTimer.OnTimerStop += () =>
 		{
@@ -215,9 +200,9 @@ public class EntityAgent : MonoBehaviour
 			goalPriorityTimer.Start();
 		};
 		goalPriorityTimer.Start();
+		*/
 	}
 
-	// TODO move to stats system
 	void UpdateStats()
 	{
 		currentHealth += InRangeOf(foodShack.position, 3f) ? 30 : -5;

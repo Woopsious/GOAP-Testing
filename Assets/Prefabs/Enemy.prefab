@@ -1,5 +1,73 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1850757724687073674
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7911888664233030472}
+  - component: {fileID: 6228863282757288370}
+  - component: {fileID: 6024228860040524787}
+  m_Layer: 0
+  m_Name: FleeSensor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7911888664233030472
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1850757724687073674}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 538383744467613240}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &6228863282757288370
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1850757724687073674}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &6024228860040524787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1850757724687073674}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  detectionRadius: 8
+  timerInterval: 1
 --- !u!1 &4185409361200469531
 GameObject:
   m_ObjectHideFlags: 0
@@ -66,7 +134,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detectionRadius: 12
+  detectionRadius: 25
   timerInterval: 1
 --- !u!1 &6086810403631445222
 GameObject:
@@ -134,7 +202,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  detectionRadius: 3
+  detectionRadius: 15
   timerInterval: 1
 --- !u!1 &8151942388671483916
 GameObject:
@@ -152,7 +220,7 @@ GameObject:
   - component: {fileID: 8906225582446445048}
   - component: {fileID: 5829567236386544650}
   m_Layer: 0
-  m_Name: Agent
+  m_Name: Enemy
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -167,10 +235,11 @@ Transform:
   m_GameObject: {fileID: 8151942388671483916}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.35209608, y: 3.5, z: 10.734762}
+  m_LocalPosition: {x: 0, y: 3.5, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 7911888664233030472}
   - {fileID: 3818468417507857389}
   - {fileID: 1042467244317991131}
   m_Father: {fileID: 0}
@@ -206,7 +275,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 31321ba15b8f8eb4c954353edc038b1d, type: 2}
+  - {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -290,15 +359,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 887aeb131058c1b49a3d2f89998b9bd1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fleeSensor: {fileID: 6024228860040524787}
   chaseSensor: {fileID: 3851985788758652946}
   attackSensor: {fileID: 2226928272430076744}
   restingPosition: {fileID: 0}
   foodShack: {fileID: 0}
-  doorOnePosition: {fileID: 0}
-  doorTwoPosition: {fileID: 0}
   currentHealth: 0
   currentStamina: 0
-  gFactory: {fileID: 0}
+  target: {fileID: 0}
+  destination: {x: 0, y: 0, z: 0}
 --- !u!195 &5829567236386544650
 NavMeshAgent:
   m_ObjectHideFlags: 0
