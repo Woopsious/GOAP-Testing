@@ -16,7 +16,6 @@ public class EntityAgent : MonoBehaviour
 	[SerializeField] Transform foodShack;
 
 	NavMeshAgent navMeshAgent;
-	//AnimationController animations;
 	Rigidbody rb;
 
 	[Header("Stats")]
@@ -28,9 +27,12 @@ public class EntityAgent : MonoBehaviour
 
 	CountdownTimer statsTimer;
 	CountdownTimer goalPriorityTimer;
+	[SerializeField] public CountdownTimer basicAttackTimer;
+	[SerializeField] public CountdownTimer heavyAttackTimer;
 
 	[Header("Attacks")]
-	public bool lightAttackReady;
+	public bool allAttacksOnCooldown;
+	public bool basicAttackReady;
 	public bool heavyAttackReady;
 
 	public GameObject target;
@@ -50,7 +52,6 @@ public class EntityAgent : MonoBehaviour
 	void Awake()
 	{
 		navMeshAgent = GetComponent<NavMeshAgent>();
-		//animations = GetComponent<AnimationController>();
 		rb = GetComponent<Rigidbody>();
 		rb.freezeRotation = true;
 
@@ -62,19 +63,26 @@ public class EntityAgent : MonoBehaviour
 		currentHealth = maxHealth;
 		currentStamina = maxStamina;
 
-		SetupTimers();
+		basicAttackReady = true;
+		heavyAttackReady = true;
+
 		SetupBeliefs();
 		SetupActions();
 		SetupGoals();
-
-		Debug.LogError("beliefs count: " + beliefs.Count + " actions count: " + actions.Count + " goals count: " + goals.Count);
+		SetupTimers();
 	}
 
 	void Update()
 	{
-		statsTimer.Tick(Time.deltaTime);
+		statsTimer.Tick(Time.deltaTime, false);
 		//goalPriorityTimer.Tick(Time.deltaTime);
-		//animations.SetSpeed(navMeshAgent.velocity.magnitude);
+		basicAttackTimer.Tick(Time.deltaTime, false);
+		heavyAttackTimer.Tick(Time.deltaTime, false);
+
+		if (!basicAttackReady && !heavyAttackReady)
+			allAttacksOnCooldown = true;
+		else allAttacksOnCooldown = false;
+
 		CreateNewPlan();
 	}
 
@@ -92,11 +100,15 @@ public class EntityAgent : MonoBehaviour
 		factory.AddBelief("AgentStaminaLow", () => currentStamina < 30);
 		factory.AddBelief("AgentIsRested", () => currentStamina >= 50);
 
-		factory.AddBelief("LightAttackReady", () => lightAttackReady);
+		factory.AddBelief("AllAttacksOnCooldown", () => allAttacksOnCooldown);
+		factory.AddBelief("BasicAttackReady", () => basicAttackReady);
 		factory.AddBelief("HeavyAttackReady", () => heavyAttackReady);
 
 		factory.AddLocationBelief("AgentAtRestingPosition", 3f, restingPosition);
 		factory.AddLocationBelief("AgentAtFoodShack", 3f, foodShack);
+
+		factory.AddSensorBelief("PlayerInFleeRange", fleeSensor);
+		factory.AddBelief("FleeingFromPlayer", () => false);
 
 		factory.AddSensorBelief("PlayerInChaseRange", chaseSensor);
 		factory.AddSensorBelief("PlayerInAttackRange", attackSensor);
@@ -144,24 +156,43 @@ public class EntityAgent : MonoBehaviour
 			.AddEffect(beliefs["PlayerInAttackRange"])
 			.Build(),
 
-			new EntityActions.Builder("LightAttackPlayer")
-			.WithStrategy(new LightAttackStrategy(this))
+			new EntityActions.Builder("WaitForAttacks")
+			.WithStrategy(new IdleStrategy(0.5f))
+			.AddPrecondition(beliefs["AllAttacksOnCooldown"])
+			.AddEffect(beliefs["AttackingPlayer"])
+			.Build(),
+
+			new EntityActions.Builder("BasicAttackPlayer")
+			.WithStrategy(new BasicAttackStrategy(this))
 			.AddPrecondition(beliefs["PlayerInAttackRange"])
+			.AddPrecondition(beliefs["BasicAttackReady"])
 			.AddEffect(beliefs["AttackingPlayer"])
 			.Build(),
 
 			new EntityActions.Builder("HeavyAttackPlayer")
 			.WithStrategy(new HeavyAttackStrategy(this))
 			.AddPrecondition(beliefs["PlayerInAttackRange"])
+			.AddPrecondition(beliefs["HeavyAttackReady"])
 			.AddEffect(beliefs["AttackingPlayer"])
+			.Build(),
+
+			new EntityActions.Builder("FleeFromPlayer")
+			.WithStrategy(new FleeStrategy(navMeshAgent, () => beliefs["PlayerInFleeRange"].Location))
+			.AddPrecondition(beliefs["PlayerInFleeRange"])
+			.AddEffect(beliefs["FleeingFromPlayer"])
 			.Build()
 		};
 	}
 	void SetupGoals()
 	{
 		goals = new HashSet<EntityGoals>
-		{    
-			new EntityGoals.Builder("SeekAndDestroy")
+		{
+			new EntityGoals.Builder("FleeFromPlayer")
+			.WithPriority(120)
+			.WithDesiredEffect(beliefs["FleeingFromPlayer"])
+			.Build(),
+
+			new EntityGoals.Builder("ChasePlayer")
 			.WithPriority(100)
 			.WithDesiredEffect(beliefs["AttackingPlayer"])
 			.Build(),
@@ -185,12 +216,32 @@ public class EntityAgent : MonoBehaviour
 	void SetupTimers()
 	{
 		statsTimer = new CountdownTimer(2f);
-		statsTimer.OnTimerStop += () => 
+		statsTimer.OnTimerStop += () =>
 		{
 			UpdateStats();
 			statsTimer.Start();
 		};
 		statsTimer.Start();
+
+		basicAttackTimer = new CountdownTimer(2f);
+		basicAttackTimer.OnTimerStart += () =>
+		{
+			basicAttackReady = false;
+		};
+		basicAttackTimer.OnTimerStop += () =>
+		{
+			basicAttackReady = true;
+		};
+
+		heavyAttackTimer = new CountdownTimer(10f);
+		heavyAttackTimer.OnTimerStart += () =>
+		{
+			heavyAttackReady = false;
+		};
+		heavyAttackTimer.OnTimerStop += () =>
+		{
+			heavyAttackReady = true;
+		};
 
 		/*
 		goalPriorityTimer = new CountdownTimer(2f);

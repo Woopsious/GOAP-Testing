@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 public abstract class Timer
 {
@@ -39,15 +40,18 @@ public abstract class Timer
 	public void Resume() => IsRunning = true;
 	public void Pause() => IsRunning = false;
 
-	public abstract void Tick(float deltaTime);
+	public abstract void Tick(float deltaTime, bool debugTime);
 }
 
 public class CountdownTimer : Timer
 {
 	public CountdownTimer(float value) : base(value) { }
 
-	public override void Tick(float deltaTime)
+	public override void Tick(float deltaTime, bool debugTime)
 	{
+		if (debugTime)
+			Debug.LogError("timer: " + Time);
+
 		if (IsRunning && Time > 0)
 		{
 			Time -= deltaTime;
@@ -74,7 +78,7 @@ public class StopwatchTimer : Timer
 {
 	public StopwatchTimer() : base(0) { }
 
-	public override void Tick(float deltaTime)
+	public override void Tick(float deltaTime, bool debugTime)
 	{
 		if (IsRunning)
 		{

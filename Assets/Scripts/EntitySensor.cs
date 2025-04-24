@@ -38,7 +38,7 @@ public class EntitySensor : MonoBehaviour
 
 	void Update()
 	{
-		timer.Tick(Time.deltaTime);
+		timer.Tick(Time.deltaTime, false);
 	}
 
 	void UpdateTargetPosition(GameObject target = null)

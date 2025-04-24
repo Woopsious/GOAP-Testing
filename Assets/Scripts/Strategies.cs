@@ -39,7 +39,7 @@ public class IdleStrategy : IActionStrategy
 	}
 
 	public void Start() => timer.Start();
-	public void Update(float deltaTime) => timer.Tick(deltaTime);
+	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
 }
 
 public class WanderStrategy : IActionStrategy
@@ -91,84 +91,78 @@ public class MoveStrategy : IActionStrategy
 	public void Stop() => agent.ResetPath();
 }
 
-public class LightAttackStrategy : IActionStrategy
+public class FleeStrategy : IActionStrategy
 {
-	EntityAgent agent;
+	readonly NavMeshAgent agent;
+	readonly Func<Vector3> destination;
 
-	public bool CanPerform => !onCooldown; // Agent can always attack
-	public bool Complete { get; private set; }
+	public bool CanPerform => !Complete;
+	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending;
 
-	readonly CountdownTimer timer;
-
-	readonly CountdownTimer cooldownTimer;
-	bool onCooldown;
-	//readonly AnimationController animations;
-
-	public LightAttackStrategy(EntityAgent agent)
+	public FleeStrategy(NavMeshAgent agent, Func<Vector3> destination)
 	{
 		this.agent = agent;
-
-		//this.animations = animations;
-		timer = new CountdownTimer(2);
-		timer.OnTimerStart += () => Complete = false;
-		timer.OnTimerStop += () => Complete = true;
-
-		cooldownTimer = new CountdownTimer(3);
-		cooldownTimer.OnTimerStart += () => onCooldown = false;
-		cooldownTimer.OnTimerStop += () => onCooldown = true;
+		this.destination = destination;
+		Debug.LogError("destination: " + destination());
 	}
 
 	public void Start()
 	{
-		timer.Start();
-		cooldownTimer.Start();
-		//animations.Attack();
+		Func<Vector3> fleeDestination = destination;
+
+		agent.SetDestination(destination());
+	}
+	public void Stop() => agent.ResetPath();
+}
+
+public class BasicAttackStrategy : IActionStrategy
+{
+	EntityAgent agent;
+
+	public bool CanPerform => true; // Agent can always attack
+	public bool Complete { get; private set; }
+
+	readonly CountdownTimer timer;
+
+	public BasicAttackStrategy(EntityAgent agent)
+	{
+		this.agent = agent;
+		timer = new CountdownTimer(2f);
+		timer.OnTimerStart += () => Complete = false;
+		timer.OnTimerStop += () => Complete = true;
 	}
 
-	public void Update(float deltaTime)
+	public void Start()
 	{
-		timer.Tick(deltaTime);
-		cooldownTimer.Tick(deltaTime);
+		agent.basicAttackTimer.Start();
+		timer.Start();
 	}
+
+public void Update(float deltaTime) => timer.Tick(deltaTime, false);
 }
 
 public class HeavyAttackStrategy : IActionStrategy
 {
 	EntityAgent agent;
 
-	public bool CanPerform => !onCooldown; // Agent can always attack
+	public bool CanPerform => true; // Agent can always attack
 	public bool Complete { get; private set; }
 
 	readonly CountdownTimer timer;
 
-	readonly CountdownTimer cooldownTimer;
-	bool onCooldown;
-	//readonly AnimationController animations;
-
 	public HeavyAttackStrategy(EntityAgent agent)
 	{
 		this.agent = agent;
-
-		//this.animations = animations;
-		timer = new CountdownTimer(2);
+		timer = new CountdownTimer(2f);
 		timer.OnTimerStart += () => Complete = false;
 		timer.OnTimerStop += () => Complete = true;
-
-		cooldownTimer = new CountdownTimer(10);
-		cooldownTimer.OnTimerStart += () => onCooldown = false;
-		cooldownTimer.OnTimerStop += () => onCooldown = true;
 	}
 
 	public void Start()
 	{
+		agent.heavyAttackTimer.Start();
 		timer.Start();
-		cooldownTimer.Start();
-		//animations.Attack();
 	}
 
-	public void Update(float deltaTime)
-	{
-		timer.Tick(deltaTime);
-		cooldownTimer.Tick(deltaTime);
-	}
+	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
 }
