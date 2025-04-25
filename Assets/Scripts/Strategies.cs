@@ -103,14 +103,13 @@ public class FleeStrategy : IActionStrategy
 	{
 		this.agent = agent;
 		this.destination = destination;
-		Debug.LogError("destination: " + destination());
 	}
 
 	public void Start()
 	{
-		Func<Vector3> fleeDestination = destination;
-
-		agent.SetDestination(destination());
+		Vector3 fleeDestination = agent.transform.position - (destination() - agent.transform.position);
+		fleeDestination *= 0.8f; //stop it moving too far away
+		agent.SetDestination(fleeDestination);
 	}
 	public void Stop() => agent.ResetPath();
 }
