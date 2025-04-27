@@ -165,3 +165,29 @@ public class HeavyAttackStrategy : IActionStrategy
 
 	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
 }
+
+public class RangedAttackStrategy : IActionStrategy
+{
+	EntityAgent agent;
+
+	public bool CanPerform => true; // Agent can always attack
+	public bool Complete { get; private set; }
+
+	readonly CountdownTimer timer;
+
+	public RangedAttackStrategy(EntityAgent agent)
+	{
+		this.agent = agent;
+		timer = new CountdownTimer(2f);
+		timer.OnTimerStart += () => Complete = false;
+		timer.OnTimerStop += () => Complete = true;
+	}
+
+	public void Start()
+	{
+		agent.RangedAttackTimer.Start();
+		timer.Start();
+	}
+
+	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
+}
