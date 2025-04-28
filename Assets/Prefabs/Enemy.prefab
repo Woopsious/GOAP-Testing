@@ -434,6 +434,7 @@ MonoBehaviour:
   rangedAttackSensor: {fileID: 7626393703566015078}
   restingPosition: {fileID: 0}
   foodShack: {fileID: 0}
+  entityType: {fileID: 0}
   currentHealth: 0
   currentStamina: 0
   allAttacksOnCooldown: 0
@@ -442,6 +443,8 @@ MonoBehaviour:
   rangedAttackReady: 0
   target: {fileID: 0}
   destination: {x: 0, y: 0, z: 0}
+  redTeamMaterial: {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
+  greenTeamMaterial: {fileID: 2100000, guid: d3c784064aacc7a4fb05fde26fc3385d, type: 2}
 --- !u!195 &5829567236386544650
 NavMeshAgent:
   m_ObjectHideFlags: 0

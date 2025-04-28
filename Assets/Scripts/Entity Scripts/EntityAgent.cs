@@ -6,6 +6,9 @@ using UnityEngine.AI;
 
 public class EntityAgent : MonoBehaviour
 {
+	NavMeshAgent navMeshAgent;
+	Rigidbody rb;
+
 	[Header("Sensors")]
 	[SerializeField] EntitySensor fleeSensor;
 	[SerializeField] EntitySensor chaseSensor;
@@ -16,14 +19,9 @@ public class EntityAgent : MonoBehaviour
 	[SerializeField] Transform restingPosition;
 	[SerializeField] Transform foodShack;
 
-	NavMeshAgent navMeshAgent;
-	Rigidbody rb;
-
 	[Header("Stats")]
-	private readonly float maxHealth = 100;
+	public EntityTypes entityType;
 	public float currentHealth;
-
-	private readonly float maxStamina = 100;
 	public float currentStamina;
 
 	CountdownTimer statsTimer;
@@ -39,7 +37,6 @@ public class EntityAgent : MonoBehaviour
 	public bool rangedAttackReady;
 
 	public GameObject target;
-	public Vector3 destination;
 
 	public EntityGoals lastGoal;
 	public EntityGoals currentGoal;
@@ -52,8 +49,18 @@ public class EntityAgent : MonoBehaviour
 
 	IGoapPlanner gPlanner;
 
+	public Material redTeamMaterial;
+	public Material greenTeamMaterial;
+
 	void Awake()
 	{
+		if (entityType == null)
+			Debug.LogError("Entity Type not set for gameobject: " + gameObject.name);
+		else if (entityType.team == EntityTypes.EntityTeam.redTeam)
+			GetComponent<MeshRenderer>().sharedMaterial = redTeamMaterial;
+		else if (entityType.team == EntityTypes.EntityTeam.greenTeam)
+			GetComponent<MeshRenderer>().sharedMaterial = greenTeamMaterial;
+
 		navMeshAgent = GetComponent<NavMeshAgent>();
 		rb = GetComponent<Rigidbody>();
 		rb.freezeRotation = true;
@@ -63,8 +70,8 @@ public class EntityAgent : MonoBehaviour
 
 	void Start()
 	{
-		currentHealth = maxHealth;
-		currentStamina = maxStamina;
+		currentHealth = entityType.maxHealth;
+		currentStamina = entityType.maxStamina;
 
 		basicAttackReady = true;
 		heavyAttackReady = true;
@@ -277,16 +284,6 @@ public class EntityAgent : MonoBehaviour
 		{
 			rangedAttackReady = true;
 		};
-
-		/*
-		goalPriorityTimer = new CountdownTimer(2f);
-		goalPriorityTimer.OnTimerStop += () =>
-		{
-			UpdateGoalPriorities();
-			goalPriorityTimer.Start();
-		};
-		goalPriorityTimer.Start();
-		*/
 	}
 	void UpdateStats()
 	{
@@ -296,21 +293,10 @@ public class EntityAgent : MonoBehaviour
 		currentHealth = Mathf.Clamp(currentHealth, 0, 100);
 		currentStamina = Mathf.Clamp(currentStamina, 0, 100);
 	}
-	void UpdateGoalPriorities()
-	{
-		foreach (EntityGoals goal in goals)
-		{
-			if (goal.Name == "KeepHealthUp")
-				goal.UpdateGoalPriority(Mathf.Abs(maxHealth - currentHealth) * 1.25f);
-			else if (goal.Name == "KeepStaminaUp")
-				goal.UpdateGoalPriority(Mathf.Abs(maxStamina - currentStamina) * 1f);
-		}
-	}
 
 	void TickAllTimers()
 	{
 		statsTimer.Tick(Time.deltaTime, false);
-		//goalPriorityTimer.Tick(Time.deltaTime);
 		basicAttackTimer.Tick(Time.deltaTime, false);
 		heavyAttackTimer.Tick(Time.deltaTime, false);
 		RangedAttackTimer.Tick(Time.deltaTime, false);
