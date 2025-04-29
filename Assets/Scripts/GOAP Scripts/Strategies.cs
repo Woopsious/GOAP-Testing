@@ -76,15 +76,29 @@ public class WanderStrategy : IActionStrategy
 public class MoveStrategy : IActionStrategy
 {
 	readonly NavMeshAgent agent;
+	float minMoveDistanceToSatisfy;
 	readonly Func<Vector3> destination;
 
 	public bool CanPerform => !Complete;
-	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending;
+	public bool Complete => agent.remainingDistance <= minMoveDistanceToSatisfy && !agent.pathPending;
 
 	public MoveStrategy(NavMeshAgent agent, Func<Vector3> destination)
 	{
 		this.agent = agent;
 		this.destination = destination;
+	}
+
+	public MoveStrategy(NavMeshAgent agent, float minMoveDistance, Func<Vector3> destination)
+	{
+		this.agent = agent;
+		this.destination = destination;
+		minMoveDistanceToSatisfy = GetMinMoveDistanceToSatisfy(minMoveDistance);
+	}
+
+	float GetMinMoveDistanceToSatisfy(float minMoveDistance)
+	{
+		minMoveDistance *= 0.75f;
+		return minMoveDistance;
 	}
 
 	public void Start() => agent.SetDestination(destination());
@@ -160,32 +174,6 @@ public class HeavyAttackStrategy : IActionStrategy
 	public void Start()
 	{
 		agent.heavyAttackTimer.Start();
-		timer.Start();
-	}
-
-	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
-}
-
-public class RangedAttackStrategy : IActionStrategy
-{
-	EntityAgent agent;
-
-	public bool CanPerform => true; // Agent can always attack
-	public bool Complete { get; private set; }
-
-	readonly CountdownTimer timer;
-
-	public RangedAttackStrategy(EntityAgent agent)
-	{
-		this.agent = agent;
-		timer = new CountdownTimer(2f);
-		timer.OnTimerStart += () => Complete = false;
-		timer.OnTimerStop += () => Complete = true;
-	}
-
-	public void Start()
-	{
-		agent.RangedAttackTimer.Start();
 		timer.Start();
 	}
 

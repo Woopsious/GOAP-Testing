@@ -10,31 +10,25 @@ public class EntityAgent : MonoBehaviour
 	Rigidbody rb;
 
 	[Header("Sensors")]
-	[SerializeField] EntitySensor fleeSensor;
 	[SerializeField] EntitySensor chaseSensor;
-	[SerializeField] EntitySensor meleeAttackSensor;
-	[SerializeField] EntitySensor rangedAttackSensor;
+	[SerializeField] EntitySensor fleeSensor;
+	[SerializeField] EntitySensor attackSensor;
 
 	[Header("Known Locations")]
-	[SerializeField] Transform restingPosition;
 	[SerializeField] Transform foodShack;
 
 	[Header("Stats")]
 	public EntityTypes entityType;
 	public float currentHealth;
-	public float currentStamina;
 
 	CountdownTimer statsTimer;
-	CountdownTimer goalPriorityTimer;
 	[SerializeField] public CountdownTimer basicAttackTimer;
 	[SerializeField] public CountdownTimer heavyAttackTimer;
-	[SerializeField] public CountdownTimer RangedAttackTimer;
 
 	[Header("Attacks")]
 	public bool allAttacksOnCooldown;
 	public bool basicAttackReady;
 	public bool heavyAttackReady;
-	public bool rangedAttackReady;
 
 	public GameObject target;
 
@@ -70,28 +64,35 @@ public class EntityAgent : MonoBehaviour
 
 	void Start()
 	{
-		currentHealth = entityType.maxHealth;
-		currentStamina = entityType.maxStamina;
-
-		basicAttackReady = true;
-		heavyAttackReady = true;
-		rangedAttackReady = true;
-
-		SetupBeliefs();
-		SetupActions();
-		SetupGoals();
-		SetupTimers();
+		Initilize();
 	}
 
 	void Update()
 	{
 		TickAllTimers();
 
-		if (!basicAttackReady && !heavyAttackReady && !rangedAttackReady)
+		if (!basicAttackReady && !heavyAttackReady)
 			allAttacksOnCooldown = true;
 		else allAttacksOnCooldown = false;
 
 		CreateNewPlan();
+	}
+
+	void Initilize()
+	{
+		currentHealth = entityType.maxHealth;
+
+		basicAttackReady = true;
+		heavyAttackReady = true;
+
+		chaseSensor.UpdateSensorSettings(entityType.chaseRange);
+		fleeSensor.UpdateSensorSettings(entityType.fleeRange);
+		attackSensor.UpdateSensorSettings(entityType.basicAttackRange); //atm ignore different ranges for basic/heavy attacks
+
+		SetupBeliefs();
+		SetupActions();
+		SetupGoals();
+		SetupTimers();
 	}
 
 	void SetupBeliefs()
@@ -103,30 +104,25 @@ public class EntityAgent : MonoBehaviour
 
 		factory.AddBelief("AgentIdle", () => !navMeshAgent.hasPath);
 		factory.AddBelief("AgentMoving", () => navMeshAgent.hasPath);
-		factory.AddBelief("AgentHealthLow", () => currentHealth < 20);
-		factory.AddBelief("AgentIsHealthy", () => currentHealth >= 40);
-		factory.AddBelief("AgentStaminaLow", () => currentStamina < 30);
-		factory.AddBelief("AgentIsRested", () => currentStamina >= 50);
+		factory.AddBelief("AgentHealthLow", () => currentHealth < 40);
+		factory.AddBelief("AgentIsHealthy", () => currentHealth >= 60);
 
-		factory.AddLocationBelief("AgentAtRestingPosition", 3f, restingPosition);
 		factory.AddLocationBelief("AgentAtFoodShack", 3f, foodShack);
 
-		factory.AddSensorBelief("PlayerInChaseRange", chaseSensor);
-		factory.AddSensorBelief("PlayerInFleeRange", fleeSensor);
-		factory.AddBelief("FleeingFromPlayer", () => false);
+		factory.AddSensorBelief("EntityInChaseRange", chaseSensor);
+		factory.AddSensorBelief("EntityInFleeRange", fleeSensor);
+		factory.AddBelief("FleeingFromEntity", () => false);
 
-		factory.AddSensorBelief("PlayerInMeleeRange", meleeAttackSensor);
-		factory.AddSensorBelief("PlayerInRangedRange", rangedAttackSensor);
-		factory.AddBelief("PlayerNotInsideRangedRange", () => !fleeSensor.IsTargetInRange);
+		factory.AddSensorBelief("EntityInAttackRange", attackSensor);
+		factory.AddBelief("EntityNotInsideRangedRange", () => !fleeSensor.IsTargetInRange);
 
 		factory.AddBelief("AllAttacksOnCooldown", () => allAttacksOnCooldown);
 		factory.AddBelief("BasicAttackReady", () => basicAttackReady);
 		factory.AddBelief("HeavyAttackReady", () => heavyAttackReady);
-		factory.AddBelief("RangedAttackReady", () => rangedAttackReady);
 
-		factory.AddBelief("AttackingPlayer", () => false); // Player can always be attacked, this will never become true
-		factory.AddBelief("MeleeAttackingPlayer", () => false);
-		factory.AddBelief("RangeAttackingPlayer", () => false);
+		factory.AddBelief("AttackingEntity", () => false); // Player can always be attacked, this will never become true
+		factory.AddBelief("BasicAttack", () => false);
+		factory.AddBelief("HeavyAttack", () => false);
 	}
 	void SetupActions()
 	{
@@ -153,55 +149,36 @@ public class EntityAgent : MonoBehaviour
 			.AddEffect(beliefs["AgentIsHealthy"])
 			.Build(),
 
-			new EntityActions.Builder("MoveToRestPosition")
-			.WithStrategy(new MoveStrategy(navMeshAgent, () => restingPosition.position))
-			.AddEffect(beliefs["AgentAtRestingPosition"])
+			new EntityActions.Builder("FleeFromEntity")
+			.WithStrategy(new FleeStrategy(navMeshAgent, () => beliefs["EntityInFleeRange"].Location))
+			.AddPrecondition(beliefs["EntityInFleeRange"])
+			.AddEffect(beliefs["FleeingFromEntity"])
 			.Build(),
 
-			new EntityActions.Builder("Rest")
-			.WithStrategy(new IdleStrategy(3))
-			.AddPrecondition(beliefs["AgentAtRestingPosition"])
-			.AddEffect(beliefs["AgentIsRested"])
-			.Build(),
-
-			new EntityActions.Builder("ChasePlayer")
-			.WithStrategy(new MoveStrategy(navMeshAgent, () => beliefs["PlayerInChaseRange"].Location))
-			.AddPrecondition(beliefs["PlayerInChaseRange"])
-			.AddEffect(beliefs["AttackingPlayer"])
+			new EntityActions.Builder("ChaseEntity")
+			.WithStrategy(new MoveStrategy(navMeshAgent, entityType.basicAttackRange, () => beliefs["EntityInChaseRange"].Location))
+			.AddPrecondition(beliefs["EntityInChaseRange"])
+			.AddEffect(beliefs["AttackingEntity"])
 			.Build(),
 
 			new EntityActions.Builder("WaitForAttacks")
 			.WithStrategy(new IdleStrategy(0.5f))
 			.AddPrecondition(beliefs["AllAttacksOnCooldown"])
-			.AddEffect(beliefs["AttackingPlayer"])
+			.AddEffect(beliefs["AttackingEntity"])
 			.Build(),
 
-			new EntityActions.Builder("BasicAttackPlayer")
+			new EntityActions.Builder("BasicAttack")
 			.WithStrategy(new BasicAttackStrategy(this))
-			.AddPrecondition(beliefs["PlayerInMeleeRange"])
+			.AddPrecondition(beliefs["EntityInAttackRange"])
 			.AddPrecondition(beliefs["BasicAttackReady"])
-			.AddEffect(beliefs["MeleeAttackingPlayer"])
+			.AddEffect(beliefs["BasicAttack"])
 			.Build(),
 
-			new EntityActions.Builder("HeavyAttackPlayer")
+			new EntityActions.Builder("HeavyAttack")
 			.WithStrategy(new HeavyAttackStrategy(this))
-			.AddPrecondition(beliefs["PlayerInMeleeRange"])
+			.AddPrecondition(beliefs["EntityInAttackRange"])
 			.AddPrecondition(beliefs["HeavyAttackReady"])
-			.AddEffect(beliefs["MeleeAttackingPlayer"])
-			.Build(),
-
-			new EntityActions.Builder("RangeAttackPlayer")
-			.WithStrategy(new RangedAttackStrategy(this))
-			.AddPrecondition(beliefs["PlayerInRangedRange"])
-			.AddPrecondition(beliefs["PlayerNotInsideRangedRange"])
-			.AddPrecondition(beliefs["RangedAttackReady"])
-			.AddEffect(beliefs["RangeAttackingPlayer"])
-			.Build(),
-
-			new EntityActions.Builder("FleeFromPlayer")
-			.WithStrategy(new FleeStrategy(navMeshAgent, () => beliefs["PlayerInFleeRange"].Location))
-			.AddPrecondition(beliefs["PlayerInFleeRange"])
-			.AddEffect(beliefs["FleeingFromPlayer"])
+			.AddEffect(beliefs["HeavyAttack"])
 			.Build()
 		};
 	}
@@ -209,34 +186,34 @@ public class EntityAgent : MonoBehaviour
 	{
 		goals = new HashSet<EntityGoals>
 		{   
-			new EntityGoals.Builder("RangeAttackPlayer")
-			.WithPriority(80)
-			.WithDesiredEffect(beliefs["RangeAttackingPlayer"])
-			.Build(),
-
-			new EntityGoals.Builder("MeleeAttackPlayer")
+			new EntityGoals.Builder("HeavyAttack")
 			.WithPriority(70)
-			.WithDesiredEffect(beliefs["MeleeAttackingPlayer"])
+			.WithDesiredEffect(beliefs["HeavyAttack"])
 			.Build(),
 
-			new EntityGoals.Builder("FleeFromPlayer")
+			new EntityGoals.Builder("BasicAttack")
+			.WithPriority(70)
+			.WithDesiredEffect(beliefs["BasicAttack"])
+			.Build(),
+
+			new EntityGoals.Builder("WaitForAttacks")
+			.WithPriority(60)
+			.WithDesiredEffect(beliefs["AttackingEntity"])
+			.Build(),
+
+			new EntityGoals.Builder("FleeFromEntity")
 			.WithPriority(50)
-			.WithDesiredEffect(beliefs["FleeingFromPlayer"])
+			.WithDesiredEffect(beliefs["FleeingFromEntity"])
 			.Build(),
 
-			new EntityGoals.Builder("ChasePlayer")
+			new EntityGoals.Builder("ChaseEntity")
 			.WithPriority(40)
-			.WithDesiredEffect(beliefs["AttackingPlayer"])
+			.WithDesiredEffect(beliefs["AttackingEntity"])
 			.Build(),
 
 			new EntityGoals.Builder("KeepHealthUp")
 			.WithPriority(20)
 			.WithDesiredEffect(beliefs["AgentIsHealthy"])
-			.Build(),
-
-			new EntityGoals.Builder("KeepStaminaUp")
-			.WithPriority(10)
-			.WithDesiredEffect(beliefs["AgentIsRested"])
 			.Build(),
 
 			new EntityGoals.Builder("Wander")
@@ -247,7 +224,7 @@ public class EntityAgent : MonoBehaviour
 	}
 	void SetupTimers()
 	{
-		statsTimer = new CountdownTimer(2f);
+		statsTimer = new CountdownTimer(5f);
 		statsTimer.OnTimerStop += () =>
 		{
 			UpdateStats();
@@ -255,7 +232,7 @@ public class EntityAgent : MonoBehaviour
 		};
 		statsTimer.Start();
 
-		basicAttackTimer = new CountdownTimer(2f);
+		basicAttackTimer = new CountdownTimer(entityType.basicAttackCooldown);
 		basicAttackTimer.OnTimerStart += () =>
 		{
 			basicAttackReady = false;
@@ -265,7 +242,7 @@ public class EntityAgent : MonoBehaviour
 			basicAttackReady = true;
 		};
 
-		heavyAttackTimer = new CountdownTimer(10f);
+		heavyAttackTimer = new CountdownTimer(entityType.heavyAttackCooldown);
 		heavyAttackTimer.OnTimerStart += () =>
 		{
 			heavyAttackReady = false;
@@ -274,24 +251,12 @@ public class EntityAgent : MonoBehaviour
 		{
 			heavyAttackReady = true;
 		};
-
-		RangedAttackTimer = new CountdownTimer(5f);
-		RangedAttackTimer.OnTimerStart += () =>
-		{
-			rangedAttackReady = false;
-		};
-		RangedAttackTimer.OnTimerStop += () =>
-		{
-			rangedAttackReady = true;
-		};
 	}
+
 	void UpdateStats()
 	{
 		currentHealth += InRangeOf(foodShack.position, 3f) ? 30 : -5;
-		currentStamina += InRangeOf(restingPosition.position, 3f) ? 30 : -10;
-
 		currentHealth = Mathf.Clamp(currentHealth, 0, 100);
-		currentStamina = Mathf.Clamp(currentStamina, 0, 100);
 	}
 
 	void TickAllTimers()
@@ -299,7 +264,6 @@ public class EntityAgent : MonoBehaviour
 		statsTimer.Tick(Time.deltaTime, false);
 		basicAttackTimer.Tick(Time.deltaTime, false);
 		heavyAttackTimer.Tick(Time.deltaTime, false);
-		RangedAttackTimer.Tick(Time.deltaTime, false);
 	}
 
 	bool InRangeOf(Vector3 pos, float range) => Vector3.Distance(transform.position, pos) < range;

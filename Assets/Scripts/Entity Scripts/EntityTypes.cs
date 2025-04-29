@@ -13,6 +13,11 @@ public class EntityTypes : ScriptableObject
 	public float maxHealth;
 	public float maxStamina;
 
+	[Header("Sensor Ranges")]
+	public float chaseRange;
+	public float fleeRange;
+
+	[Header("Stats")]
 	public AttackType attackType;
 	public enum AttackType
 	{
@@ -21,7 +26,9 @@ public class EntityTypes : ScriptableObject
 
 	public float basicAttackDamage;
 	public float basicAttackCooldown;
+	public float basicAttackRange;
 
 	public float heavyAttackDamage;
 	public float heavyAttackCooldown;
+	public float heavyAttackRange;
 }

@@ -5,6 +5,12 @@ using UnityEngine;
 
 public class EntitySensor : MonoBehaviour
 {
+	[SerializeField] SensorType sensorType;
+	enum SensorType
+	{
+		chase, flee, attack
+	}
+
 	[SerializeField] float detectionRadius = 5f;
 	[SerializeField] float timerInterval = 1f;
 
@@ -27,6 +33,12 @@ public class EntitySensor : MonoBehaviour
 	{
 		detectionRange = GetComponent<SphereCollider>();
 		detectionRange.isTrigger = true;
+		detectionRange.radius = detectionRadius;
+	}
+
+	public void UpdateSensorSettings(float detectionRadius)
+	{
+		this.detectionRadius = detectionRadius;
 		detectionRange.radius = detectionRadius;
 	}
 
@@ -56,6 +68,9 @@ public class EntitySensor : MonoBehaviour
 				targetsInRange[i].targetAggroDistance = GetAggoDistance(targetsInRange[i].target);
 
 			targetsInRange.Sort((a, b) => a.targetAggroDistance.CompareTo(b.targetAggroDistance));
+
+			//if (target == targetsInRange[0].target) //same target so skip force recalc of planw
+				//return;
 
 			target = targetsInRange[0].target;
 			agent.target = targetsInRange[0].target;
