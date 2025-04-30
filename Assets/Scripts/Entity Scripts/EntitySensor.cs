@@ -14,11 +14,11 @@ public class EntitySensor : MonoBehaviour
 	[SerializeField] float detectionRadius = 5f;
 	[SerializeField] float timerInterval = 1f;
 
-	EntityAgent agent;
+	EntityBrain entityBrain;
 	EntityTypes.EntityTeam entityTeam;
 	SphereCollider detectionRange;
 
-	public event Action OnTargetChanged = delegate { };
+	public event Action<GameObject> OnTargetChanged = delegate { };
 
 	public List<EntityAggro> targetsInRange = new List<EntityAggro>();
 
@@ -44,8 +44,8 @@ public class EntitySensor : MonoBehaviour
 
 	void Start()
 	{
-		agent = GetComponentInParent<EntityAgent>();
-		entityTeam = agent.entityType.team;
+		entityBrain = GetComponentInParent<EntityBrain>();
+		entityTeam = GetComponentInParent<EntityStats>().type.team;
 
 		timer = new CountdownTimer(timerInterval);
 		timer.OnTimerStop += () => {
@@ -68,24 +68,16 @@ public class EntitySensor : MonoBehaviour
 				targetsInRange[i].targetAggroDistance = GetAggoDistance(targetsInRange[i].target);
 
 			targetsInRange.Sort((a, b) => a.targetAggroDistance.CompareTo(b.targetAggroDistance));
-
-			//if (target == targetsInRange[0].target) //same target so skip force recalc of planw
-				//return;
-
 			target = targetsInRange[0].target;
-			agent.target = targetsInRange[0].target;
 		}
 		else
-		{
 			target = null;
-			agent.target = null;
-		}
 
 
 		if (IsTargetInRange && (lastKnownPosition != TargetPosition || lastKnownPosition != Vector3.zero))
 		{
 			lastKnownPosition = TargetPosition;
-			OnTargetChanged.Invoke();
+			OnTargetChanged.Invoke(target);
 		}
 	}
 
@@ -93,10 +85,8 @@ public class EntitySensor : MonoBehaviour
 	{
 		EntityTypes.EntityTeam otherAgentTeam;
 
-		if (other.GetComponent<EntityAgent>() != null)
-			otherAgentTeam = other.GetComponent<EntityAgent>().entityType.team;
-		else if (other.GetComponent<PlayerMovement>() != null)
-			otherAgentTeam = EntityTypes.EntityTeam.playerTeam;
+		if (other.GetComponent<EntityStats>() != null)
+			otherAgentTeam = other.GetComponent<EntityStats>().type.team;
 		else
 			return;
 
@@ -117,15 +107,12 @@ public class EntitySensor : MonoBehaviour
 			}
 		}
 	}
-
 	void OnTriggerExit(Collider other)
 	{
 		EntityTypes.EntityTeam otherAgentTeam;
 
-		if (other.GetComponent<EntityAgent>() != null)
-			otherAgentTeam = other.GetComponent<EntityAgent>().entityType.team;
-		else if (other.GetComponent<PlayerMovement>() != null)
-			otherAgentTeam = EntityTypes.EntityTeam.playerTeam;
+		if (other.GetComponent<EntityStats>() != null)
+			otherAgentTeam = other.GetComponent<EntityStats>().type.team;
 		else
 			return;
 
@@ -136,6 +123,24 @@ public class EntitySensor : MonoBehaviour
 				if (targetsInRange[i].target == other.gameObject)
 					targetsInRange.RemoveAt(i);
 			}
+		}
+	}
+
+	void OnEnable()
+	{
+		GameManager.OnEntityDeathEvent += ClearDeadEntitiesFromTargetList;
+	}
+	void OnDisable()
+	{
+		GameManager.OnEntityDeathEvent -= ClearDeadEntitiesFromTargetList;
+	}
+
+	void ClearDeadEntitiesFromTargetList(GameObject entity)
+	{
+		for (int i = targetsInRange.Count - 1; i >= 0; i--)
+		{
+			if (targetsInRange[i].target == entity || targetsInRange[i].target == null) //remove possible null refs
+				targetsInRange.RemoveAt(i);
 		}
 	}
 

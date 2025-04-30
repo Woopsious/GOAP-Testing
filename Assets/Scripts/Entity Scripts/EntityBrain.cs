@@ -4,8 +4,9 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EntityAgent : MonoBehaviour
+public class EntityBrain : MonoBehaviour
 {
+	EntityStats entityStats;
 	NavMeshAgent navMeshAgent;
 	Rigidbody rb;
 
@@ -15,20 +16,15 @@ public class EntityAgent : MonoBehaviour
 	[SerializeField] EntitySensor attackSensor;
 
 	[Header("Known Locations")]
-	[SerializeField] Transform foodShack;
+	public Transform foodShack { get; private set; }
 
-	[Header("Stats")]
-	public EntityTypes entityType;
-	public float currentHealth;
-
-	CountdownTimer statsTimer;
-	[SerializeField] public CountdownTimer basicAttackTimer;
-	[SerializeField] public CountdownTimer heavyAttackTimer;
+	public CountdownTimer attackOneTimer;
+	public CountdownTimer attackTwoTimer;
 
 	[Header("Attacks")]
 	public bool allAttacksOnCooldown;
-	public bool basicAttackReady;
-	public bool heavyAttackReady;
+	public bool attackOneReady;
+	public bool attackTwoReady;
 
 	public GameObject target;
 
@@ -48,11 +44,13 @@ public class EntityAgent : MonoBehaviour
 
 	void Awake()
 	{
-		if (entityType == null)
+		entityStats = GetComponent<EntityStats>();
+
+		if (entityStats.type == null)
 			Debug.LogError("Entity Type not set for gameobject: " + gameObject.name);
-		else if (entityType.team == EntityTypes.EntityTeam.redTeam)
+		else if (entityStats.type.team == EntityTypes.EntityTeam.redTeam)
 			GetComponent<MeshRenderer>().sharedMaterial = redTeamMaterial;
-		else if (entityType.team == EntityTypes.EntityTeam.greenTeam)
+		else if (entityStats.type.team == EntityTypes.EntityTeam.greenTeam)
 			GetComponent<MeshRenderer>().sharedMaterial = greenTeamMaterial;
 
 		navMeshAgent = GetComponent<NavMeshAgent>();
@@ -71,7 +69,7 @@ public class EntityAgent : MonoBehaviour
 	{
 		TickAllTimers();
 
-		if (!basicAttackReady && !heavyAttackReady)
+		if (!attackOneReady && !attackTwoReady)
 			allAttacksOnCooldown = true;
 		else allAttacksOnCooldown = false;
 
@@ -80,14 +78,17 @@ public class EntityAgent : MonoBehaviour
 
 	void Initilize()
 	{
-		currentHealth = entityType.maxHealth;
+		foodShack = GameManager.instance.foodShack.transform;
 
-		basicAttackReady = true;
-		heavyAttackReady = true;
+		if (foodShack == null)
+			Debug.LogError("No Global Food Shack Location Set");
 
-		chaseSensor.UpdateSensorSettings(entityType.chaseRange);
-		fleeSensor.UpdateSensorSettings(entityType.fleeRange);
-		attackSensor.UpdateSensorSettings(entityType.basicAttackRange); //atm ignore different ranges for basic/heavy attacks
+		attackOneReady = true;
+		attackTwoReady = true;
+
+		chaseSensor.UpdateSensorSettings(entityStats.type.chaseRange);
+		fleeSensor.UpdateSensorSettings(entityStats.type.fleeRange);
+		attackSensor.UpdateSensorSettings(entityStats.type.attackOneMaxRange); //atm ignore different ranges for basic/heavy attacks
 
 		SetupBeliefs();
 		SetupActions();
@@ -104,25 +105,27 @@ public class EntityAgent : MonoBehaviour
 
 		factory.AddBelief("AgentIdle", () => !navMeshAgent.hasPath);
 		factory.AddBelief("AgentMoving", () => navMeshAgent.hasPath);
-		factory.AddBelief("AgentHealthLow", () => currentHealth < 40);
-		factory.AddBelief("AgentIsHealthy", () => currentHealth >= 60);
+		factory.AddBelief("AgentHealthLow", () => entityStats.currentHealth < 40);
+		factory.AddBelief("AgentIsHealthy", () => entityStats.currentHealth >= 60);
 
 		factory.AddLocationBelief("AgentAtFoodShack", 3f, foodShack);
 
 		factory.AddSensorBelief("EntityInChaseRange", chaseSensor);
+		factory.AddBelief("ChasingEntity", () => false);
+
 		factory.AddSensorBelief("EntityInFleeRange", fleeSensor);
 		factory.AddBelief("FleeingFromEntity", () => false);
 
 		factory.AddSensorBelief("EntityInAttackRange", attackSensor);
-		factory.AddBelief("EntityNotInsideRangedRange", () => !fleeSensor.IsTargetInRange);
+		//factory.AddBelief("EntityNotInsideRangedRange", () => !fleeSensor.IsTargetInRange);
 
 		factory.AddBelief("AllAttacksOnCooldown", () => allAttacksOnCooldown);
-		factory.AddBelief("BasicAttackReady", () => basicAttackReady);
-		factory.AddBelief("HeavyAttackReady", () => heavyAttackReady);
+		factory.AddBelief("AttackOneReady", () => attackOneReady);
+		factory.AddBelief("AttackTwoReady", () => attackTwoReady);
 
-		factory.AddBelief("AttackingEntity", () => false); // Player can always be attacked, this will never become true
-		factory.AddBelief("BasicAttack", () => false);
-		factory.AddBelief("HeavyAttack", () => false);
+		factory.AddBelief("WaitingForAttackCooldowns", () => false);
+		factory.AddBelief("AttackOne", () => false);
+		factory.AddBelief("AttackTwo", () => false);
 	}
 	void SetupActions()
 	{
@@ -156,49 +159,50 @@ public class EntityAgent : MonoBehaviour
 			.Build(),
 
 			new EntityActions.Builder("ChaseEntity")
-			.WithStrategy(new MoveStrategy(navMeshAgent, entityType.basicAttackRange, () => beliefs["EntityInChaseRange"].Location))
+			.WithStrategy(new MoveStrategy(navMeshAgent, entityStats.type.attackOneMaxRange, () => beliefs["EntityInChaseRange"].Location))
 			.AddPrecondition(beliefs["EntityInChaseRange"])
-			.AddEffect(beliefs["AttackingEntity"])
+			.AddEffect(beliefs["ChasingEntity"])
 			.Build(),
 
 			new EntityActions.Builder("WaitForAttacks")
 			.WithStrategy(new IdleStrategy(0.5f))
+			.AddPrecondition(beliefs["EntityInAttackRange"])
 			.AddPrecondition(beliefs["AllAttacksOnCooldown"])
-			.AddEffect(beliefs["AttackingEntity"])
+			.AddEffect(beliefs["WaitingForAttackCooldowns"])
 			.Build(),
 
-			new EntityActions.Builder("BasicAttack")
-			.WithStrategy(new BasicAttackStrategy(this))
+			new EntityActions.Builder("AttackOne")
+			.WithStrategy(new BasicAttackStrategy(this, 1))
 			.AddPrecondition(beliefs["EntityInAttackRange"])
-			.AddPrecondition(beliefs["BasicAttackReady"])
-			.AddEffect(beliefs["BasicAttack"])
+			.AddPrecondition(beliefs["AttackOneReady"])
+			.AddEffect(beliefs["AttackOne"])
 			.Build(),
 
-			new EntityActions.Builder("HeavyAttack")
-			.WithStrategy(new HeavyAttackStrategy(this))
+			new EntityActions.Builder("AttackTwo")
+			.WithStrategy(new BasicAttackStrategy(this, 2))
 			.AddPrecondition(beliefs["EntityInAttackRange"])
-			.AddPrecondition(beliefs["HeavyAttackReady"])
-			.AddEffect(beliefs["HeavyAttack"])
+			.AddPrecondition(beliefs["AttackTwoReady"])
+			.AddEffect(beliefs["AttackTwo"])
 			.Build()
 		};
 	}
 	void SetupGoals()
 	{
 		goals = new HashSet<EntityGoals>
-		{   
-			new EntityGoals.Builder("HeavyAttack")
+		{
+			new EntityGoals.Builder("AttackTwo")
 			.WithPriority(70)
-			.WithDesiredEffect(beliefs["HeavyAttack"])
+			.WithDesiredEffect(beliefs["AttackTwo"])
 			.Build(),
 
-			new EntityGoals.Builder("BasicAttack")
+			new EntityGoals.Builder("AttackOne")
 			.WithPriority(70)
-			.WithDesiredEffect(beliefs["BasicAttack"])
+			.WithDesiredEffect(beliefs["AttackOne"])
 			.Build(),
 
-			new EntityGoals.Builder("WaitForAttacks")
+			new EntityGoals.Builder("WaitForAttackCooldowns")
 			.WithPriority(60)
-			.WithDesiredEffect(beliefs["AttackingEntity"])
+			.WithDesiredEffect(beliefs["WaitingForAttackCooldowns"])
 			.Build(),
 
 			new EntityGoals.Builder("FleeFromEntity")
@@ -208,7 +212,7 @@ public class EntityAgent : MonoBehaviour
 
 			new EntityGoals.Builder("ChaseEntity")
 			.WithPriority(40)
-			.WithDesiredEffect(beliefs["AttackingEntity"])
+			.WithDesiredEffect(beliefs["ChasingEntity"])
 			.Build(),
 
 			new EntityGoals.Builder("KeepHealthUp")
@@ -224,55 +228,71 @@ public class EntityAgent : MonoBehaviour
 	}
 	void SetupTimers()
 	{
-		statsTimer = new CountdownTimer(5f);
-		statsTimer.OnTimerStop += () =>
+		attackOneTimer = new CountdownTimer(entityStats.type.attackOneCooldown);
+		attackOneTimer.OnTimerStart += () =>
 		{
-			UpdateStats();
-			statsTimer.Start();
+			attackOneReady = false;
+			UseAttackOne();
 		};
-		statsTimer.Start();
-
-		basicAttackTimer = new CountdownTimer(entityType.basicAttackCooldown);
-		basicAttackTimer.OnTimerStart += () =>
+		attackOneTimer.OnTimerStop += () =>
 		{
-			basicAttackReady = false;
-		};
-		basicAttackTimer.OnTimerStop += () =>
-		{
-			basicAttackReady = true;
+			attackOneReady = true;
 		};
 
-		heavyAttackTimer = new CountdownTimer(entityType.heavyAttackCooldown);
-		heavyAttackTimer.OnTimerStart += () =>
+		attackTwoTimer = new CountdownTimer(entityStats.type.attackTwoCooldown);
+		attackTwoTimer.OnTimerStart += () =>
 		{
-			heavyAttackReady = false;
+			attackTwoReady = false;
+			UseAttackTwo();
 		};
-		heavyAttackTimer.OnTimerStop += () =>
+		attackTwoTimer.OnTimerStop += () =>
 		{
-			heavyAttackReady = true;
+			attackTwoReady = true;
 		};
 	}
 
-	void UpdateStats()
+	void UseAttackOne()
 	{
-		currentHealth += InRangeOf(foodShack.position, 3f) ? 30 : -5;
-		currentHealth = Mathf.Clamp(currentHealth, 0, 100);
+		if (entityStats.type.team == EntityTypes.EntityTeam.redTeam)
+			Debug.LogError("used attack one");
+
+		target.GetComponent<EntityStats>().RecieveDamage(entityStats.type.attackOneDamage);
+	}
+	void UseAttackTwo()
+	{
+		if (entityStats.type.team == EntityTypes.EntityTeam.redTeam)
+			Debug.LogError("used attack two");
+
+		target.GetComponent<EntityStats>().RecieveDamage(entityStats.type.attackTwoDamage);
 	}
 
 	void TickAllTimers()
 	{
-		statsTimer.Tick(Time.deltaTime, false);
-		basicAttackTimer.Tick(Time.deltaTime, false);
-		heavyAttackTimer.Tick(Time.deltaTime, false);
+		attackOneTimer.Tick(Time.deltaTime, false);
+		attackTwoTimer.Tick(Time.deltaTime, false);
 	}
 
-	bool InRangeOf(Vector3 pos, float range) => Vector3.Distance(transform.position, pos) < range;
-
-	void OnEnable() => chaseSensor.OnTargetChanged += HandleTargetChanged;
-	void OnDisable() => chaseSensor.OnTargetChanged -= HandleTargetChanged;
-
-	void HandleTargetChanged()
+	void OnEnable()
 	{
+		 chaseSensor.OnTargetChanged += HandleChaseTargetChanged;
+	}
+	void OnDisable()
+	{
+		chaseSensor.OnTargetChanged += HandleChaseTargetChanged;
+	}
+
+	void HandleChaseTargetChanged(GameObject target)
+	{
+		if (target == null)
+		{
+			//Debug.LogError("Target null");
+		}
+		else
+		{
+			this.target = target;
+			//Debug.LogError("Target not null");
+		}
+
 		Debug.Log("Target changed, clearing current action and goal");
 		// Force the planner to re-evaluate the plan
 		currentAction = null;

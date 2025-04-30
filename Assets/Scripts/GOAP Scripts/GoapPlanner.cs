@@ -4,12 +4,12 @@ using UnityEngine;
 
 public interface IGoapPlanner
 {
-	ActionPlan Plan(EntityAgent agent, HashSet<EntityGoals> goals, EntityGoals mostRecentGoal = null);
+	ActionPlan Plan(EntityBrain agent, HashSet<EntityGoals> goals, EntityGoals mostRecentGoal = null);
 }
 
 public class GoapPlanner : IGoapPlanner
 {
-	public ActionPlan Plan(EntityAgent agent, HashSet<EntityGoals> goals, EntityGoals mostRecentGoal = null)
+	public ActionPlan Plan(EntityBrain agent, HashSet<EntityGoals> goals, EntityGoals mostRecentGoal = null)
 	{
 		// Order goals by priority, descending
 		List<EntityGoals> orderedGoals = goals

@@ -66,8 +66,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sensorType: 0
-  detectionRadius: 5
+  sensorType: 1
+  detectionRadius: 1
   timerInterval: 1
 --- !u!1 &4185409361200469531
 GameObject:
@@ -204,7 +204,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sensorType: 0
+  sensorType: 2
   detectionRadius: 3
   timerInterval: 1
 --- !u!1 &8151942388671483916
@@ -218,10 +218,11 @@ GameObject:
   - component: {fileID: 538383744467613240}
   - component: {fileID: 4371271922995540430}
   - component: {fileID: 2934935527053162646}
+  - component: {fileID: 15827837277303913}
+  - component: {fileID: 6056201479809704718}
+  - component: {fileID: 5829567236386544650}
   - component: {fileID: 3166619859305010317}
   - component: {fileID: 8337651463256794876}
-  - component: {fileID: 8906225582446445048}
-  - component: {fileID: 5829567236386544650}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Untagged
@@ -300,6 +301,63 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!114 &15827837277303913
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8151942388671483916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44e777bb2c84d0b49a23a8b0e70fef0c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  type: {fileID: 11400000, guid: b6663124c7a292444bfa25cb267f83aa, type: 2}
+  currentHealth: 0
+--- !u!114 &6056201479809704718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8151942388671483916}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c47eb2782350d94bb54fdef3bb34165, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  chaseSensor: {fileID: 3851985788758652946}
+  fleeSensor: {fileID: 6024228860040524787}
+  attackSensor: {fileID: 2226928272430076744}
+  allAttacksOnCooldown: 0
+  attackOneReady: 0
+  attackTwoReady: 0
+  target: {fileID: 0}
+  redTeamMaterial: {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
+  greenTeamMaterial: {fileID: 2100000, guid: d3c784064aacc7a4fb05fde26fc3385d, type: 2}
+--- !u!195 &5829567236386544650
+NavMeshAgent:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8151942388671483916}
+  m_Enabled: 1
+  m_AgentTypeID: 0
+  m_Radius: 0.5
+  m_Speed: 5
+  m_Acceleration: 5
+  avoidancePriority: 50
+  m_AngularSpeed: 90
+  m_StoppingDistance: 1
+  m_AutoTraverseOffMeshLink: 1
+  m_AutoBraking: 1
+  m_AutoRepath: 1
+  m_Height: 2
+  m_BaseOffset: 1
+  m_WalkableMask: 4294967295
+  m_ObstacleAvoidanceType: 4
 --- !u!136 &3166619859305010317
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -331,7 +389,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8151942388671483916}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 50
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -350,50 +408,3 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
---- !u!114 &8906225582446445048
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8151942388671483916}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 887aeb131058c1b49a3d2f89998b9bd1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  chaseSensor: {fileID: 3851985788758652946}
-  fleeSensor: {fileID: 6024228860040524787}
-  attackSensor: {fileID: 2226928272430076744}
-  restingPosition: {fileID: 0}
-  foodShack: {fileID: 0}
-  entityType: {fileID: 0}
-  currentHealth: 0
-  allAttacksOnCooldown: 0
-  basicAttackReady: 0
-  heavyAttackReady: 0
-  target: {fileID: 0}
-  redTeamMaterial: {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
-  greenTeamMaterial: {fileID: 2100000, guid: d3c784064aacc7a4fb05fde26fc3385d, type: 2}
---- !u!195 &5829567236386544650
-NavMeshAgent:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8151942388671483916}
-  m_Enabled: 1
-  m_AgentTypeID: 0
-  m_Radius: 0.5
-  m_Speed: 5
-  m_Acceleration: 5
-  avoidancePriority: 50
-  m_AngularSpeed: 90
-  m_StoppingDistance: 2
-  m_AutoTraverseOffMeshLink: 1
-  m_AutoBraking: 1
-  m_AutoRepath: 1
-  m_Height: 2
-  m_BaseOffset: 1
-  m_WalkableMask: 4294967295
-  m_ObstacleAvoidanceType: 4

@@ -1,4 +1,5 @@
 using System;
+using System.Xml;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -76,7 +77,7 @@ public class WanderStrategy : IActionStrategy
 public class MoveStrategy : IActionStrategy
 {
 	readonly NavMeshAgent agent;
-	float minMoveDistanceToSatisfy;
+	readonly float minMoveDistanceToSatisfy;
 	readonly Func<Vector3> destination;
 
 	public bool CanPerform => !Complete;
@@ -102,7 +103,7 @@ public class MoveStrategy : IActionStrategy
 	}
 
 	public void Start() => agent.SetDestination(destination());
-	public void Stop() => agent.ResetPath();
+	public void Stop() => agent.SetDestination(agent.transform.position);
 }
 
 public class FleeStrategy : IActionStrategy
@@ -125,55 +126,40 @@ public class FleeStrategy : IActionStrategy
 		fleeDestination *= 0.8f; //stop it moving too far away
 		agent.SetDestination(fleeDestination);
 	}
-	public void Stop() => agent.ResetPath();
+	public void Stop() => agent.SetDestination(agent.transform.position);
 }
 
 public class BasicAttackStrategy : IActionStrategy
 {
-	EntityAgent agent;
+	readonly EntityBrain entityBrain;
+	readonly int attackToUse;
 
 	public bool CanPerform => true; // Agent can always attack
 	public bool Complete { get; private set; }
 
 	readonly CountdownTimer timer;
 
-	public BasicAttackStrategy(EntityAgent agent)
+	public BasicAttackStrategy(EntityBrain entityBrain, int attackToUse)
 	{
-		this.agent = agent;
-		timer = new CountdownTimer(2f);
+		this.entityBrain = entityBrain;
+		this.attackToUse = attackToUse;
+		timer = new CountdownTimer(0.1f);
 		timer.OnTimerStart += () => Complete = false;
 		timer.OnTimerStop += () => Complete = true;
 	}
 
 	public void Start()
 	{
-		agent.basicAttackTimer.Start();
-		timer.Start();
-	}
+		switch (attackToUse)
+		{
+			case 1:
+				entityBrain.attackOneTimer.Start();
+				break;
+			case 2:
+				entityBrain.attackTwoTimer.Start();
+				break;
+		}
 
-public void Update(float deltaTime) => timer.Tick(deltaTime, false);
-}
-
-public class HeavyAttackStrategy : IActionStrategy
-{
-	EntityAgent agent;
-
-	public bool CanPerform => true; // Agent can always attack
-	public bool Complete { get; private set; }
-
-	readonly CountdownTimer timer;
-
-	public HeavyAttackStrategy(EntityAgent agent)
-	{
-		this.agent = agent;
-		timer = new CountdownTimer(2f);
-		timer.OnTimerStart += () => Complete = false;
-		timer.OnTimerStop += () => Complete = true;
-	}
-
-	public void Start()
-	{
-		agent.heavyAttackTimer.Start();
 		timer.Start();
 	}
 

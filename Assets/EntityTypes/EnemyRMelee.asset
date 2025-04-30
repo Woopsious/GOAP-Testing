@@ -10,17 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea2991e052f6b844c82c7212037cb7bc, type: 3}
-  m_Name: REnemyMelee
+  m_Name: EnemyRMelee
   m_EditorClassIdentifier: 
+  Name: Red Melee Entity
   team: 0
   maxHealth: 100
-  maxStamina: 100
   chaseRange: 25
   fleeRange: 1
-  attackType: 0
-  basicAttackDamage: 10
-  basicAttackCooldown: 2
-  basicAttackRange: 10
-  heavyAttackDamage: 15
-  heavyAttackCooldown: 10
-  heavyAttackRange: 10
+  attackTypeOne: 0
+  attackOneDamage: 5
+  attackOneCooldown: 2
+  attackOneMinRange: 0
+  attackOneMaxRange: 10
+  attackTypeTwo: 0
+  attackTwoDamage: 12
+  attackTwoCooldown: 10
+  attackTwoMinRange: 0
+  attackTwoMaxRange: 3

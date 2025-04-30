@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class BeliefFactory
 {
-	readonly EntityAgent agent;
+	readonly EntityBrain agent;
 	readonly Dictionary<string, EntityBeliefs> beliefs;
 
-	public BeliefFactory(EntityAgent agent, Dictionary<string, EntityBeliefs> beliefs)
+	public BeliefFactory(EntityBrain agent, Dictionary<string, EntityBeliefs> beliefs)
 	{
 		this.agent = agent;
 		this.beliefs = beliefs;

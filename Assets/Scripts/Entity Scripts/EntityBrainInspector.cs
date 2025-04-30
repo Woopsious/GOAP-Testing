@@ -1,12 +1,12 @@
 using UnityEngine;
 using UnityEditor;
 
-[CustomEditor(typeof(EntityAgent))]
-public class EntityAgentInspector : Editor
+[CustomEditor(typeof(EntityBrain))]
+public class EntityBrainInspector : Editor
 {
 	public override void OnInspectorGUI()
 	{
-		EntityAgent agent = (EntityAgent)target;
+		EntityBrain agent = (EntityBrain)target;
 
 		EditorGUILayout.Space();
 		DrawDefaultInspector();
