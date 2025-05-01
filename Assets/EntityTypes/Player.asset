@@ -21,7 +21,7 @@ MonoBehaviour:
   attackOneDamage: 5
   attackOneCooldown: 2
   attackOneMinRange: 0
-  attackOneMaxRange: 10
+  attackOneMaxRange: 3
   attackTypeTwo: 0
   attackTwoDamage: 12
   attackTwoCooldown: 10

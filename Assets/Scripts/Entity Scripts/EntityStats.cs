@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class EntityStats : MonoBehaviour
 {
+	PlayerMovement player;
 	EntityBrain entityBrain;
 
 	[Header("Stats")]
@@ -12,6 +13,7 @@ public class EntityStats : MonoBehaviour
 
 	private void Awake()
 	{
+		player = GetComponent<PlayerMovement>();
 		entityBrain = GetComponent<EntityBrain>();
 	}
 
@@ -22,6 +24,7 @@ public class EntityStats : MonoBehaviour
 
 	private void Update()
 	{
+		if (player != null) return;
 		statsTimer.Tick(Time.deltaTime, false);
 	}
 	private void Initilize()
@@ -29,6 +32,7 @@ public class EntityStats : MonoBehaviour
 		name = type.Name;
 		currentHealth = type.maxHealth;
 
+		if (player != null) return;
 		statsTimer = new CountdownTimer(5f);
 		statsTimer.OnTimerStop += () =>
 		{
@@ -39,6 +43,7 @@ public class EntityStats : MonoBehaviour
 	}
 	private void UpdateStats()
 	{
+		if (player != null) return;
 		if (InRangeOf(entityBrain.foodShack.position, 3f))
 			currentHealth += 50;
 		else

@@ -18,12 +18,12 @@ MonoBehaviour:
   chaseRange: 25
   fleeRange: 1
   attackTypeOne: 0
-  attackOneDamage: 5
-  attackOneCooldown: 2
+  attackOneDamage: 4
+  attackOneCooldown: 1
   attackOneMinRange: 0
-  attackOneMaxRange: 10
+  attackOneMaxRange: 3
   attackTypeTwo: 0
-  attackTwoDamage: 12
+  attackTwoDamage: 10
   attackTwoCooldown: 10
   attackTwoMinRange: 0
   attackTwoMaxRange: 3

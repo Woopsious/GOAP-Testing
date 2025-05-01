@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea2991e052f6b844c82c7212037cb7bc, type: 3}
-  m_Name: EnemyGMelee
+  m_Name: EnemyGRanged
   m_EditorClassIdentifier: 
-  Name: Green Melee Entity
+  Name: Green Ranged Entity
   team: 1
   maxHealth: 100
   chaseRange: 25
   fleeRange: 1
-  attackTypeOne: 0
-  attackOneDamage: 4
-  attackOneCooldown: 1
-  attackOneMinRange: 0
-  attackOneMaxRange: 3
-  attackTypeTwo: 0
-  attackTwoDamage: 10
+  attackTypeOne: 1
+  attackOneDamage: 6
+  attackOneCooldown: 2
+  attackOneMinRange: 5
+  attackOneMaxRange: 12
+  attackTypeTwo: 1
+  attackTwoDamage: 15
   attackTwoCooldown: 10
-  attackTwoMinRange: 0
-  attackTwoMaxRange: 3
+  attackTwoMinRange: 5
+  attackTwoMaxRange: 18

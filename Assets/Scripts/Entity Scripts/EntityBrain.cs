@@ -87,8 +87,11 @@ public class EntityBrain : MonoBehaviour
 		attackTwoReady = true;
 
 		chaseSensor.UpdateSensorSettings(entityStats.type.chaseRange);
-		fleeSensor.UpdateSensorSettings(entityStats.type.fleeRange);
 		attackSensor.UpdateSensorSettings(entityStats.type.attackOneMaxRange); //atm ignore different ranges for basic/heavy attacks
+		if (entityStats.type.attackOneMinRange == 0) //flee range = min weapon range, unless min weapon range = 0 (melee entities)
+			fleeSensor.UpdateSensorSettings(entityStats.type.fleeRange);
+		else
+			fleeSensor.UpdateSensorSettings(entityStats.type.attackOneMinRange);
 
 		SetupBeliefs();
 		SetupActions();
@@ -190,24 +193,24 @@ public class EntityBrain : MonoBehaviour
 	{
 		goals = new HashSet<EntityGoals>
 		{
+			new EntityGoals.Builder("FleeFromEntity")
+			.WithPriority(80)
+			.WithDesiredEffect(beliefs["FleeingFromEntity"])
+			.Build(),
+
 			new EntityGoals.Builder("AttackTwo")
-			.WithPriority(70)
+			.WithPriority(60)
 			.WithDesiredEffect(beliefs["AttackTwo"])
 			.Build(),
 
 			new EntityGoals.Builder("AttackOne")
-			.WithPriority(70)
+			.WithPriority(60)
 			.WithDesiredEffect(beliefs["AttackOne"])
 			.Build(),
 
 			new EntityGoals.Builder("WaitForAttackCooldowns")
-			.WithPriority(60)
-			.WithDesiredEffect(beliefs["WaitingForAttackCooldowns"])
-			.Build(),
-
-			new EntityGoals.Builder("FleeFromEntity")
 			.WithPriority(50)
-			.WithDesiredEffect(beliefs["FleeingFromEntity"])
+			.WithDesiredEffect(beliefs["WaitingForAttackCooldowns"])
 			.Build(),
 
 			new EntityGoals.Builder("ChaseEntity")
@@ -283,15 +286,8 @@ public class EntityBrain : MonoBehaviour
 
 	void HandleChaseTargetChanged(GameObject target)
 	{
-		if (target == null)
-		{
-			//Debug.LogError("Target null");
-		}
-		else
-		{
+		if (target != null)
 			this.target = target;
-			//Debug.LogError("Target not null");
-		}
 
 		Debug.Log("Target changed, clearing current action and goal");
 		// Force the planner to re-evaluate the plan

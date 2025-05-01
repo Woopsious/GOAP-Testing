@@ -2,6 +2,7 @@ using System;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
 // TODO Migrate Strategies, Beliefs, Actions and Goals to Scriptable Objects and create Node Editor for them
 public interface IActionStrategy
@@ -110,6 +111,7 @@ public class FleeStrategy : IActionStrategy
 {
 	readonly NavMeshAgent agent;
 	readonly Func<Vector3> destination;
+	readonly float maxFleeDistance = 10f;
 
 	public bool CanPerform => !Complete;
 	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending;
@@ -122,8 +124,9 @@ public class FleeStrategy : IActionStrategy
 
 	public void Start()
 	{
-		Vector3 fleeDestination = agent.transform.position - (destination() - agent.transform.position);
-		fleeDestination *= 0.8f; //stop it moving too far away
+		Vector3 normDir = (agent.transform.position - destination()).normalized;
+		normDir = Quaternion.AngleAxis(Random.Range(0, 59) -30, Vector3.up) * normDir; //add slight zigzag
+		Vector3 fleeDestination = agent.transform.position + (normDir * maxFleeDistance);
 		agent.SetDestination(fleeDestination);
 	}
 	public void Stop() => agent.SetDestination(agent.transform.position);
