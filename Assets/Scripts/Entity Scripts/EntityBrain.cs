@@ -3,6 +3,7 @@ using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
+using static EntitySensor;
 
 public class EntityBrain : MonoBehaviour
 {
@@ -13,7 +14,8 @@ public class EntityBrain : MonoBehaviour
 	[Header("Sensors")]
 	[SerializeField] EntitySensor chaseSensor;
 	[SerializeField] EntitySensor fleeSensor;
-	[SerializeField] EntitySensor attackSensor;
+	[SerializeField] EntitySensor attackSensorOne;
+	[SerializeField] EntitySensor attackSensorTwo;
 
 	[Header("Known Locations")]
 	public Transform foodShack { get; private set; }
@@ -89,15 +91,24 @@ public class EntityBrain : MonoBehaviour
 		attackOneReady = true;
 		attackTwoReady = true;
 
-		chaseSensor.UpdateSensorSettings(0, entityStats.type.chaseRange);
-		attackSensor.UpdateSensorSettings(0, entityStats.type.attackOneMaxRange); //atm ignore different ranges for basic/heavy attacks
+		chaseSensor.UpdateSensorSettings(0, entityStats.type.chaseRange, SensorType.chase);
+
+		if (entityStats.type.attackTypeOne == EntityTypes.AttackType.melee)
+			attackSensorOne.UpdateSensorSettings(entityStats.type.attackOneMinRange, entityStats.type.attackOneMaxRange, SensorType.meleeAttack);
+		else
+			attackSensorOne.UpdateSensorSettings(entityStats.type.attackOneMinRange, entityStats.type.attackOneMaxRange, SensorType.rangedAttack);
+
+		if (entityStats.type.attackTypeOne == EntityTypes.AttackType.melee)
+			attackSensorTwo.UpdateSensorSettings(entityStats.type.attackTwoMinRange, entityStats.type.attackTwoMaxRange, SensorType.meleeAttack);
+		else
+			attackSensorTwo.UpdateSensorSettings(entityStats.type.attackTwoMinRange, entityStats.type.attackTwoMaxRange, SensorType.rangedAttack);
 
 		if (entityStats.type.attackOneMinRange != 0) //flee range = min weapon range, unless min weapon range = 0 (melee entities)
-			fleeSensor.UpdateSensorSettings(0, entityStats.type.attackOneMinRange);
+			fleeSensor.UpdateSensorSettings(0, entityStats.type.attackOneMinRange, SensorType.flee);
 		else if (entityStats.type.attackTwoMinRange != 0)
-			fleeSensor.UpdateSensorSettings(0, entityStats.type.attackTwoMinRange);
+			fleeSensor.UpdateSensorSettings(0, entityStats.type.attackTwoMinRange, SensorType.flee);
 		else
-			fleeSensor.UpdateSensorSettings(0, entityStats.type.fleeRange);
+			fleeSensor.UpdateSensorSettings(0, entityStats.type.fleeRange, SensorType.flee);
 
 		SetupBeliefs();
 		SetupActions();
@@ -125,7 +136,8 @@ public class EntityBrain : MonoBehaviour
 		factory.AddSensorBelief("EntityInFleeRange", fleeSensor);
 		factory.AddBelief("FleeingFromEntity", () => false);
 
-		factory.AddSensorBelief("EntityInAttackRange", attackSensor);
+		factory.AddSensorBelief("EntityInAttackOneRange", attackSensorOne);
+		factory.AddSensorBelief("EntityInAttackTwoRange", attackSensorTwo);
 		factory.AddBelief("EntityNotInsideRangedRange", () => !fleeSensor.IsTargetInRange);
 
 		factory.AddBelief("AllAttacksOnCooldown", () => allAttacksOnCooldown);
@@ -175,21 +187,22 @@ public class EntityBrain : MonoBehaviour
 
 			new EntityActions.Builder("WaitForAttacks")
 			.WithStrategy(new IdleStrategy(0.5f))
-			.AddPrecondition(beliefs["EntityInAttackRange"])
+			.AddPrecondition(beliefs["EntityInAttackOneRange"])
+			.AddPrecondition(beliefs["EntityInAttackTwoRange"])
 			.AddPrecondition(beliefs["AllAttacksOnCooldown"])
 			.AddEffect(beliefs["WaitingForAttackCooldowns"])
 			.Build(),
 
 			new EntityActions.Builder("AttackOne")
 			.WithStrategy(new BasicAttackStrategy(this, 1))
-			.AddPrecondition(beliefs["EntityInAttackRange"])
+			.AddPrecondition(beliefs["EntityInAttackOneRange"])
 			.AddPrecondition(beliefs["AttackOneReady"])
 			.AddEffect(beliefs["AttackOne"])
 			.Build(),
 
 			new EntityActions.Builder("AttackTwo")
 			.WithStrategy(new BasicAttackStrategy(this, 2))
-			.AddPrecondition(beliefs["EntityInAttackRange"])
+			.AddPrecondition(beliefs["EntityInAttackTwoRange"])
 			.AddPrecondition(beliefs["AttackTwoReady"])
 			.AddEffect(beliefs["AttackTwo"])
 			.Build()
@@ -200,7 +213,7 @@ public class EntityBrain : MonoBehaviour
 		goals = new HashSet<EntityGoals>
 		{
 			new EntityGoals.Builder("FleeFromEntity")
-			.WithPriority(80)
+			.WithPriority(50)
 			.WithDesiredEffect(beliefs["FleeingFromEntity"])
 			.Build(),
 
@@ -262,15 +275,15 @@ public class EntityBrain : MonoBehaviour
 
 	void UseAttackOne()
 	{
-		//if (entityStats.type.team == EntityTypes.EntityTeam.redTeam)
-			//Debug.LogError("used attack one");
+		if (entityStats.type.team == EntityTypes.EntityTeam.greenTeam)
+			Debug.LogError("used attack one");
 
 		attackOneTarget.GetComponent<EntityStats>().RecieveDamage(entityStats.type.attackOneDamage);
 	}
 	void UseAttackTwo()
 	{
-		//if (entityStats.type.team == EntityTypes.EntityTeam.redTeam)
-			//Debug.LogError("used attack two");
+		if (entityStats.type.team == EntityTypes.EntityTeam.greenTeam)
+			Debug.LogError("used attack two");
 
 		attackTwoTarget.GetComponent<EntityStats>().RecieveDamage(entityStats.type.attackTwoDamage);
 	}
@@ -283,35 +296,41 @@ public class EntityBrain : MonoBehaviour
 
 	void OnEnable()
 	{
-		chaseSensor.OnTargetChanged += ChaseTargetChange;
-		attackSensor.OnTargetChanged += AttackOneTargetChange;
-		attackSensor.OnTargetChanged += AttackTwoTargetChange;
+		chaseSensor.OnTargetChanged += OnTargetChanges;
+		attackSensorOne.OnTargetChanged += OnTargetChanges;
+		attackSensorTwo.OnTargetChanged += OnTargetChanges;
 	}
 	void OnDisable()
 	{
-		chaseSensor.OnTargetChanged -= ChaseTargetChange;
-		attackSensor.OnTargetChanged -= AttackOneTargetChange;
-		attackSensor.OnTargetChanged -= AttackTwoTargetChange;
+		chaseSensor.OnTargetChanged -= OnTargetChanges;
+		attackSensorOne.OnTargetChanged -= OnTargetChanges;
+		attackSensorTwo.OnTargetChanged -= OnTargetChanges;
 	}
 
-	void ChaseTargetChange(GameObject target)
+	void OnTargetChanges(GameObject target, SensorType sensorType)
 	{
-		if (target != null)
+		switch (sensorType)
+		{
+			case SensorType.chase:
+			Debug.Log("Target changed, clearing current action and goal");
+			// Force the planner to re-evaluate the plan
 			chaseTarget = target;
+			currentAction = null;
+			currentGoal = null;
+			break;
 
-		Debug.Log("Target changed, clearing current action and goal");
-		// Force the planner to re-evaluate the plan
-		currentAction = null;
-		currentGoal = null;
-	}
-	void AttackOneTargetChange(GameObject target)
-	{
+			case SensorType.flee:
+			//noop
+			break;
+
+			case SensorType.rangedAttack:
 			attackOneTarget = target;
-	}
-	void AttackTwoTargetChange(GameObject target)
-	{
-		if (target != null)
+			break;
+
+			case SensorType.meleeAttack:
 			attackTwoTarget = target;
+			break;
+		}
 	}
 
 	void CreateNewPlan()

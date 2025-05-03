@@ -1,5 +1,75 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &263270139291034200
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3249528384065220590}
+  - component: {fileID: 164824864212441956}
+  - component: {fileID: 5899309656359495146}
+  m_Layer: 0
+  m_Name: AttackSensorTwo
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3249528384065220590
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 263270139291034200}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 538383744467613240}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &164824864212441956
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 263270139291034200}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &5899309656359495146
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 263270139291034200}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sensorType: 2
+  minDetectionRadius: 1
+  maxDetectionRadius: 5
+  timerInterval: 1
 --- !u!1 &1850757724687073674
 GameObject:
   m_ObjectHideFlags: 0
@@ -67,7 +137,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sensorType: 1
-  detectionRadius: 1
+  minDetectionRadius: 1
+  maxDetectionRadius: 5
   timerInterval: 1
 --- !u!1 &4185409361200469531
 GameObject:
@@ -136,7 +207,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sensorType: 0
-  detectionRadius: 25
+  minDetectionRadius: 1
+  maxDetectionRadius: 5
   timerInterval: 0.25
 --- !u!1 &6086810403631445222
 GameObject:
@@ -150,7 +222,7 @@ GameObject:
   - component: {fileID: 7704014415897660532}
   - component: {fileID: 2226928272430076744}
   m_Layer: 0
-  m_Name: AttackSensor
+  m_Name: AttackSensorOne
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -205,7 +277,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   sensorType: 2
-  detectionRadius: 3
+  minDetectionRadius: 1
+  maxDetectionRadius: 5
   timerInterval: 1
 --- !u!1 &8151942388671483916
 GameObject:
@@ -246,6 +319,7 @@ Transform:
   - {fileID: 3818468417507857389}
   - {fileID: 7911888664233030472}
   - {fileID: 1042467244317991131}
+  - {fileID: 3249528384065220590}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4371271922995540430
@@ -329,11 +403,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   chaseSensor: {fileID: 3851985788758652946}
   fleeSensor: {fileID: 6024228860040524787}
-  attackSensor: {fileID: 2226928272430076744}
+  attackSensorOne: {fileID: 2226928272430076744}
+  attackSensorTwo: {fileID: 5899309656359495146}
   allAttacksOnCooldown: 0
   attackOneReady: 0
   attackTwoReady: 0
-  target: {fileID: 0}
+  chaseTarget: {fileID: 0}
+  attackOneTarget: {fileID: 0}
+  attackTwoTarget: {fileID: 0}
   redTeamMaterial: {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
   greenTeamMaterial: {fileID: 2100000, guid: d3c784064aacc7a4fb05fde26fc3385d, type: 2}
 --- !u!195 &5829567236386544650
