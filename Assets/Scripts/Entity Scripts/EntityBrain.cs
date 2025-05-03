@@ -26,7 +26,10 @@ public class EntityBrain : MonoBehaviour
 	public bool attackOneReady;
 	public bool attackTwoReady;
 
-	public GameObject target;
+	[Header("EntityTargets")]
+	public GameObject chaseTarget;
+	public GameObject attackOneTarget;
+	public GameObject attackTwoTarget;
 
 	public EntityGoals lastGoal;
 	public EntityGoals currentGoal;
@@ -86,12 +89,15 @@ public class EntityBrain : MonoBehaviour
 		attackOneReady = true;
 		attackTwoReady = true;
 
-		chaseSensor.UpdateSensorSettings(entityStats.type.chaseRange);
-		attackSensor.UpdateSensorSettings(entityStats.type.attackOneMaxRange); //atm ignore different ranges for basic/heavy attacks
-		if (entityStats.type.attackOneMinRange == 0) //flee range = min weapon range, unless min weapon range = 0 (melee entities)
-			fleeSensor.UpdateSensorSettings(entityStats.type.fleeRange);
+		chaseSensor.UpdateSensorSettings(0, entityStats.type.chaseRange);
+		attackSensor.UpdateSensorSettings(0, entityStats.type.attackOneMaxRange); //atm ignore different ranges for basic/heavy attacks
+
+		if (entityStats.type.attackOneMinRange != 0) //flee range = min weapon range, unless min weapon range = 0 (melee entities)
+			fleeSensor.UpdateSensorSettings(0, entityStats.type.attackOneMinRange);
+		else if (entityStats.type.attackTwoMinRange != 0)
+			fleeSensor.UpdateSensorSettings(0, entityStats.type.attackTwoMinRange);
 		else
-			fleeSensor.UpdateSensorSettings(entityStats.type.attackOneMinRange);
+			fleeSensor.UpdateSensorSettings(0, entityStats.type.fleeRange);
 
 		SetupBeliefs();
 		SetupActions();
@@ -120,11 +126,11 @@ public class EntityBrain : MonoBehaviour
 		factory.AddBelief("FleeingFromEntity", () => false);
 
 		factory.AddSensorBelief("EntityInAttackRange", attackSensor);
-		//factory.AddBelief("EntityNotInsideRangedRange", () => !fleeSensor.IsTargetInRange);
+		factory.AddBelief("EntityNotInsideRangedRange", () => !fleeSensor.IsTargetInRange);
 
 		factory.AddBelief("AllAttacksOnCooldown", () => allAttacksOnCooldown);
-		factory.AddBelief("AttackOneReady", () => attackOneReady);
-		factory.AddBelief("AttackTwoReady", () => attackTwoReady);
+		factory.AddBelief("AttackOneReady", () => attackOneReady && attackOneTarget != null);
+		factory.AddBelief("AttackTwoReady", () => attackTwoReady && attackTwoTarget != null);
 
 		factory.AddBelief("WaitingForAttackCooldowns", () => false);
 		factory.AddBelief("AttackOne", () => false);
@@ -256,17 +262,17 @@ public class EntityBrain : MonoBehaviour
 
 	void UseAttackOne()
 	{
-		if (entityStats.type.team == EntityTypes.EntityTeam.redTeam)
-			Debug.LogError("used attack one");
+		//if (entityStats.type.team == EntityTypes.EntityTeam.redTeam)
+			//Debug.LogError("used attack one");
 
-		target.GetComponent<EntityStats>().RecieveDamage(entityStats.type.attackOneDamage);
+		attackOneTarget.GetComponent<EntityStats>().RecieveDamage(entityStats.type.attackOneDamage);
 	}
 	void UseAttackTwo()
 	{
-		if (entityStats.type.team == EntityTypes.EntityTeam.redTeam)
-			Debug.LogError("used attack two");
+		//if (entityStats.type.team == EntityTypes.EntityTeam.redTeam)
+			//Debug.LogError("used attack two");
 
-		target.GetComponent<EntityStats>().RecieveDamage(entityStats.type.attackTwoDamage);
+		attackTwoTarget.GetComponent<EntityStats>().RecieveDamage(entityStats.type.attackTwoDamage);
 	}
 
 	void TickAllTimers()
@@ -277,22 +283,35 @@ public class EntityBrain : MonoBehaviour
 
 	void OnEnable()
 	{
-		 chaseSensor.OnTargetChanged += HandleChaseTargetChanged;
+		chaseSensor.OnTargetChanged += ChaseTargetChange;
+		attackSensor.OnTargetChanged += AttackOneTargetChange;
+		attackSensor.OnTargetChanged += AttackTwoTargetChange;
 	}
 	void OnDisable()
 	{
-		chaseSensor.OnTargetChanged += HandleChaseTargetChanged;
+		chaseSensor.OnTargetChanged -= ChaseTargetChange;
+		attackSensor.OnTargetChanged -= AttackOneTargetChange;
+		attackSensor.OnTargetChanged -= AttackTwoTargetChange;
 	}
 
-	void HandleChaseTargetChanged(GameObject target)
+	void ChaseTargetChange(GameObject target)
 	{
 		if (target != null)
-			this.target = target;
+			chaseTarget = target;
 
 		Debug.Log("Target changed, clearing current action and goal");
 		// Force the planner to re-evaluate the plan
 		currentAction = null;
 		currentGoal = null;
+	}
+	void AttackOneTargetChange(GameObject target)
+	{
+			attackOneTarget = target;
+	}
+	void AttackTwoTargetChange(GameObject target)
+	{
+		if (target != null)
+			attackTwoTarget = target;
 	}
 
 	void CreateNewPlan()
