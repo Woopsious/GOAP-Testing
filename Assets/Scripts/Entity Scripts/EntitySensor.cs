@@ -6,54 +6,61 @@ using UnityEngine;
 
 public class EntitySensor : MonoBehaviour
 {
+	[Header("Sensor Info")]
 	[SerializeField] SensorType sensorType;
 	public enum SensorType
 	{
-		chase, flee, meleeAttack, rangedAttack
+		chase, flee, attackSensorOne, attackSensorTwo
 	}
 
-	[SerializeField] float minDetectionRadius = 1f;
-	[SerializeField] float maxDetectionRadius = 5f;
+	[SerializeField] float detectionRadius = 5f;
 	[SerializeField] float timerInterval = 1f;
 
 	EntityBrain entityBrain;
-	EntityTypes.EntityTeam entityTeam;
+	EntityData.EntityTeam entityTeam;
 	SphereCollider detectionRange;
 
 	public event Action<GameObject, SensorType> OnTargetChanged = delegate { };
 
-	public List<EntityAggro> targetsInRange = new List<EntityAggro>();
+	private List<EntityAggro> targetsInRange = new List<EntityAggro>();
 
 	public Vector3 TargetPosition => target ? target.transform.position : Vector3.zero;
 	public bool IsTargetInRange => TargetPosition != Vector3.zero;
 
-	GameObject target;
+	[Header("Attack Sensor Info")]
+	[SerializeField] EntityAttackData attackData;
+
+	public GameObject target;
 	Vector3 lastKnownPosition;
 	CountdownTimer timer;
 
 	void Awake()
 	{
 		entityBrain = GetComponentInParent<EntityBrain>();
+		EntityStats stats = GetComponentInParent<EntityStats>();
+		entityTeam = stats._Data.team;
+
 		detectionRange = GetComponent<SphereCollider>();
 		detectionRange.isTrigger = true;
-		detectionRange.radius = maxDetectionRadius;
+		detectionRange.radius = detectionRadius;
 	}
 
-	public void UpdateSensorSettings(float minDetectionRadius, float maxDetectionRadius, SensorType sensorType)
+	public void UpdateSensorSettings(float detectionRadius)
 	{
-		this.minDetectionRadius = minDetectionRadius;
-		this.maxDetectionRadius = maxDetectionRadius;
-		detectionRange.radius = maxDetectionRadius;
-		this.sensorType = sensorType;
+		this.detectionRadius = detectionRadius;
+		detectionRange.radius = detectionRadius;
+	}
+	public void UpdateSensorSettings(EntityAttackData attackData)
+	{
+		this.attackData = attackData;
+		UpdateSensorSettings(attackData.attackMaxRange);
 	}
 
 	void Start()
 	{
-		entityTeam = GetComponentInParent<EntityStats>().type.team;
-
 		timer = new CountdownTimer(timerInterval);
 		timer.OnTimerStop += () => {
-			UpdateTargetsInsideSensorCollider();
+			UpdateTargetsInsideSensor();
 			timer.Start();
 		};
 		timer.Start();
@@ -64,18 +71,23 @@ public class EntitySensor : MonoBehaviour
 		timer.Tick(Time.deltaTime, false);
 	}
 
-	void UpdateTargetsInsideSensorCollider()
+	void UpdateTargetsInsideSensor()
 	{
 		if (targetsInRange.Count > 0)
 		{
 			for (int i = 0; i < targetsInRange.Count; i++)
 				targetsInRange[i].targetAggroDistance = GetAggoDistance(targetsInRange[i].target);
 
-			target = FindClosestTargetWithinValues();
+			if (sensorType == SensorType.attackSensorOne || sensorType == SensorType.attackSensorTwo)
+			{
+				target = FindClosestTargetWithinValues(attackData.attackMinRange, attackData.attackMaxRange);
+				OnTargetChanged.Invoke(target, sensorType);
+			}
+			else
+				target = FindClosestTarget();
 		}
 		else
 			target = null;
-
 
 		if (IsTargetInRange && (lastKnownPosition != TargetPosition || lastKnownPosition != Vector3.zero))
 		{
@@ -89,27 +101,26 @@ public class EntitySensor : MonoBehaviour
 		targetsInRange.Sort((a, b) => a.targetAggroDistance.CompareTo(b.targetAggroDistance));
 		return targetsInRange[0].target;
 	}
-
-	public GameObject FindClosestTargetWithinValues()
+	GameObject FindClosestTargetWithinValues(float min, float max)
 	{
-		List<EntityAggro> targetsWithinValues = new List<EntityAggro>();
-
 		for (int i = 0; i < targetsInRange.Count; i++)
 		{
-			if (targetsInRange[i].targetAggroDistance >= minDetectionRadius && targetsInRange[i].targetAggroDistance <= maxDetectionRadius)
-				targetsWithinValues.Add(targetsInRange[i]);
+			if (targetsInRange[i].targetAggroDistance >= min && targetsInRange[i].targetAggroDistance <= max)
+				return targetsInRange[i].target;
 		}
 
-		targetsWithinValues.Sort((a, b) => a.targetAggroDistance.CompareTo(b.targetAggroDistance));
-		return targetsWithinValues[0].target;
+		if (entityTeam == EntityData.EntityTeam.greenTeam)
+			Debug.LogError("no target within ranges");
+
+		return null;
 	}
 
 	void OnTriggerEnter(Collider other)
 	{
-		EntityTypes.EntityTeam otherAgentTeam;
+		EntityData.EntityTeam otherAgentTeam;
 
 		if (other.GetComponent<EntityStats>() != null)
-			otherAgentTeam = other.GetComponent<EntityStats>().type.team;
+			otherAgentTeam = other.GetComponent<EntityStats>()._Data.team;
 		else
 			return;
 
@@ -132,10 +143,10 @@ public class EntitySensor : MonoBehaviour
 	}
 	void OnTriggerExit(Collider other)
 	{
-		EntityTypes.EntityTeam otherAgentTeam;
+		EntityData.EntityTeam otherAgentTeam;
 
 		if (other.GetComponent<EntityStats>() != null)
-			otherAgentTeam = other.GetComponent<EntityStats>().type.team;
+			otherAgentTeam = other.GetComponent<EntityStats>()._Data.team;
 		else
 			return;
 
@@ -175,8 +186,15 @@ public class EntitySensor : MonoBehaviour
 
 	void OnDrawGizmos()
 	{
-		Gizmos.color = IsTargetInRange ? Color.red : Color.green;
-		Gizmos.DrawWireSphere(transform.position, maxDetectionRadius);
+		if (sensorType == SensorType.attackSensorOne ||  sensorType == SensorType.attackSensorTwo)
+		{
+			Gizmos.color = target ? Color.blue : Color.green;
+		}
+		else
+		{
+			Gizmos.color = IsTargetInRange ? Color.red : Color.green;
+		}
+		Gizmos.DrawWireSphere(transform.position, detectionRadius);
 	}
 }
 

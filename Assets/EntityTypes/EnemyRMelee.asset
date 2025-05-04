@@ -17,13 +17,18 @@ MonoBehaviour:
   maxHealth: 100
   chaseRange: 25
   fleeRange: 1
-  attackTypeOne: 0
-  attackOneDamage: 4
-  attackOneCooldown: 1
-  attackOneMinRange: 0
-  attackOneMaxRange: 3
-  attackTypeTwo: 0
-  attackTwoDamage: 10
-  attackTwoCooldown: 10
-  attackTwoMinRange: 0
-  attackTwoMaxRange: 3
+  attackData:
+  - attackType: 0
+    attackDamage: 4
+    attackCooldown: 1
+    attackMinRange: 0
+    attackMaxRange: 3
+    hasAttackTarget: 1
+    attackTarget: {fileID: 0}
+  - attackType: 0
+    attackDamage: 15
+    attackCooldown: 10
+    attackMinRange: 0
+    attackMaxRange: 3
+    hasAttackTarget: 1
+    attackTarget: {fileID: 0}

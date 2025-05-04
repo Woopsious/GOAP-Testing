@@ -30,8 +30,8 @@ public class EntityBrain : MonoBehaviour
 
 	[Header("EntityTargets")]
 	public GameObject chaseTarget;
-	public GameObject attackOneTarget;
-	public GameObject attackTwoTarget;
+	public GameObject attackTargetOne;
+	public GameObject attackTargetTwo;
 
 	public EntityGoals lastGoal;
 	public EntityGoals currentGoal;
@@ -51,11 +51,11 @@ public class EntityBrain : MonoBehaviour
 	{
 		entityStats = GetComponent<EntityStats>();
 
-		if (entityStats.type == null)
+		if (entityStats._Data == null)
 			Debug.LogError("Entity Type not set for gameobject: " + gameObject.name);
-		else if (entityStats.type.team == EntityTypes.EntityTeam.redTeam)
+		else if (entityStats._Data.team == EntityData.EntityTeam.redTeam)
 			GetComponent<MeshRenderer>().sharedMaterial = redTeamMaterial;
-		else if (entityStats.type.team == EntityTypes.EntityTeam.greenTeam)
+		else if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
 			GetComponent<MeshRenderer>().sharedMaterial = greenTeamMaterial;
 
 		navMeshAgent = GetComponent<NavMeshAgent>();
@@ -91,24 +91,17 @@ public class EntityBrain : MonoBehaviour
 		attackOneReady = true;
 		attackTwoReady = true;
 
-		chaseSensor.UpdateSensorSettings(0, entityStats.type.chaseRange, SensorType.chase);
+		float fleeRange = 0;
+		foreach (EntityAttackData attackData in entityStats._Data.attackData)
+		{
+			if (attackData.attackMinRange > fleeRange)
+				fleeRange = attackData.attackMinRange;
+		}
 
-		if (entityStats.type.attackTypeOne == EntityTypes.AttackType.melee)
-			attackSensorOne.UpdateSensorSettings(entityStats.type.attackOneMinRange, entityStats.type.attackOneMaxRange, SensorType.meleeAttack);
-		else
-			attackSensorOne.UpdateSensorSettings(entityStats.type.attackOneMinRange, entityStats.type.attackOneMaxRange, SensorType.rangedAttack);
-
-		if (entityStats.type.attackTypeOne == EntityTypes.AttackType.melee)
-			attackSensorTwo.UpdateSensorSettings(entityStats.type.attackTwoMinRange, entityStats.type.attackTwoMaxRange, SensorType.meleeAttack);
-		else
-			attackSensorTwo.UpdateSensorSettings(entityStats.type.attackTwoMinRange, entityStats.type.attackTwoMaxRange, SensorType.rangedAttack);
-
-		if (entityStats.type.attackOneMinRange != 0) //flee range = min weapon range, unless min weapon range = 0 (melee entities)
-			fleeSensor.UpdateSensorSettings(0, entityStats.type.attackOneMinRange, SensorType.flee);
-		else if (entityStats.type.attackTwoMinRange != 0)
-			fleeSensor.UpdateSensorSettings(0, entityStats.type.attackTwoMinRange, SensorType.flee);
-		else
-			fleeSensor.UpdateSensorSettings(0, entityStats.type.fleeRange, SensorType.flee);
+		chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
+		fleeSensor.UpdateSensorSettings(fleeRange);
+		attackSensorOne.UpdateSensorSettings(entityStats._Data.attackData[0]);
+		attackSensorTwo.UpdateSensorSettings(entityStats._Data.attackData[1]);
 
 		SetupBeliefs();
 		SetupActions();
@@ -136,13 +129,11 @@ public class EntityBrain : MonoBehaviour
 		factory.AddSensorBelief("EntityInFleeRange", fleeSensor);
 		factory.AddBelief("FleeingFromEntity", () => false);
 
-		factory.AddSensorBelief("EntityInAttackOneRange", attackSensorOne);
-		factory.AddSensorBelief("EntityInAttackTwoRange", attackSensorTwo);
-		factory.AddBelief("EntityNotInsideRangedRange", () => !fleeSensor.IsTargetInRange);
-
+		factory.AddBelief("AttackOneReady", () => attackOneReady);
+		factory.AddBelief("EntityInAttackOneRange", () => attackSensorOne.target);
+		factory.AddBelief("AttackTwoReady", () => attackTwoReady);
+		factory.AddBelief("EntityInAttackTwoRange", () => attackSensorTwo.target);
 		factory.AddBelief("AllAttacksOnCooldown", () => allAttacksOnCooldown);
-		factory.AddBelief("AttackOneReady", () => attackOneReady && attackOneTarget != null);
-		factory.AddBelief("AttackTwoReady", () => attackTwoReady && attackTwoTarget != null);
 
 		factory.AddBelief("WaitingForAttackCooldowns", () => false);
 		factory.AddBelief("AttackOne", () => false);
@@ -180,7 +171,7 @@ public class EntityBrain : MonoBehaviour
 			.Build(),
 
 			new EntityActions.Builder("ChaseEntity")
-			.WithStrategy(new MoveStrategy(navMeshAgent, entityStats.type.attackOneMaxRange, () => beliefs["EntityInChaseRange"].Location))
+			.WithStrategy(new MoveStrategy(navMeshAgent, 3, () => beliefs["EntityInChaseRange"].Location))
 			.AddPrecondition(beliefs["EntityInChaseRange"])
 			.AddEffect(beliefs["ChasingEntity"])
 			.Build(),
@@ -212,11 +203,6 @@ public class EntityBrain : MonoBehaviour
 	{
 		goals = new HashSet<EntityGoals>
 		{
-			new EntityGoals.Builder("FleeFromEntity")
-			.WithPriority(50)
-			.WithDesiredEffect(beliefs["FleeingFromEntity"])
-			.Build(),
-
 			new EntityGoals.Builder("AttackTwo")
 			.WithPriority(60)
 			.WithDesiredEffect(beliefs["AttackTwo"])
@@ -225,6 +211,11 @@ public class EntityBrain : MonoBehaviour
 			new EntityGoals.Builder("AttackOne")
 			.WithPriority(60)
 			.WithDesiredEffect(beliefs["AttackOne"])
+			.Build(),
+
+			new EntityGoals.Builder("FleeFromEntity")
+			.WithPriority(55)
+			.WithDesiredEffect(beliefs["FleeingFromEntity"])
 			.Build(),
 
 			new EntityGoals.Builder("WaitForAttackCooldowns")
@@ -250,7 +241,7 @@ public class EntityBrain : MonoBehaviour
 	}
 	void SetupTimers()
 	{
-		attackOneTimer = new CountdownTimer(entityStats.type.attackOneCooldown);
+		attackOneTimer = new CountdownTimer(entityStats._Data.attackData[0].attackCooldown);
 		attackOneTimer.OnTimerStart += () =>
 		{
 			attackOneReady = false;
@@ -261,7 +252,7 @@ public class EntityBrain : MonoBehaviour
 			attackOneReady = true;
 		};
 
-		attackTwoTimer = new CountdownTimer(entityStats.type.attackTwoCooldown);
+		attackTwoTimer = new CountdownTimer(entityStats._Data.attackData[1].attackCooldown);
 		attackTwoTimer.OnTimerStart += () =>
 		{
 			attackTwoReady = false;
@@ -275,17 +266,17 @@ public class EntityBrain : MonoBehaviour
 
 	void UseAttackOne()
 	{
-		if (entityStats.type.team == EntityTypes.EntityTeam.greenTeam)
+		if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
 			Debug.LogError("used attack one");
 
-		attackOneTarget.GetComponent<EntityStats>().RecieveDamage(entityStats.type.attackOneDamage);
+		attackTargetOne.GetComponent<EntityStats>().RecieveDamage(entityStats._Data.attackData[0].attackDamage);
 	}
 	void UseAttackTwo()
 	{
-		if (entityStats.type.team == EntityTypes.EntityTeam.greenTeam)
+		if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
 			Debug.LogError("used attack two");
 
-		attackTwoTarget.GetComponent<EntityStats>().RecieveDamage(entityStats.type.attackTwoDamage);
+		attackTargetTwo.GetComponent<EntityStats>().RecieveDamage(entityStats._Data.attackData[1].attackDamage);
 	}
 
 	void TickAllTimers()
@@ -319,16 +310,12 @@ public class EntityBrain : MonoBehaviour
 			currentGoal = null;
 			break;
 
-			case SensorType.flee:
-			//noop
+			case SensorType.attackSensorOne:
+			attackTargetOne = target;
 			break;
 
-			case SensorType.rangedAttack:
-			attackOneTarget = target;
-			break;
-
-			case SensorType.meleeAttack:
-			attackTwoTarget = target;
+			case SensorType.attackSensorTwo:
+			attackTargetTwo = target;
 			break;
 		}
 	}

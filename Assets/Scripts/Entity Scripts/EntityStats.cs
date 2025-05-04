@@ -6,7 +6,7 @@ public class EntityStats : MonoBehaviour
 	EntityBrain entityBrain;
 
 	[Header("Stats")]
-	public EntityTypes type;
+	public EntityData _Data;
 	public float currentHealth;
 
 	CountdownTimer statsTimer;
@@ -29,8 +29,8 @@ public class EntityStats : MonoBehaviour
 	}
 	private void Initilize()
 	{
-		name = type.Name;
-		currentHealth = type.maxHealth;
+		name = _Data.Name;
+		currentHealth = _Data.maxHealth;
 
 		if (player != null) return;
 		statsTimer = new CountdownTimer(5f);
