@@ -99,7 +99,7 @@ public class EntityBrain : MonoBehaviour
 		}
 
 		chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
-		fleeSensor.UpdateSensorSettings(fleeRange);
+		fleeSensor.UpdateSensorSettings(entityStats._Data.fleeRange);
 		attackSensorOne.UpdateSensorSettings(entityStats._Data.attackData[0]);
 		attackSensorTwo.UpdateSensorSettings(entityStats._Data.attackData[1]);
 
@@ -123,16 +123,21 @@ public class EntityBrain : MonoBehaviour
 
 		factory.AddLocationBelief("AgentAtFoodShack", 3f, foodShack);
 
-		factory.AddSensorBelief("EntityInChaseRange", chaseSensor);
-		factory.AddBelief("ChasingEntity", () => false);
+		factory.AddTargetBelief("TargetInChaseRange", chaseSensor);
+		factory.AddBelief("ChasingTarget", () => false);
 
-		factory.AddSensorBelief("EntityInFleeRange", fleeSensor);
-		factory.AddBelief("FleeingFromEntity", () => false);
+		factory.AddTargetBelief("TargetInFleeRange", fleeSensor);
+		factory.AddBelief("FleeingFromTarget", () => false);
+
+		factory.AddTargetBelief("TargetInAttackOneRange", attackSensorOne);
+		factory.AddTargetBelief("TargetInAttackTwoRange", attackSensorTwo);
+		factory.AddTargetBackupBelief("TargetHasBackupForAttackOne", attackSensorOne);
+		factory.AddTargetBackupBelief("TargetHasBackupForAttackTwo", attackSensorTwo);
 
 		factory.AddBelief("AttackOneReady", () => attackOneReady);
-		factory.AddBelief("EntityInAttackOneRange", () => attackSensorOne.target);
+		factory.AddBelief("AttackOneNotReady", () => !attackOneReady);
 		factory.AddBelief("AttackTwoReady", () => attackTwoReady);
-		factory.AddBelief("EntityInAttackTwoRange", () => attackSensorTwo.target);
+		factory.AddBelief("AttackTwoNotReady", () => !attackTwoReady);
 		factory.AddBelief("AllAttacksOnCooldown", () => allAttacksOnCooldown);
 
 		factory.AddBelief("WaitingForAttackCooldowns", () => false);
@@ -164,36 +169,50 @@ public class EntityBrain : MonoBehaviour
 			.AddEffect(beliefs["AgentIsHealthy"])
 			.Build(),
 
-			new EntityActions.Builder("FleeFromEntity")
-			.WithStrategy(new FleeStrategy(navMeshAgent, () => beliefs["EntityInFleeRange"].Location))
-			.AddPrecondition(beliefs["EntityInFleeRange"])
-			.AddEffect(beliefs["FleeingFromEntity"])
+			new EntityActions.Builder("FleeFromTarget")
+			.WithStrategy(new FleeStrategy(navMeshAgent, () => beliefs["TargetInFleeRange"].TargetLocation))
+			.AddPrecondition(beliefs["TargetInFleeRange"])
+			.AddEffect(beliefs["FleeingFromTarget"])
 			.Build(),
 
-			new EntityActions.Builder("ChaseEntity")
-			.WithStrategy(new MoveStrategy(navMeshAgent, 3, () => beliefs["EntityInChaseRange"].Location))
-			.AddPrecondition(beliefs["EntityInChaseRange"])
-			.AddEffect(beliefs["ChasingEntity"])
+			new EntityActions.Builder("ChaseTarget")
+			.WithStrategy(new MoveStrategy(navMeshAgent, 3, () => beliefs["TargetInChaseRange"].TargetLocation))
+			.AddPrecondition(beliefs["TargetInChaseRange"])
+			.AddEffect(beliefs["ChasingTarget"])
 			.Build(),
 
 			new EntityActions.Builder("WaitForAttacks")
 			.WithStrategy(new IdleStrategy(0.5f))
-			.AddPrecondition(beliefs["EntityInAttackOneRange"])
-			.AddPrecondition(beliefs["EntityInAttackTwoRange"])
+			.AddPrecondition(beliefs["TargetInAttackOneRange"])
+			.AddPrecondition(beliefs["TargetInAttackTwoRange"])
 			.AddPrecondition(beliefs["AllAttacksOnCooldown"])
 			.AddEffect(beliefs["WaitingForAttackCooldowns"])
 			.Build(),
 
+			new EntityActions.Builder("MoveToUseAttackOne")
+			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetHasBackupForAttackOne"].TargetBackupLocation, entityStats._Data.attackData[0]))
+			.AddPrecondition(beliefs["TargetHasBackupForAttackOne"])
+			.AddPrecondition(beliefs["AttackTwoNotReady"])
+			.AddEffect(beliefs["AttackOne"])
+			.Build(),
+
+			new EntityActions.Builder("MoveToUseAttackTwo")
+			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetHasBackupForAttackTwo"].TargetBackupLocation, entityStats._Data.attackData[1]))
+			.AddPrecondition(beliefs["TargetHasBackupForAttackTwo"])
+			.AddPrecondition(beliefs["AttackOneNotReady"])
+			.AddEffect(beliefs["AttackTwo"])
+			.Build(),
+
 			new EntityActions.Builder("AttackOne")
 			.WithStrategy(new BasicAttackStrategy(this, 1))
-			.AddPrecondition(beliefs["EntityInAttackOneRange"])
+			.AddPrecondition(beliefs["TargetInAttackOneRange"])
 			.AddPrecondition(beliefs["AttackOneReady"])
 			.AddEffect(beliefs["AttackOne"])
 			.Build(),
 
 			new EntityActions.Builder("AttackTwo")
 			.WithStrategy(new BasicAttackStrategy(this, 2))
-			.AddPrecondition(beliefs["EntityInAttackTwoRange"])
+			.AddPrecondition(beliefs["TargetInAttackTwoRange"])
 			.AddPrecondition(beliefs["AttackTwoReady"])
 			.AddEffect(beliefs["AttackTwo"])
 			.Build()
@@ -203,29 +222,14 @@ public class EntityBrain : MonoBehaviour
 	{
 		goals = new HashSet<EntityGoals>
 		{
-			new EntityGoals.Builder("AttackTwo")
-			.WithPriority(60)
-			.WithDesiredEffect(beliefs["AttackTwo"])
+			new EntityGoals.Builder("Idle")
+			.WithPriority(5)
+			.WithDesiredEffect(beliefs["Nothing"])
 			.Build(),
 
-			new EntityGoals.Builder("AttackOne")
-			.WithPriority(60)
-			.WithDesiredEffect(beliefs["AttackOne"])
-			.Build(),
-
-			new EntityGoals.Builder("FleeFromEntity")
-			.WithPriority(55)
-			.WithDesiredEffect(beliefs["FleeingFromEntity"])
-			.Build(),
-
-			new EntityGoals.Builder("WaitForAttackCooldowns")
-			.WithPriority(50)
-			.WithDesiredEffect(beliefs["WaitingForAttackCooldowns"])
-			.Build(),
-
-			new EntityGoals.Builder("ChaseEntity")
-			.WithPriority(40)
-			.WithDesiredEffect(beliefs["ChasingEntity"])
+			new EntityGoals.Builder("Wander")
+			.WithPriority(10)
+			.WithDesiredEffect(beliefs["AgentMoving"])
 			.Build(),
 
 			new EntityGoals.Builder("KeepHealthUp")
@@ -233,9 +237,39 @@ public class EntityBrain : MonoBehaviour
 			.WithDesiredEffect(beliefs["AgentIsHealthy"])
 			.Build(),
 
-			new EntityGoals.Builder("Wander")
-			.WithPriority(5)
-			.WithDesiredEffect(beliefs["AgentMoving"])
+			new EntityGoals.Builder("ChaseTarget")
+			.WithPriority(40)
+			.WithDesiredEffect(beliefs["ChasingTarget"])
+			.Build(),
+
+			new EntityGoals.Builder("FleeFromTarget")
+			.WithPriority(45)
+			.WithDesiredEffect(beliefs["FleeingFromTarget"])
+			.Build(),
+
+			new EntityGoals.Builder("WaitForAttackCooldowns")
+			.WithPriority(50)
+			.WithDesiredEffect(beliefs["WaitingForAttackCooldowns"])
+			.Build(),
+
+			new EntityGoals.Builder("MoveToUseAttackOne")
+			.WithPriority(60)
+			.WithDesiredEffect(beliefs["AttackOne"])
+			.Build(),
+
+			new EntityGoals.Builder("MoveToUseAttackTwo")
+			.WithPriority(60)
+			.WithDesiredEffect(beliefs["AttackTwo"])
+			.Build(),
+
+			new EntityGoals.Builder("AttackOne")
+			.WithPriority(70)
+			.WithDesiredEffect(beliefs["AttackOne"])
+			.Build(),
+
+			new EntityGoals.Builder("AttackTwo")
+			.WithPriority(70)
+			.WithDesiredEffect(beliefs["AttackTwo"])
 			.Build(),
 		};
 	}

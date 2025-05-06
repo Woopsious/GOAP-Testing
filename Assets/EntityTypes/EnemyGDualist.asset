@@ -19,16 +19,12 @@ MonoBehaviour:
   fleeRange: 1
   attackData:
   - attackType: 0
-    attackDamage: 8
+    attackDamage: 4
     attackCooldown: 2
     attackMinRange: 0
     attackMaxRange: 3
-    hasAttackTarget: 1
-    attackTarget: {fileID: 0}
   - attackType: 1
     attackDamage: 8
-    attackCooldown: 10
+    attackCooldown: 4
     attackMinRange: 8
     attackMaxRange: 15
-    hasAttackTarget: 0
-    attackTarget: {fileID: 0}

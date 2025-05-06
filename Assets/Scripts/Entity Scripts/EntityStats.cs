@@ -32,6 +32,8 @@ public class EntityStats : MonoBehaviour
 		name = _Data.Name;
 		currentHealth = _Data.maxHealth;
 
+		currentHealth = 99999999;
+
 		if (player != null) return;
 		statsTimer = new CountdownTimer(5f);
 		statsTimer.OnTimerStop += () =>
@@ -51,7 +53,7 @@ public class EntityStats : MonoBehaviour
 			if (currentHealth <= 80) return;
 			currentHealth -= 5;
 		}
-		currentHealth = Mathf.Clamp(currentHealth, 0, 100);
+		currentHealth = Mathf.Clamp(currentHealth, 0, 99999999);
 	}
 	private bool InRangeOf(Vector3 pos, float range) => Vector3.Distance(transform.position, pos) < range;
 

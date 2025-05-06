@@ -20,18 +20,27 @@ public class BeliefFactory
 			.Build());
 	}
 
-	public void AddTargetBelief(string key, Func<GameObject> target)
-	{
-		beliefs.Add(key, new EntityBeliefs.Builder(key)
-			.WithTargetCondition(target)
-			.Build());
-	}
-
 	public void AddSensorBelief(string key, EntitySensor sensor)
 	{
 		beliefs.Add(key, new EntityBeliefs.Builder(key)
 			.WithCondition(() => sensor.IsTargetInRange)
 			.WithLocation(() => sensor.TargetPosition)
+			.Build());
+	}
+
+	public void AddTargetBelief(string key, EntitySensor sensor)
+	{
+		beliefs.Add(key, new EntityBeliefs.Builder(key)
+			.WithCondition(() => sensor.IsTargetInRange)
+			.WithTargetLocation(() => sensor.TargetPosition)
+			.Build());
+	}
+
+	public void AddTargetBackupBelief(string key, EntitySensor sensor)
+	{
+		beliefs.Add(key, new EntityBeliefs.Builder(key)
+			.WithCondition(() => sensor.HasBackUpTarget)
+			.WithTargetBackupLocation(() => sensor.TargetBackupPosition)
 			.Build());
 	}
 
@@ -60,6 +69,11 @@ public class EntityBeliefs
 	Func<Vector3> observedLocation = () => Vector3.zero;
 
 	public Vector3 Location => observedLocation();
+
+	Func<Vector3> targetLocation = () => Vector3.zero;
+	Func<Vector3> targetBackupLocation = () => Vector3.zero;
+	public Vector3 TargetLocation => targetLocation();
+	public Vector3 TargetBackupLocation => targetBackupLocation();
 
 	EntityBeliefs(string name)
 	{
@@ -92,6 +106,18 @@ public class EntityBeliefs
 		public Builder WithLocation(Func<Vector3> observedLocation)
 		{
 			belief.observedLocation = observedLocation;
+			return this;
+		}
+
+		public Builder WithTargetLocation(Func<Vector3> observedLocation)
+		{
+			belief.targetLocation = observedLocation;
+			return this;
+		}
+
+		public Builder WithTargetBackupLocation(Func<Vector3> observedLocation)
+		{
+			belief.targetBackupLocation = observedLocation;
 			return this;
 		}
 

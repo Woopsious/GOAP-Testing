@@ -2,6 +2,7 @@ using System;
 using System.Xml;
 using UnityEngine;
 using UnityEngine.AI;
+using static UnityEngine.GraphicsBuffer;
 using Random = UnityEngine.Random;
 
 // TODO Migrate Strategies, Beliefs, Actions and Goals to Scriptable Objects and create Node Editor for them
@@ -104,6 +105,57 @@ public class MoveStrategy : IActionStrategy
 	}
 
 	public void Start() => agent.SetDestination(destination());
+	public void Stop() => agent.SetDestination(agent.transform.position);
+}
+
+public class MoveIntoAttackRange : IActionStrategy
+{
+	readonly NavMeshAgent agent;
+	readonly EntityAttackData attackData;
+	readonly Func<Vector3> destination;
+
+	public bool CanPerform => !Complete;
+	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending;
+
+	public MoveIntoAttackRange(NavMeshAgent agent, Func<Vector3> destination, EntityAttackData attackData)
+	{
+		this.agent = agent;
+		this.attackData = attackData;
+		this.destination = destination;
+	}
+
+	void GetWithinAttackRangeMinMax()
+	{
+		float destinationDistance = Vector3.Distance(agent.transform.position, destination());
+
+		Debug.LogError("destination: " + destination());
+
+		if (destinationDistance >= attackData.attackMinRange && destinationDistance <= attackData.attackMaxRange)
+		{
+			Debug.LogError("inside attack range");
+		}
+		else if (destinationDistance < attackData.attackMinRange)
+		{
+			Debug.LogError("TOO CLOSE");
+
+			Vector3 normDir = (agent.transform.position - destination()).normalized;
+			normDir = Quaternion.AngleAxis(Random.Range(0, 59) - 30, Vector3.up) * normDir; //add slight zigzag
+			Vector3 fleeDestination = agent.transform.position + (normDir * 10);
+			agent.SetDestination(fleeDestination);
+		}
+		else if (destinationDistance > attackData.attackMaxRange)
+		{
+			Debug.LogError("TOO FAR");
+
+			agent.SetDestination(destination());
+		}
+	}
+
+	public void Start() => GetWithinAttackRangeMinMax();
+	public void Update()
+	{
+
+	}
 	public void Stop() => agent.SetDestination(agent.transform.position);
 }
 

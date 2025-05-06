@@ -25,12 +25,16 @@ public class EntitySensor : MonoBehaviour
 	private List<EntityAggro> targetsInRange = new List<EntityAggro>();
 
 	public Vector3 TargetPosition => target ? target.transform.position : Vector3.zero;
+	public Vector3 TargetBackupPosition => targetBackup ? targetBackup.transform.position : Vector3.zero;
+
 	public bool IsTargetInRange => TargetPosition != Vector3.zero;
+	public bool HasBackUpTarget => targetBackup != null;
 
 	[Header("Attack Sensor Info")]
 	[SerializeField] EntityAttackData attackData;
 
 	public GameObject target;
+	public GameObject targetBackup;
 	Vector3 lastKnownPosition;
 	CountdownTimer timer;
 
@@ -81,7 +85,18 @@ public class EntitySensor : MonoBehaviour
 			if (sensorType == SensorType.attackSensorOne || sensorType == SensorType.attackSensorTwo)
 			{
 				target = FindClosestTargetWithinValues(attackData.attackMinRange, attackData.attackMaxRange);
-				OnTargetChanged.Invoke(target, sensorType);
+
+				if (target == null)
+				{
+					OnTargetChanged.Invoke(null, sensorType);
+					targetBackup = FindClosestTarget();
+					
+				}
+				else
+				{
+					OnTargetChanged.Invoke(target, sensorType);
+					targetBackup = null;
+				}
 			}
 			else
 				target = FindClosestTarget();
@@ -93,6 +108,10 @@ public class EntitySensor : MonoBehaviour
 		{
 			lastKnownPosition = TargetPosition;
 			OnTargetChanged.Invoke(target, sensorType);
+		}
+		else if (!IsTargetInRange && entityTeam == EntityData.EntityTeam.greenTeam && attackData.attackType == EntityAttackData.AttackType.ranged)
+		{
+			Debug.LogError("target not in range");
 		}
 	}
 
@@ -110,7 +129,7 @@ public class EntitySensor : MonoBehaviour
 		}
 
 		if (entityTeam == EntityData.EntityTeam.greenTeam)
-			Debug.LogError("no target within ranges");
+			Debug.LogError("no target within range");
 
 		return null;
 	}
