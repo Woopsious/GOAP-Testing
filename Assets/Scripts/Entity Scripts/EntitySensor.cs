@@ -64,7 +64,7 @@ public class EntitySensor : MonoBehaviour
 	{
 		timer = new CountdownTimer(timerInterval);
 		timer.OnTimerStop += () => {
-			UpdateTargetsInsideSensor();
+			UpdateSensorLogic();
 			timer.Start();
 		};
 		timer.Start();
@@ -75,50 +75,56 @@ public class EntitySensor : MonoBehaviour
 		timer.Tick(Time.deltaTime, false);
 	}
 
-	void UpdateTargetsInsideSensor()
+	void UpdateSensorLogic()
 	{
-		if (targetsInRange.Count > 0)
+		SortTargetsInSensorRange();
+		UpdateSensorTargets();
+	}
+
+	void SortTargetsInSensorRange()
+	{
+		for (int i = 0; i < targetsInRange.Count; i++)
+			targetsInRange[i].targetAggroDistance = GetAggoDistance(targetsInRange[i].target);
+
+		targetsInRange.Sort((a, b) => a.targetAggroDistance.CompareTo(b.targetAggroDistance));
+	}
+	void UpdateSensorTargets()
+	{
+		if (sensorType == SensorType.attackSensorOne || sensorType == SensorType.attackSensorTwo)
 		{
-			for (int i = 0; i < targetsInRange.Count; i++)
-				targetsInRange[i].targetAggroDistance = GetAggoDistance(targetsInRange[i].target);
+			target = FindClosestTargetWithinValues(attackData.attackMinRange, attackData.attackMaxRange);
 
-			if (sensorType == SensorType.attackSensorOne || sensorType == SensorType.attackSensorTwo)
+			if (target == null)
 			{
-				target = FindClosestTargetWithinValues(attackData.attackMinRange, attackData.attackMaxRange);
+				OnTargetChanged.Invoke(null, sensorType);
+				targetBackup = FindClosestTarget();
 
-				if (target == null)
-				{
-					OnTargetChanged.Invoke(null, sensorType);
-					targetBackup = FindClosestTarget();
-					
-				}
-				else
-				{
-					OnTargetChanged.Invoke(target, sensorType);
-					targetBackup = null;
-				}
 			}
 			else
-				target = FindClosestTarget();
+			{
+				OnTargetChanged.Invoke(target, sensorType);
+				targetBackup = null;
+			}
 		}
 		else
-			target = null;
+		{
+			target = FindClosestTarget();
 
-		if (IsTargetInRange && (lastKnownPosition != TargetPosition || lastKnownPosition != Vector3.zero))
-		{
-			lastKnownPosition = TargetPosition;
-			OnTargetChanged.Invoke(target, sensorType);
-		}
-		else if (!IsTargetInRange && entityTeam == EntityData.EntityTeam.greenTeam && attackData.attackType == EntityAttackData.AttackType.ranged)
-		{
-			Debug.LogError("target not in range");
+			//attack sensors shouldnt need to worry about tracking last known pos as chase/flee sensors handle that
+			if (IsTargetInRange && (lastKnownPosition != TargetPosition || lastKnownPosition != Vector3.zero))
+			{
+				OnTargetChanged.Invoke(target, sensorType);
+				lastKnownPosition = TargetPosition;
+			}
 		}
 	}
 
 	GameObject FindClosestTarget()
 	{
-		targetsInRange.Sort((a, b) => a.targetAggroDistance.CompareTo(b.targetAggroDistance));
-		return targetsInRange[0].target;
+		if (targetsInRange.Count <= 0)
+			return null;
+		else
+			return targetsInRange[0].target;
 	}
 	GameObject FindClosestTargetWithinValues(float min, float max)
 	{
@@ -127,10 +133,6 @@ public class EntitySensor : MonoBehaviour
 			if (targetsInRange[i].targetAggroDistance >= min && targetsInRange[i].targetAggroDistance <= max)
 				return targetsInRange[i].target;
 		}
-
-		if (entityTeam == EntityData.EntityTeam.greenTeam)
-			Debug.LogError("no target within range");
-
 		return null;
 	}
 
@@ -188,6 +190,12 @@ public class EntitySensor : MonoBehaviour
 		GameManager.OnEntityDeathEvent -= ClearDeadEntitiesFromTargetList;
 	}
 
+	float GetAggoDistance(GameObject target)
+	{
+		float aggroDistance = Vector3.Distance(transform.position, target.transform.position);
+		return aggroDistance;
+	}
+
 	void ClearDeadEntitiesFromTargetList(GameObject entity)
 	{
 		for (int i = targetsInRange.Count - 1; i >= 0; i--)
@@ -197,22 +205,13 @@ public class EntitySensor : MonoBehaviour
 		}
 	}
 
-	float GetAggoDistance(GameObject target)
-	{
-		float aggroDistance = Vector3.Distance(transform.position, target.transform.position);
-		return aggroDistance;
-	}
-
 	void OnDrawGizmos()
 	{
 		if (sensorType == SensorType.attackSensorOne ||  sensorType == SensorType.attackSensorTwo)
-		{
 			Gizmos.color = target ? Color.blue : Color.green;
-		}
 		else
-		{
 			Gizmos.color = IsTargetInRange ? Color.red : Color.green;
-		}
+
 		Gizmos.DrawWireSphere(transform.position, detectionRadius);
 	}
 }

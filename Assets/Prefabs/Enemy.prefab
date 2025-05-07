@@ -75,6 +75,8 @@ MonoBehaviour:
     attackCooldown: 0
     attackMinRange: 0
     attackMaxRange: 0
+  target: {fileID: 0}
+  targetBackup: {fileID: 0}
 --- !u!1 &1850757724687073674
 GameObject:
   m_ObjectHideFlags: 0
@@ -143,13 +145,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sensorType: 1
   detectionRadius: 5
-  timerInterval: 0.5
+  timerInterval: 0.25
   attackData:
     attackType: 0
     attackDamage: 0
     attackCooldown: 0
     attackMinRange: 0
     attackMaxRange: 0
+  target: {fileID: 0}
+  targetBackup: {fileID: 0}
 --- !u!1 &4132808136157353397
 GameObject:
   m_ObjectHideFlags: 0
@@ -225,6 +229,8 @@ MonoBehaviour:
     attackCooldown: 0
     attackMinRange: 0
     attackMaxRange: 0
+  target: {fileID: 0}
+  targetBackup: {fileID: 0}
 --- !u!1 &4185409361200469531
 GameObject:
   m_ObjectHideFlags: 0
@@ -300,6 +306,8 @@ MonoBehaviour:
     attackCooldown: 0
     attackMinRange: 0
     attackMaxRange: 0
+  target: {fileID: 0}
+  targetBackup: {fileID: 0}
 --- !u!1 &8151942388671483916
 GameObject:
   m_ObjectHideFlags: 0

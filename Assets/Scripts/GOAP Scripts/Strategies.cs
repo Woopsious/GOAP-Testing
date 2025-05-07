@@ -128,34 +128,25 @@ public class MoveIntoAttackRange : IActionStrategy
 	{
 		float destinationDistance = Vector3.Distance(agent.transform.position, destination());
 
-		Debug.LogError("destination: " + destination());
+		Vector3 moveDestination = Vector3.zero;
 
 		if (destinationDistance >= attackData.attackMinRange && destinationDistance <= attackData.attackMaxRange)
 		{
-			Debug.LogError("inside attack range");
+			//noop
 		}
 		else if (destinationDistance < attackData.attackMinRange)
 		{
-			Debug.LogError("TOO CLOSE");
-
 			Vector3 normDir = (agent.transform.position - destination()).normalized;
 			normDir = Quaternion.AngleAxis(Random.Range(0, 59) - 30, Vector3.up) * normDir; //add slight zigzag
-			Vector3 fleeDestination = agent.transform.position + (normDir * 10);
-			agent.SetDestination(fleeDestination);
+			moveDestination = agent.transform.position + (normDir * 20);
 		}
 		else if (destinationDistance > attackData.attackMaxRange)
-		{
-			Debug.LogError("TOO FAR");
+			moveDestination = destination();
 
-			agent.SetDestination(destination());
-		}
+		agent.SetDestination(moveDestination);
 	}
 
 	public void Start() => GetWithinAttackRangeMinMax();
-	public void Update()
-	{
-
-	}
 	public void Stop() => agent.SetDestination(agent.transform.position);
 }
 
@@ -163,7 +154,7 @@ public class FleeStrategy : IActionStrategy
 {
 	readonly NavMeshAgent agent;
 	readonly Func<Vector3> destination;
-	readonly float maxFleeDistance = 10f;
+	readonly float maxFleeDistance = 20f;
 
 	public bool CanPerform => !Complete;
 	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending;

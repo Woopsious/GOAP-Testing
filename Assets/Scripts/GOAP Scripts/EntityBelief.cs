@@ -65,7 +65,6 @@ public class EntityBeliefs
 	public string Name { get; }
 
 	Func<bool> condition = () => false;
-	Func<GameObject> target = () => null;
 	Func<Vector3> observedLocation = () => Vector3.zero;
 
 	public Vector3 Location => observedLocation();
@@ -94,12 +93,6 @@ public class EntityBeliefs
 		public Builder WithCondition(Func<bool> condition)
 		{
 			belief.condition = condition;
-			return this;
-		}
-
-		public Builder WithTargetCondition(Func<GameObject> target)
-		{
-			belief.target = target;
 			return this;
 		}
 

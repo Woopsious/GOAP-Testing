@@ -91,7 +91,7 @@ public class EntityBrain : MonoBehaviour
 		attackOneReady = true;
 		attackTwoReady = true;
 
-		float fleeRange = 0;
+		float fleeRange = 1;
 		foreach (EntityAttackData attackData in entityStats._Data.attackData)
 		{
 			if (attackData.attackMinRange > fleeRange)
@@ -99,7 +99,7 @@ public class EntityBrain : MonoBehaviour
 		}
 
 		chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
-		fleeSensor.UpdateSensorSettings(entityStats._Data.fleeRange);
+		fleeSensor.UpdateSensorSettings(fleeRange);
 		attackSensorOne.UpdateSensorSettings(entityStats._Data.attackData[0]);
 		attackSensorTwo.UpdateSensorSettings(entityStats._Data.attackData[1]);
 
@@ -182,7 +182,7 @@ public class EntityBrain : MonoBehaviour
 			.Build(),
 
 			new EntityActions.Builder("WaitForAttacks")
-			.WithStrategy(new IdleStrategy(0.5f))
+			.WithStrategy(new IdleStrategy(0.25f))
 			.AddPrecondition(beliefs["TargetInAttackOneRange"])
 			.AddPrecondition(beliefs["TargetInAttackTwoRange"])
 			.AddPrecondition(beliefs["AllAttacksOnCooldown"])
@@ -238,38 +238,38 @@ public class EntityBrain : MonoBehaviour
 			.Build(),
 
 			new EntityGoals.Builder("ChaseTarget")
-			.WithPriority(40)
+			.WithPriority(50)
 			.WithDesiredEffect(beliefs["ChasingTarget"])
 			.Build(),
 
-			new EntityGoals.Builder("FleeFromTarget")
-			.WithPriority(45)
-			.WithDesiredEffect(beliefs["FleeingFromTarget"])
-			.Build(),
-
 			new EntityGoals.Builder("WaitForAttackCooldowns")
-			.WithPriority(50)
+			.WithPriority(60)
 			.WithDesiredEffect(beliefs["WaitingForAttackCooldowns"])
 			.Build(),
 
 			new EntityGoals.Builder("MoveToUseAttackOne")
-			.WithPriority(60)
+			.WithPriority(70)
 			.WithDesiredEffect(beliefs["AttackOne"])
 			.Build(),
 
 			new EntityGoals.Builder("MoveToUseAttackTwo")
-			.WithPriority(60)
+			.WithPriority(70)
 			.WithDesiredEffect(beliefs["AttackTwo"])
 			.Build(),
 
 			new EntityGoals.Builder("AttackOne")
-			.WithPriority(70)
+			.WithPriority(80)
 			.WithDesiredEffect(beliefs["AttackOne"])
 			.Build(),
 
 			new EntityGoals.Builder("AttackTwo")
-			.WithPriority(70)
+			.WithPriority(80)
 			.WithDesiredEffect(beliefs["AttackTwo"])
+			.Build(),
+
+			new EntityGoals.Builder("FleeFromTarget")
+			.WithPriority(90)
+			.WithDesiredEffect(beliefs["FleeingFromTarget"])
 			.Build(),
 		};
 	}
@@ -300,16 +300,10 @@ public class EntityBrain : MonoBehaviour
 
 	void UseAttackOne()
 	{
-		if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
-			Debug.LogError("used attack one");
-
 		attackTargetOne.GetComponent<EntityStats>().RecieveDamage(entityStats._Data.attackData[0].attackDamage);
 	}
 	void UseAttackTwo()
 	{
-		if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
-			Debug.LogError("used attack two");
-
 		attackTargetTwo.GetComponent<EntityStats>().RecieveDamage(entityStats._Data.attackData[1].attackDamage);
 	}
 
