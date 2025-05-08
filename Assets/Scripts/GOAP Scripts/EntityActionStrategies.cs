@@ -1,8 +1,6 @@
 using System;
-using System.Xml;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEngine.GraphicsBuffer;
 using Random = UnityEngine.Random;
 
 // TODO Migrate Strategies, Beliefs, Actions and Goals to Scriptable Objects and create Node Editor for them
@@ -63,11 +61,10 @@ public class WanderStrategy : IActionStrategy
 	{
 		for (int i = 0; i < 5; i++)
 		{
-			Vector3 randomPositon = UnityEngine.Random.insideUnitSphere * wanderRadius;
-			Vector3 randomDirection = new Vector3(randomPositon.x, 0, randomPositon.z);
-			NavMeshHit hit;
+			Vector3 randomPositon = Random.insideUnitSphere * wanderRadius;
+			Vector3 randomDirection = new(randomPositon.x, 0, randomPositon.z);
 
-			if (NavMesh.SamplePosition(agent.transform.position + randomDirection, out hit, wanderRadius, 1))
+			if (NavMesh.SamplePosition(agent.transform.position + randomDirection, out NavMeshHit hit, wanderRadius, 1))
 			{
 				agent.SetDestination(hit.position);
 				return;

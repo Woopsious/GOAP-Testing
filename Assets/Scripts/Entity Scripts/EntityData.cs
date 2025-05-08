@@ -4,14 +4,14 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "EntityData", menuName = "ScriptableObjects/EntityData")]
-public class EntityData: ScriptableObject
+public class EntityData : ScriptableObject
 {
 	[Header("Info")]
 	public string Name;
 	public EntityTeam team;
 	public enum EntityTeam
 	{
-		redTeam, greenTeam, playerTeam, debugAttackPlayer
+		neutral, redTeam, greenTeam, playerTeam, debugAttackPlayer
 	}
 
 	[Header("Stats")]

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: GreenRanged
   m_EditorClassIdentifier: 
   Name: Green Ranged Entity
-  team: 1
+  team: 2
   maxHealth: 100
   chaseRange: 25
   fleeRange: 1
@@ -23,12 +23,8 @@ MonoBehaviour:
     attackCooldown: 3
     attackMinRange: 5
     attackMaxRange: 12
-    hasAttackTarget: 0
-    attackTarget: {fileID: 0}
   - attackType: 1
     attackDamage: 10
     attackCooldown: 10
     attackMinRange: 8
     attackMaxRange: 18
-    hasAttackTarget: 0
-    attackTarget: {fileID: 0}

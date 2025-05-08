@@ -417,6 +417,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _Data: {fileID: 0}
   currentHealth: 0
+  redTeamMaterial: {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
+  greenTeamMaterial: {fileID: 2100000, guid: d3c784064aacc7a4fb05fde26fc3385d, type: 2}
 --- !u!114 &6056201479809704718
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -439,8 +441,6 @@ MonoBehaviour:
   chaseTarget: {fileID: 0}
   attackTargetOne: {fileID: 0}
   attackTargetTwo: {fileID: 0}
-  redTeamMaterial: {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
-  greenTeamMaterial: {fileID: 2100000, guid: d3c784064aacc7a4fb05fde26fc3385d, type: 2}
 --- !u!195 &5829567236386544650
 NavMeshAgent:
   m_ObjectHideFlags: 0

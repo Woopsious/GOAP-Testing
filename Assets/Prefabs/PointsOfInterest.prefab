@@ -11,7 +11,8 @@ GameObject:
   - component: {fileID: 5631940097731418315}
   - component: {fileID: 4698864659737212271}
   - component: {fileID: 2322527452375616421}
-  - component: {fileID: 5759064851817571559}
+  - component: {fileID: 5717374160951434148}
+  - component: {fileID: 3732694443863648908}
   - component: {fileID: 5555359492249666467}
   m_Layer: 0
   m_Name: PointsOfInterest
@@ -66,7 +67,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
+  - {fileID: 2100000, guid: 3ef26c09b1205844baa0193177854497, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -88,8 +89,31 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!136 &5759064851817571559
-CapsuleCollider:
+--- !u!114 &5717374160951434148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5687726939992160149}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 35741f52bd88ace4b8c5e6d274c7780c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _PoiData: {fileID: 0}
+  meshRenderer: {fileID: 0}
+  entityDetection: {fileID: 3732694443863648908}
+  poiOwner: 0
+  redTeamEntitiesCount: 0
+  greenTeamEntitiesCount: 0
+  playerTeamEntitiesCount: 0
+  neutralTeamMaterial: {fileID: 2100000, guid: 3ef26c09b1205844baa0193177854497, type: 2}
+  redTeamMaterial: {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
+  greenTeamMaterial: {fileID: 2100000, guid: d3c784064aacc7a4fb05fde26fc3385d, type: 2}
+  playerTeamMaterial: {fileID: 0}
+--- !u!135 &3732694443863648908
+SphereCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -106,10 +130,8 @@ CapsuleCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.5000001
-  m_Height: 2
-  m_Direction: 1
+  serializedVersion: 3
+  m_Radius: 1
   m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!208 &5555359492249666467
 NavMeshObstacle:

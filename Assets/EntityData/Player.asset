@@ -10,25 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea2991e052f6b844c82c7212037cb7bc, type: 3}
-  m_Name: RedMelee
+  m_Name: Player
   m_EditorClassIdentifier: 
-  Name: Red Melee Entity
-  team: 0
+  Name: Player
+  team: 3
   maxHealth: 100
   chaseRange: 25
   fleeRange: 1
-  attackData:
-  - attackType: 0
-    attackDamage: 4
-    attackCooldown: 1
-    attackMinRange: 0
-    attackMaxRange: 3
-    hasAttackTarget: 1
-    attackTarget: {fileID: 0}
-  - attackType: 0
-    attackDamage: 15
-    attackCooldown: 10
-    attackMinRange: 0
-    attackMaxRange: 3
-    hasAttackTarget: 1
-    attackTarget: {fileID: 0}
+  attackData: []

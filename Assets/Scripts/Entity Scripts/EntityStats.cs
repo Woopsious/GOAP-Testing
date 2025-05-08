@@ -1,3 +1,4 @@
+using UnityEditor;
 using UnityEngine;
 
 public class EntityStats : MonoBehaviour
@@ -11,8 +12,19 @@ public class EntityStats : MonoBehaviour
 
 	CountdownTimer statsTimer;
 
+	public Material redTeamMaterial;
+	public Material greenTeamMaterial;
+
 	private void Awake()
 	{
+		if (_Data == null)
+			Debug.LogError("Entity Data not set for gameobject: " + gameObject.name);
+
+		if (_Data.team == EntityData.EntityTeam.redTeam)
+			GetComponent<MeshRenderer>().sharedMaterial = redTeamMaterial;
+		else if (_Data.team == EntityData.EntityTeam.greenTeam)
+			GetComponent<MeshRenderer>().sharedMaterial = greenTeamMaterial;
+
 		player = GetComponent<PlayerMovement>();
 		entityBrain = GetComponent<EntityBrain>();
 	}
@@ -33,6 +45,7 @@ public class EntityStats : MonoBehaviour
 		currentHealth = _Data.maxHealth;
 
 		if (player != null) return;
+
 		statsTimer = new CountdownTimer(5f);
 		statsTimer.OnTimerStop += () =>
 		{

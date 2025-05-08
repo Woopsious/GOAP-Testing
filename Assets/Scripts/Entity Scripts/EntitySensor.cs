@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEngine.EventSystems.EventTrigger;
 
 public class EntitySensor : MonoBehaviour
 {
@@ -140,10 +141,10 @@ public class EntitySensor : MonoBehaviour
 	{
 		EntityData.EntityTeam otherAgentTeam;
 
-		if (other.GetComponent<EntityStats>() != null)
-			otherAgentTeam = other.GetComponent<EntityStats>()._Data.team;
-		else
+		if (other.GetComponent<EntityStats>() == null)
 			return;
+		else
+			otherAgentTeam = other.GetComponent<EntityStats>()._Data.team;
 
 		if (entityTeam != otherAgentTeam)
 		{
@@ -166,10 +167,10 @@ public class EntitySensor : MonoBehaviour
 	{
 		EntityData.EntityTeam otherAgentTeam;
 
-		if (other.GetComponent<EntityStats>() != null)
-			otherAgentTeam = other.GetComponent<EntityStats>()._Data.team;
-		else
+		if (other.GetComponent<EntityStats>() == null)
 			return;
+		else
+			otherAgentTeam = other.GetComponent<EntityStats>()._Data.team;
 
 		if (entityTeam != otherAgentTeam)
 		{

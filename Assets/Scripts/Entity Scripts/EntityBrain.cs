@@ -44,20 +44,9 @@ public class EntityBrain : MonoBehaviour
 
 	IGoapPlanner gPlanner;
 
-	public Material redTeamMaterial;
-	public Material greenTeamMaterial;
-
 	void Awake()
 	{
 		entityStats = GetComponent<EntityStats>();
-
-		if (entityStats._Data == null)
-			Debug.LogError("Entity Type not set for gameobject: " + gameObject.name);
-		else if (entityStats._Data.team == EntityData.EntityTeam.redTeam)
-			GetComponent<MeshRenderer>().sharedMaterial = redTeamMaterial;
-		else if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
-			GetComponent<MeshRenderer>().sharedMaterial = greenTeamMaterial;
-
 		navMeshAgent = GetComponent<NavMeshAgent>();
 		rb = GetComponent<Rigidbody>();
 		rb.freezeRotation = true;
