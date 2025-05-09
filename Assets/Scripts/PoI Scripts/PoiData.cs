@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "EntityData", menuName = "ScriptableObjects/PoIData")]
@@ -8,6 +9,8 @@ public class PoiData : ScriptableObject
 
 	public bool CanBeCaptured;
 	public bool BeingCaptured;
+
+	public float timeToCapture;
 
 	public int ResourcesProvided;
 	public float ResourcesTimerCooldown;

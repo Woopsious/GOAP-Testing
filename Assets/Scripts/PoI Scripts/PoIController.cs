@@ -18,6 +18,10 @@ public class PoIController : MonoBehaviour
 	public int greenTeamEntitiesCount;
 	public int playerTeamEntitiesCount;
 
+	public int accumilatedResources;
+
+	public HashSet<IPoIStrategies> poIBehaviour;
+
 	public Material neutralTeamMaterial;
 	public Material redTeamMaterial;
 	public Material greenTeamMaterial;
@@ -49,12 +53,29 @@ public class PoIController : MonoBehaviour
 
 	private void Start()
 	{
-
+		Initilize();
 	}
 
 	private void Update()
 	{
+		foreach(IPoIStrategies poIStrategies in poIBehaviour)
+		{
+			poIStrategies.Update(Time.deltaTime);
+		}
+	}
 
+	void Initilize()
+	{
+		poIBehaviour = new HashSet<IPoIStrategies> 
+		{
+			new PoiAddResources(this),
+			new PoiCapture(this)
+		};
+
+		foreach (IPoIStrategies poIStrategies in poIBehaviour)
+		{
+			poIStrategies.Start();
+		}
 	}
 
 	private void OnTriggerEnter(Collider other)
@@ -170,3 +191,18 @@ public class PoIController : MonoBehaviour
 	}
 }
 
+public class PoiBehaviour
+{
+	IPoIStrategies strategy;
+
+	public PoiBehaviour(IPoIStrategies strategy)
+	{
+		this.strategy = strategy;
+	}
+
+	public void Start() => strategy.Start();
+
+	public void Update(float deltaTime) => strategy.Update(deltaTime);
+
+	public void Stop() => strategy.Stop();
+}
