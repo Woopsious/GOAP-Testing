@@ -11,14 +11,15 @@ public class PoIController : MonoBehaviour
 	private SphereCollider entityDetection;
 
 	public EntityTeam poiOwner;
+	public int accumilatedResources;
 
 	public List<EntityStats> entitiesInRange = new List<EntityStats>();
+
+	public EntityStats entityCurrentlyCapturing;
 
 	public int redTeamEntitiesCount;
 	public int greenTeamEntitiesCount;
 	public int playerTeamEntitiesCount;
-
-	public int accumilatedResources;
 
 	public HashSet<IPoIStrategies> poIBehaviour;
 
@@ -69,7 +70,7 @@ public class PoIController : MonoBehaviour
 		poIBehaviour = new HashSet<IPoIStrategies> 
 		{
 			new PoiAddResources(this),
-			new PoiCapture(this)
+			//new PoiCapture(this)
 		};
 
 		foreach (IPoIStrategies poIStrategies in poIBehaviour)
@@ -154,7 +155,7 @@ public class PoIController : MonoBehaviour
 			}
 		}
 	}
-	void UpdatePoiOwner(EntityTeam newOwner)
+	public void UpdatePoiOwner(EntityTeam newOwner)
 	{
 		poiOwner = newOwner;
 

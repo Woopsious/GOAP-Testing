@@ -4,6 +4,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 using static EntitySensor;
+using static EntityData;
 
 public class EntityBrain : MonoBehaviour
 {
@@ -80,17 +81,7 @@ public class EntityBrain : MonoBehaviour
 		attackOneReady = true;
 		attackTwoReady = true;
 
-		float fleeRange = 1;
-		foreach (EntityAttackData attackData in entityStats._Data.attackData)
-		{
-			if (attackData.attackMinRange > fleeRange)
-				fleeRange = attackData.attackMinRange;
-		}
-
-		chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
-		fleeSensor.UpdateSensorSettings(fleeRange);
-		attackSensorOne.UpdateSensorSettings(entityStats._Data.attackData[0]);
-		attackSensorTwo.UpdateSensorSettings(entityStats._Data.attackData[1]);
+		SetupSensors();
 
 		SetupBeliefs();
 		SetupActions();
@@ -98,7 +89,38 @@ public class EntityBrain : MonoBehaviour
 		SetupTimers();
 	}
 
+	void SetupSensors()
+	{
+		if (entityStats._Data.type == EntityType.combat)
+		{
+			float fleeRange = 1;
+			foreach (EntityAttackData attackData in entityStats._Data.attackData)
+			{
+				if (attackData.attackMinRange > fleeRange)
+					fleeRange = attackData.attackMinRange;
+			}
+
+			chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
+			fleeSensor.UpdateSensorSettings(fleeRange);
+
+			attackSensorOne.UpdateSensorSettings(entityStats._Data.attackData[0]);
+			attackSensorTwo.UpdateSensorSettings(entityStats._Data.attackData[1]);
+		}
+        else if (entityStats._Data.type == EntityType.worker)
+        {
+			chaseSensor.UpdateSensorSettings(SensorType.poiDetector, entityStats._Data.chaseRange);
+			fleeSensor.UpdateSensorSettings(entityStats._Data.fleeRange);
+		}
+    }
+
 	void SetupBeliefs()
+	{
+		if (entityStats._Data.type == EntityType.combat)
+			SetupCombatAiBeliefs();
+		else if (entityStats._Data.type == EntityType.worker)
+			SetupWorkerAiBeliefs();
+	}
+	void SetupCombatAiBeliefs()
 	{
 		beliefs = new Dictionary<string, EntityBeliefs>();
 		BeliefFactory factory = new(this, beliefs);
@@ -133,7 +155,37 @@ public class EntityBrain : MonoBehaviour
 		factory.AddBelief("AttackOne", () => false);
 		factory.AddBelief("AttackTwo", () => false);
 	}
+	void SetupWorkerAiBeliefs()
+	{
+		beliefs = new Dictionary<string, EntityBeliefs>();
+		BeliefFactory factory = new(this, beliefs);
+
+		factory.AddBelief("Nothing", () => false);
+
+		factory.AddBelief("AgentIdle", () => !navMeshAgent.hasPath);
+		factory.AddBelief("AgentMoving", () => navMeshAgent.hasPath);
+		factory.AddBelief("AgentHealthLow", () => entityStats.currentHealth < 30);
+		factory.AddBelief("AgentIsHealthy", () => entityStats.currentHealth >= 40);
+
+		factory.AddLocationBelief("AgentAtFoodShack", 3f, foodShack);
+
+		factory.AddBelief("LookingForPoi", () => false);
+
+		factory.AddTargetBelief("FoundPoi", chaseSensor);
+		factory.AddBelief("MoveToPoi", () => chaseTarget != null);
+
+		factory.AddLocationBelief("AtPoi", 5f, beliefs["FoundPoi"].TargetLocation);
+		factory.AddBelief("CapturePoi", () => false);
+	}
+
 	void SetupActions()
+	{
+		if (entityStats._Data.type == EntityData.EntityType.combat)
+			SetupCombatAiActions();
+		else if (entityStats._Data.type == EntityData.EntityType.worker)
+			SetupWorkerAiActions();
+	}
+	void SetupCombatAiActions()
 	{
 		actions = new HashSet<EntityActions>
 		{
@@ -207,7 +259,58 @@ public class EntityBrain : MonoBehaviour
 			.Build()
 		};
 	}
+	void SetupWorkerAiActions()
+	{
+		actions = new HashSet<EntityActions>
+		{
+			new EntityActions.Builder("Relax")
+			.WithStrategy(new IdleStrategy(5))
+			.AddEffect(beliefs["Nothing"])
+			.Build(),
+
+			new EntityActions.Builder("Wander Around")
+			.WithStrategy(new WanderStrategy(navMeshAgent, 20))
+			.AddEffect(beliefs["AgentMoving"])
+			.Build(),
+
+			new EntityActions.Builder("MoveToEatingPosition")
+			.WithStrategy(new MoveStrategy(navMeshAgent, () => foodShack.position))
+			.AddEffect(beliefs["AgentAtFoodShack"])
+			.Build(),
+
+			new EntityActions.Builder("Eat")
+			.WithStrategy(new IdleStrategy(5))  // Later replace with a Command
+			.AddPrecondition(beliefs["AgentAtFoodShack"])
+			.AddEffect(beliefs["AgentIsHealthy"])
+			.Build(),
+
+			new EntityActions.Builder("LookForPoi")
+			.WithStrategy(new WanderStrategy(navMeshAgent, 50))
+			.AddEffect(beliefs["LookingForPoi"])
+			.Build(),
+
+			new EntityActions.Builder("MoveToPoi")
+			.WithStrategy(new MoveStrategy(navMeshAgent, () => beliefs["FoundPoi"].TargetLocation))
+			.AddPrecondition(beliefs[""])
+			.AddEffect(beliefs["CapturePoi"])
+			.Build(),
+
+			new EntityActions.Builder("CapturePoi")
+			.WithStrategy(new CapturePoiStrategy(entityStats, this))
+			.AddPrecondition(beliefs["AtPoi"])
+			.AddEffect(beliefs["CapturePoi"])
+			.Build(),
+		};
+	}
+
 	void SetupGoals()
+	{
+		if (entityStats._Data.type == EntityData.EntityType.combat)
+			SetupCombatAiGoals();
+		else if (entityStats._Data.type == EntityData.EntityType.worker)
+			SetupWorkerAiGoals();
+	}
+	void SetupCombatAiGoals()
 	{
 		goals = new HashSet<EntityGoals>
 		{
@@ -262,8 +365,42 @@ public class EntityBrain : MonoBehaviour
 			.Build(),
 		};
 	}
+	void SetupWorkerAiGoals()
+	{
+		goals = new HashSet<EntityGoals>
+		{
+			new EntityGoals.Builder("Idle")
+			.WithPriority(5)
+			.WithDesiredEffect(beliefs["Nothing"])
+			.Build(),
+
+			new EntityGoals.Builder("FindPoi")
+			.WithPriority(10)
+			.WithDesiredEffect(beliefs["AgentMoving"])
+			.WithDesiredEffect(beliefs["LookingForPoi"])
+			.Build(),
+
+			new EntityGoals.Builder("KeepHealthUp")
+			.WithPriority(20)
+			.WithDesiredEffect(beliefs["AgentIsHealthy"])
+			.Build(),
+
+			new EntityGoals.Builder("MoveToPoi")
+			.WithPriority(60)
+			.WithDesiredEffect(beliefs["MoveToPoi"])
+			.Build(),
+
+			new EntityGoals.Builder("CapturePoi")
+			.WithPriority(80)
+			.WithDesiredEffect(beliefs["CapturePoi"])
+			.Build(),
+		};
+	}
+
 	void SetupTimers()
 	{
+		if (entityStats._Data.type != EntityType.combat) return; //workers have no attacks atm
+
 		attackOneTimer = new CountdownTimer(entityStats._Data.attackData[0].attackCooldown);
 		attackOneTimer.OnTimerStart += () =>
 		{
@@ -298,8 +435,8 @@ public class EntityBrain : MonoBehaviour
 
 	void TickAllTimers()
 	{
-		attackOneTimer.Tick(Time.deltaTime, false);
-		attackTwoTimer.Tick(Time.deltaTime, false);
+		attackOneTimer?.Tick(Time.deltaTime, false);
+		attackTwoTimer?.Tick(Time.deltaTime, false);
 	}
 
 	void OnEnable()
@@ -333,6 +470,11 @@ public class EntityBrain : MonoBehaviour
 
 			case SensorType.attackSensorTwo:
 			attackTargetTwo = target;
+			break;
+
+			case SensorType.poiDetector:
+			//pois dont move so no need to recalc plan
+			chaseTarget = target;
 			break;
 		}
 	}
@@ -408,4 +550,29 @@ public class EntityBrain : MonoBehaviour
 			}
 		}
 	}
+}
+
+public interface IEntityBrainStrategy
+{
+
+}
+
+public class EntityCombatBrain : IEntityBrainStrategy
+{
+	public EntityCombatBrain()
+	{
+
+	}
+
+	public Dictionary<string, EntityBeliefs> beliefs;
+	public HashSet<EntityActions> actions;
+	public HashSet<EntityGoals> goals;
+}
+
+[CreateAssetMenu(fileName = "EntityData", menuName = "ScriptableObjects/EntityBrainType")]
+public class EntityBrainType : ScriptableObject
+{
+	[SerializeReference] public Dictionary<string, EntityBeliefs> beliefs;
+	[SerializeReference] public HashSet<EntityActions> actions;
+	[SerializeReference] public HashSet<EntityGoals> goals;
 }

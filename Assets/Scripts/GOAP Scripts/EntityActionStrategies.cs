@@ -208,3 +208,49 @@ public class BasicAttackStrategy : IActionStrategy
 
 	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
 }
+
+public class CapturePoiStrategy : IActionStrategy
+{
+	readonly EntityStats entityStats;
+	readonly EntityBrain entityBrain;
+
+	public PoIController poIController;
+
+	public bool CanPerform => true; // Agent can always attack
+	public bool Complete { get; private set; }
+
+	CountdownTimer timer;
+
+	public CapturePoiStrategy(EntityStats entityStats, EntityBrain entityBrain)
+	{
+		this.entityStats = entityStats;
+		this.entityBrain = entityBrain;
+	}
+
+	public void StartCapture()
+	{
+		poIController = entityBrain.chaseTarget.GetComponent<PoIController>();
+
+		timer = new CountdownTimer(poIController._PoiData.timeToCapture);
+		timer.OnTimerStop += () => CompleteCapture();
+		timer.OnTimerCancel += () => CancelCapture();
+
+		Complete = false;
+		timer.Start();
+	}
+	public void CompleteCapture()
+	{
+		poIController.UpdatePoiOwner(entityStats._Data.team);
+		poIController.entityCurrentlyCapturing = null;
+		Complete = true;
+	}
+	public void CancelCapture()
+	{
+		poIController.entityCurrentlyCapturing = null;
+		Complete = true;
+	}
+
+	public void Start() => StartCapture();
+	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
+	public void Stop() => timer.Cancel();
+}

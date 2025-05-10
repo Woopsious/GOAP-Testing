@@ -8,6 +8,13 @@ public class EntityData : ScriptableObject
 {
 	[Header("Info")]
 	public string Name;
+
+	public EntityType type;
+	public enum EntityType
+	{
+		combat, worker
+	}
+
 	public EntityTeam team;
 	public enum EntityTeam
 	{

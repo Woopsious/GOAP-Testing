@@ -16,6 +16,7 @@ MonoBehaviour:
   startingOwner: 1
   CanBeCaptured: 0
   BeingCaptured: 0
+  timeToCapture: 5
   ResourcesProvided: 500
   ResourcesTimerCooldown: 10
   PoiDetectionRadius: 3

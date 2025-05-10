@@ -61,10 +61,10 @@ public class EntityStats : MonoBehaviour
 			currentHealth += 50;
 		else
 		{
-			if (currentHealth <= 80) return;
+			if (currentHealth <= _Data.maxHealth * 0.8f) return;
 			currentHealth -= 5;
 		}
-		currentHealth = Mathf.Clamp(currentHealth, 0, 100);
+		currentHealth = Mathf.Clamp(currentHealth, 0, _Data.maxHealth);
 	}
 	private bool InRangeOf(Vector3 pos, float range) => Vector3.Distance(transform.position, pos) < range;
 

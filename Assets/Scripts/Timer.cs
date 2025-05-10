@@ -11,6 +11,7 @@ public abstract class Timer
 
 	public Action OnTimerStart = delegate { };
 	public Action OnTimerStop = delegate { };
+	public Action OnTimerCancel = delegate { };
 
 	protected Timer(float value)
 	{
@@ -34,6 +35,15 @@ public abstract class Timer
 		{
 			IsRunning = false;
 			OnTimerStop.Invoke();
+		}
+	}
+
+	public void Cancel()
+	{
+		if (IsRunning)
+		{
+			IsRunning = false;
+			OnTimerCancel.Invoke();
 		}
 	}
 

@@ -9,14 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4cd81236ff3a96246845dbf486ec2a3d, type: 3}
-  m_Name: GreenTeamBase
+  m_Script: {fileID: 11500000, guid: ea2991e052f6b844c82c7212037cb7bc, type: 3}
+  m_Name: RedWorker
   m_EditorClassIdentifier: 
-  PoiName: Green Team Base
-  startingOwner: 2
-  CanBeCaptured: 0
-  BeingCaptured: 0
-  timeToCapture: 5
-  ResourcesProvided: 500
-  ResourcesTimerCooldown: 10
-  PoiDetectionRadius: 3
+  Name: Red Worker Entity
+  type: 1
+  team: 1
+  maxHealth: 50
+  chaseRange: 25
+  fleeRange: 20
+  attackData: []

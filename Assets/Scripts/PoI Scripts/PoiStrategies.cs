@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -33,7 +34,9 @@ public class PoiCapture : IPoIStrategies
 	readonly PoiData _Data;
 
 	CountdownTimer timer;
-	bool captureInProgress;
+
+	bool CaptureInProgress => EntityCapturingPoint != null && EntityCapturingPoint._Data.team != poIController.poiOwner;
+	EntityStats EntityCapturingPoint => poIController.entityCurrentlyCapturing;
 
 	public PoiCapture(PoIController poIController)
 	{
@@ -43,33 +46,38 @@ public class PoiCapture : IPoIStrategies
 		timer = new CountdownTimer(_Data.timeToCapture);
 		timer.OnTimerStart += () => StartCapture();
 		timer.OnTimerStop += () => CompleteCapture();
-	}
-
-	public void Start()
-	{
-		timer.Start();
-		Debug.LogError("poi capture timer start");
+		timer.OnTimerCancel += () => CancelCapture();
 	}
 
 	public void Update(float deltaTime)
 	{
-		timer.Tick(deltaTime, false);
-
-		Debug.LogError("poi capture timer update");
+		if (CaptureInProgress && timer.IsRunning)
+		{
+			timer.Tick(deltaTime, false);
+		}
+		else if (CaptureInProgress && timer.IsFinished)
+		{
+			timer.Start();
+		}
+		else if (!CaptureInProgress && timer.IsRunning)
+		{
+			timer.Cancel();
+		}
 	}
 
 	public void StartCapture()
 	{
-		captureInProgress = true;
+		//noop
 	}
 	public void CancelCapture()
 	{
-		captureInProgress = false;
+		poIController.entityCurrentlyCapturing = null;
 	}
 
 	public void CompleteCapture()
 	{
-		captureInProgress = false;
+		poIController.UpdatePoiOwner(EntityCapturingPoint._Data.team);
+		poIController.entityCurrentlyCapturing = null;
 	}
 }
 
@@ -94,20 +102,20 @@ public class PoiAddResources : IPoIStrategies
 	{
 		timer.Start();
 
-		Debug.LogError("poi res timer start");
+		//Debug.LogError("poi res timer start");
 	}
 
 	public void Update(float deltaTime)
 	{
 		timer.Tick(deltaTime, false);
 
-		Debug.LogError("poi res timer update");
+		//Debug.LogError("poi res timer update");
 	}
 
 	public void AddResources()
 	{
 		poIController.accumilatedResources += _Data.ResourcesProvided;
 
-		Debug.LogError("poi res timer add resources");
+		//Debug.LogError("poi res timer add resources");
 	}
 }
