@@ -31,7 +31,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 115, y: 5, z: 0}
-  m_LocalScale: {x: 10, y: 10, z: 10}
+  m_LocalScale: {x: 8, y: 8, z: 8}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -102,9 +102,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _PoiData: {fileID: 0}
-  meshRenderer: {fileID: 0}
-  entityDetection: {fileID: 3732694443863648908}
   poiOwner: 0
+  accumilatedResources: 0
+  entitiesInRange: []
+  entityCurrentlyCapturing: {fileID: 0}
   redTeamEntitiesCount: 0
   greenTeamEntitiesCount: 0
   playerTeamEntitiesCount: 0
@@ -143,7 +144,7 @@ NavMeshObstacle:
   m_Enabled: 1
   serializedVersion: 3
   m_Shape: 0
-  m_Extents: {x: 0.75, y: 1.5, z: 0.75}
+  m_Extents: {x: 0.5, y: 1.5, z: 0.5}
   m_MoveThreshold: 0.1
   m_Carve: 1
   m_CarveOnlyStationary: 1

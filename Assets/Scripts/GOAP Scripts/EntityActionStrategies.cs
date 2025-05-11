@@ -209,15 +209,48 @@ public class BasicAttackStrategy : IActionStrategy
 	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
 }
 
+public class FindPoiStrategy : IActionStrategy
+{
+	readonly EntityBrain entityBrain;
+	readonly NavMeshAgent agent;
+	readonly float wanderRadius;
+
+	public bool CanPerform => !Complete;
+	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending || entityBrain.beliefs["FoundPoi"].Evaluate();
+
+	public FindPoiStrategy(EntityBrain entity, NavMeshAgent agent, float wanderRadius)
+	{
+		this.entityBrain = entity;
+		this.agent = agent;
+		this.wanderRadius = wanderRadius;
+	}
+
+	public void Start()
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			Vector3 randomPositon = Random.insideUnitSphere * wanderRadius;
+			Vector3 randomDirection = new(randomPositon.x, 0, randomPositon.z);
+
+			if (NavMesh.SamplePosition(agent.transform.position + randomDirection, out NavMeshHit hit, wanderRadius, 1))
+			{
+				agent.SetDestination(hit.position);
+				return;
+			}
+		}
+	}
+}
+
 public class CapturePoiStrategy : IActionStrategy
 {
 	readonly EntityStats entityStats;
 	readonly EntityBrain entityBrain;
 
 	public PoIController poIController;
+	bool capturingPoi;
 
-	public bool CanPerform => true; // Agent can always attack
-	public bool Complete { get; private set; }
+	public bool CanPerform => true; // Agent can always capture
+	public bool Complete => !capturingPoi;
 
 	CountdownTimer timer;
 
@@ -235,19 +268,25 @@ public class CapturePoiStrategy : IActionStrategy
 		timer.OnTimerStop += () => CompleteCapture();
 		timer.OnTimerCancel += () => CancelCapture();
 
-		Complete = false;
+		capturingPoi = true;
 		timer.Start();
+
+		Debug.LogError("start capture");
 	}
 	public void CompleteCapture()
 	{
 		poIController.UpdatePoiOwner(entityStats._Data.team);
 		poIController.entityCurrentlyCapturing = null;
-		Complete = true;
+		capturingPoi = false;
+
+		Debug.LogError("complete capture");
 	}
 	public void CancelCapture()
 	{
 		poIController.entityCurrentlyCapturing = null;
-		Complete = true;
+		capturingPoi = false;
+
+		Debug.LogError("cancel capture");
 	}
 
 	public void Start() => StartCapture();

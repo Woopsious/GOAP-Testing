@@ -155,6 +155,7 @@ public class EntityBrain : MonoBehaviour
 		factory.AddBelief("AttackOne", () => false);
 		factory.AddBelief("AttackTwo", () => false);
 	}
+
 	void SetupWorkerAiBeliefs()
 	{
 		beliefs = new Dictionary<string, EntityBeliefs>();
@@ -169,12 +170,9 @@ public class EntityBrain : MonoBehaviour
 
 		factory.AddLocationBelief("AgentAtFoodShack", 3f, foodShack);
 
-		factory.AddBelief("LookingForPoi", () => false);
-
 		factory.AddTargetBelief("FoundPoi", chaseSensor);
-		factory.AddBelief("MoveToPoi", () => chaseTarget != null);
 
-		factory.AddLocationBelief("AtPoi", 5f, beliefs["FoundPoi"].TargetLocation);
+		factory.AddBelief("AtPoi", () => InRangeOf(beliefs["FoundPoi"].TargetLocation, 7.5f));
 		factory.AddBelief("CapturePoi", () => false);
 	}
 
@@ -285,14 +283,14 @@ public class EntityBrain : MonoBehaviour
 			.Build(),
 
 			new EntityActions.Builder("LookForPoi")
-			.WithStrategy(new WanderStrategy(navMeshAgent, 50))
-			.AddEffect(beliefs["LookingForPoi"])
+			.WithStrategy(new FindPoiStrategy(this, navMeshAgent, 50))
+			.AddEffect(beliefs["FoundPoi"])
 			.Build(),
 
 			new EntityActions.Builder("MoveToPoi")
-			.WithStrategy(new MoveStrategy(navMeshAgent, () => beliefs["FoundPoi"].TargetLocation))
-			.AddPrecondition(beliefs[""])
-			.AddEffect(beliefs["CapturePoi"])
+			.WithStrategy(new MoveStrategy(navMeshAgent, 9f, () => beliefs["FoundPoi"].TargetLocation))
+			.AddPrecondition(beliefs["FoundPoi"])
+			.AddEffect(beliefs["AtPoi"])
 			.Build(),
 
 			new EntityActions.Builder("CapturePoi")
@@ -360,7 +358,7 @@ public class EntityBrain : MonoBehaviour
 			.Build(),
 
 			new EntityGoals.Builder("FleeFromTarget")
-			.WithPriority(90)
+			.WithPriority(40)
 			.WithDesiredEffect(beliefs["FleeingFromTarget"])
 			.Build(),
 		};
@@ -376,18 +374,12 @@ public class EntityBrain : MonoBehaviour
 
 			new EntityGoals.Builder("FindPoi")
 			.WithPriority(10)
-			.WithDesiredEffect(beliefs["AgentMoving"])
-			.WithDesiredEffect(beliefs["LookingForPoi"])
+			.WithDesiredEffect(beliefs["FoundPoi"])
 			.Build(),
 
 			new EntityGoals.Builder("KeepHealthUp")
 			.WithPriority(20)
 			.WithDesiredEffect(beliefs["AgentIsHealthy"])
-			.Build(),
-
-			new EntityGoals.Builder("MoveToPoi")
-			.WithPriority(60)
-			.WithDesiredEffect(beliefs["MoveToPoi"])
 			.Build(),
 
 			new EntityGoals.Builder("CapturePoi")
@@ -550,6 +542,8 @@ public class EntityBrain : MonoBehaviour
 			}
 		}
 	}
+
+	private bool InRangeOf(Vector3 pos, float range) => Vector3.Distance(transform.position, pos) < range;
 }
 
 public interface IEntityBrainStrategy

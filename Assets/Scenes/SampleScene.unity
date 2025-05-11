@@ -174,7 +174,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 5631940097731418315, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 6.2
+      value: 9.4
       objectReference: {fileID: 0}
     - target: {fileID: 5631940097731418315, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
       propertyPath: m_LocalPosition.y
@@ -182,7 +182,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5631940097731418315, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -0.8
+      value: 42.8
       objectReference: {fileID: 0}
     - target: {fileID: 5631940097731418315, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -398,7 +398,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 73052050d80bc7e4db913a13f326ef52, type: 2}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -12.9
+      value: -69.8
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.y
@@ -406,7 +406,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 4.1
+      value: 92.8
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalRotation.w
@@ -526,6 +526,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 2949911288276928657, guid: f185ae5fc53b63b4b98ad1cbf090de64, type: 3}
+      propertyPath: m_VoxelSize
+      value: 0.25
+      objectReference: {fileID: 0}
     - target: {fileID: 2949911288276928657, guid: f185ae5fc53b63b4b98ad1cbf090de64, type: 3}
       propertyPath: m_NavMeshData
       value: 
