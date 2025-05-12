@@ -70,6 +70,8 @@ public class EntityStats : MonoBehaviour
 
 	public void RecieveDamage(float damageRecieved)
 	{
+		Debug.LogError("damage recieved");
+
 		currentHealth -= damageRecieved;
 		OnDeath();
 	}
