@@ -6,10 +6,11 @@ using UnityEngine.AI;
 using static EntitySensor;
 using static EntityData;
 using System;
+using System.Collections;
 
 public class EntityBrain : MonoBehaviour
 {
-	EntityStats entityStats;
+	[HideInInspector] public EntityStats entityStats;
 	NavMeshAgent navMeshAgent;
 	Rigidbody rb;
 
@@ -31,9 +32,9 @@ public class EntityBrain : MonoBehaviour
 	public bool attackTwoReady;
 
 	[Header("EntityTargets")]
-	public GameObject chaseTarget;
-	public GameObject attackTargetOne;
-	public GameObject attackTargetTwo;
+	public TargetData chaseTarget;
+	public TargetData attackTargetOne;
+	public TargetData attackTargetTwo;
 
 	public EntityGoals lastGoal;
 	public EntityGoals currentGoal;
@@ -60,8 +61,12 @@ public class EntityBrain : MonoBehaviour
 
 	void Start()
 	{
+		timeSinceStart = 0;
+
 		Initilize();
 	}
+
+	float timeSinceStart;
 
 	void Update()
 	{
@@ -84,14 +89,13 @@ public class EntityBrain : MonoBehaviour
 		attackOneReady = true;
 		attackTwoReady = true;
 
+		navMeshAgent.speed = entityStats._Data.speed;
+		navMeshAgent.angularSpeed = entityStats._Data.angularSpeed;
+		navMeshAgent.acceleration = entityStats._Data.acceleration;
+		navMeshAgent.stoppingDistance = entityStats._Data.stoppingDistance;
+
 		SetupSensors();
-
 		SetupBrainType();
-
-		//SetupBeliefs();
-		//SetupActions();
-		//SetupGoals();
-
 		SetupTimers();
 	}
 
@@ -118,7 +122,6 @@ public class EntityBrain : MonoBehaviour
 			fleeSensor.UpdateSensorSettings(entityStats._Data.fleeRange);
 		}
     }
-
 	void SetupBrainType()
 	{
 		EntitySensor[] sensors = new EntitySensor[4];
@@ -152,7 +155,6 @@ public class EntityBrain : MonoBehaviour
 			goals = entityBrainStrategy.SetupGoals();
 		}
 	}
-
 	void SetupTimers()
 	{
 		if (entityStats._Data.type != EntityType.combat) return; //workers have no attacks atm
@@ -162,14 +164,10 @@ public class EntityBrain : MonoBehaviour
 		{
 			attackOneReady = false;
 			UseAttackOne();
-
-			Debug.LogError("attack timer one start");
 		};
 		attackOneTimer.OnTimerStop += () =>
 		{
 			attackOneReady = true;
-
-			Debug.LogError("attack timer one stop");
 		};
 
 		attackTwoTimer = new CountdownTimer(entityStats._Data.attackData[1].attackCooldown);
@@ -177,32 +175,28 @@ public class EntityBrain : MonoBehaviour
 		{
 			attackTwoReady = false;
 			UseAttackTwo();
-
-			Debug.LogError("attack timer two start");
 		};
 		attackTwoTimer.OnTimerStop += () =>
 		{
 			attackTwoReady = true;
-
-			Debug.LogError("attack timer two stop");
 		};
 	}
 
 	void UseAttackOne()
 	{
-		attackTargetOne.GetComponent<EntityStats>().RecieveDamage(entityStats._Data.attackData[0].attackDamage);
+		attackTargetOne.GetTarget<EntityBrain>().entityStats.RecieveDamage(entityStats._Data.attackData[0].attackDamage);
 	}
 	void UseAttackTwo()
 	{
-		attackTargetTwo.GetComponent<EntityStats>().RecieveDamage(entityStats._Data.attackData[1].attackDamage);
+		attackTargetTwo.GetTarget<EntityBrain>().entityStats.RecieveDamage(entityStats._Data.attackData[1].attackDamage);
 	}
 
 	void TickAllTimers()
 	{
 		if (entityStats._Data.team == EntityTeam.redTeam)
 		{
-			attackOneTimer?.Tick(Time.deltaTime, true);
-			attackTwoTimer?.Tick(Time.deltaTime, true);
+			attackOneTimer?.Tick(Time.deltaTime, false);
+			attackTwoTimer?.Tick(Time.deltaTime, false);
 		}
         else
         {
@@ -224,7 +218,7 @@ public class EntityBrain : MonoBehaviour
 		attackSensorTwo.OnTargetChanged -= OnTargetChanges;
 	}
 
-	void OnTargetChanges(GameObject target, SensorType sensorType)
+	void OnTargetChanges(TargetData target, SensorType sensorType)
 	{
 		switch (sensorType)
 		{
@@ -245,7 +239,7 @@ public class EntityBrain : MonoBehaviour
 			break;
 
 			case SensorType.poiDetector:
-			//pois dont move so no need to recalc plan
+			//pois dont move so no need to recalc plan/update move pos
 			chaseTarget = target;
 			break;
 		}
@@ -324,29 +318,4 @@ public class EntityBrain : MonoBehaviour
 	}
 
 	public bool InRangeOf(Vector3 pos, float range) => Vector3.Distance(transform.position, pos) < range;
-}
-
-public interface IEntityBrainStrategy
-{
-
-}
-
-public class EntityCombatBrain : IEntityBrainStrategy
-{
-	public EntityCombatBrain()
-	{
-
-	}
-
-	public Dictionary<string, EntityBeliefs> beliefs;
-	public HashSet<EntityActions> actions;
-	public HashSet<EntityGoals> goals;
-}
-
-[CreateAssetMenu(fileName = "EntityData", menuName = "ScriptableObjects/EntityBrainType")]
-public class EntityBrainType : ScriptableObject
-{
-	[SerializeReference] public Dictionary<string, EntityBeliefs> beliefs;
-	[SerializeReference] public HashSet<EntityActions> actions;
-	[SerializeReference] public HashSet<EntityGoals> goals;
 }

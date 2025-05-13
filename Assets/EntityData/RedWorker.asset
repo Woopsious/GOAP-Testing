@@ -16,6 +16,10 @@ MonoBehaviour:
   type: 1
   team: 1
   maxHealth: 50
+  speed: 5
+  angularSpeed: 90
+  acceleration: 5
+  stoppingDistance: 1.5
   chaseRange: 25
   fleeRange: 20
   attackData: []

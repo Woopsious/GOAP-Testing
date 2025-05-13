@@ -4,7 +4,7 @@ using UnityEngine;
 public class EntityStats : MonoBehaviour
 {
 	PlayerMovement player;
-	EntityBrain entityBrain;
+	[HideInInspector] public EntityBrain entityBrain;
 
 	[Header("Stats")]
 	public EntityData _Data;
@@ -70,8 +70,6 @@ public class EntityStats : MonoBehaviour
 
 	public void RecieveDamage(float damageRecieved)
 	{
-		Debug.LogError("damage recieved");
-
 		currentHealth -= damageRecieved;
 		OnDeath();
 	}

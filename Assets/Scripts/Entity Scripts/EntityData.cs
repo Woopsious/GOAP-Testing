@@ -24,6 +24,12 @@ public class EntityData : ScriptableObject
 	[Header("Stats")]
 	public float maxHealth;
 
+	[Header("NavMesh Settings")]
+	public float speed;
+	public float angularSpeed;
+	public float acceleration;
+	public float stoppingDistance;
+
 	[Header("Sensor Ranges")]
 	public float chaseRange;
 	public float fleeRange;

@@ -164,6 +164,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &140724595
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 140724596}
+  m_Layer: 0
+  m_Name: ---- Capture Points Ai Test ----
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &140724596
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 140724595}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &149082199
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -449,7 +480,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8906225582446445048, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: foodShack
@@ -748,7 +779,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8906225582446445048, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: foodShack
@@ -918,6 +949,37 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 2622915394809521691, guid: 2d8e8cc8b58e3fa47bca4ca0c3a7779e, type: 3}
   m_PrefabInstance: {fileID: 3964016322140038307}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1372568709
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1372568710}
+  m_Layer: 0
+  m_Name: ---- Team Battle Ai Test ----
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1372568710
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1372568709}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1455412751
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -932,7 +994,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 73052050d80bc7e4db913a13f326ef52, type: 2}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -21.9
+      value: -80.6
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.y
@@ -940,7 +1002,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 54.6
+      value: 77.7
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalRotation.w
@@ -980,7 +1042,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8906225582446445048, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: foodShack
@@ -1490,11 +1552,14 @@ SceneRoots:
   - {fileID: 62150453}
   - {fileID: 2339618817072808405}
   - {fileID: 7804731860529095241}
-  - {fileID: 313010345}
   - {fileID: 1506528753}
   - {fileID: 3964016322140038307}
   - {fileID: 4924359350752698627}
+  - {fileID: 5243997297835850358}
+  - {fileID: 140724596}
+  - {fileID: 313010345}
   - {fileID: 1455412751}
+  - {fileID: 1372568710}
   - {fileID: 1856478448}
   - {fileID: 1866943196}
   - {fileID: 149082199}
@@ -1503,4 +1568,3 @@ SceneRoots:
   - {fileID: 646461790}
   - {fileID: 331870526}
   - {fileID: 271902246}
-  - {fileID: 5243997297835850358}

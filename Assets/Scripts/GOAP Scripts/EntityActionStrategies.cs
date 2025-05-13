@@ -209,6 +209,38 @@ public class BasicAttackStrategy : IActionStrategy
 	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
 }
 
+public class CollectPoiResources
+{
+	readonly EntityBrain entityBrain;
+	readonly NavMeshAgent agent;
+	readonly float wanderRadius;
+
+	public bool CanPerform => !Complete;
+	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending || entityBrain.beliefs["FoundPoi"].Evaluate();
+
+	public CollectPoiResources(EntityBrain entity, NavMeshAgent agent, float wanderRadius)
+	{
+		this.entityBrain = entity;
+		this.agent = agent;
+		this.wanderRadius = wanderRadius;
+	}
+
+	public void Start()
+	{
+		for (int i = 0; i < 5; i++)
+		{
+			Vector3 randomPositon = Random.insideUnitSphere * wanderRadius;
+			Vector3 randomDirection = new(randomPositon.x, 0, randomPositon.z);
+
+			if (NavMesh.SamplePosition(agent.transform.position + randomDirection, out NavMeshHit hit, wanderRadius, 1))
+			{
+				agent.SetDestination(hit.position);
+				return;
+			}
+		}
+	}
+}
+
 public class FindPoiStrategy : IActionStrategy
 {
 	readonly EntityBrain entityBrain;
@@ -262,7 +294,7 @@ public class CapturePoiStrategy : IActionStrategy
 
 	public void StartCapture()
 	{
-		poIController = entityBrain.chaseTarget.GetComponent<PoIController>();
+		poIController = entityBrain.chaseTarget.GetTarget<PoIController>();
 
 		timer = new CountdownTimer(poIController._PoiData.timeToCapture);
 		timer.OnTimerStop += () => CompleteCapture();

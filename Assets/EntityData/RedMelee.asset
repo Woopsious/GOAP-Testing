@@ -13,8 +13,13 @@ MonoBehaviour:
   m_Name: RedMelee
   m_EditorClassIdentifier: 
   Name: Red Melee Entity
+  type: 0
   team: 1
   maxHealth: 100
+  speed: 5
+  angularSpeed: 120
+  acceleration: 5
+  stoppingDistance: 1.5
   chaseRange: 25
   fleeRange: 1
   attackData:

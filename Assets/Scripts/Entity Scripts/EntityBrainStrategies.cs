@@ -249,6 +249,10 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 		factory.AddTargetBelief("FoundPoi", entitySensors[0]);
 
 		factory.AddBelief("AtPoi", () => entityBrain.InRangeOf(beliefs["FoundPoi"].TargetLocation, 7.5f));
+
+		//factory.AddPoiCaptureableBelief("PoiCaptureable", entityStats._Data.team, () => entityBrain.chaseTarget.poiController);
+		factory.AddPoiRefBelief("PoiRefExists", entityBrain.chaseTarget.poiController == null, () => entityBrain.chaseTarget.poiController);
+
 		factory.AddBelief("CapturePoi", () => false);
 
 		return beliefs;

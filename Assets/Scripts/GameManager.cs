@@ -8,6 +8,8 @@ public class GameManager : MonoBehaviour
 
 	public static event Action<GameObject> OnEntityDeathEvent;
 
+	public static event Action<GameObject> OnPoiCaptureEvent;
+
 	[Header("Global Locations")]
 	public GameObject foodShack;
 
@@ -34,6 +36,12 @@ public class GameManager : MonoBehaviour
 	/// have multiple different offensive bot types like ranged and melee
 	///	???a commander type that can organise regular combat type entities (ATM worry about adding simpler things)
 	/// 
+	/// MIGHT NOT NEED BUT COULD CONSIDER ADDING AN AI DIRECTOR:
+	/// a higher level system that will direct entities to achieve certian goals
+	/// send entities to capture points based on info of all capture points (update CapturePoi goal priority for worker brains by +- it)
+	/// help organize combat entities to attack a poi as a group or defend it based on locational positions of all entities.
+	/// manage pop counts of both teams based on current pop + resources accumalated. (update a SpawnEntity goal priority for worker brains)
+	/// 
 	/// </summary>
 
 	private void Awake()
@@ -43,6 +51,11 @@ public class GameManager : MonoBehaviour
 
 	public static void OnEntityDeath(GameObject entity)
 	{
-		OnEntityDeathEvent.Invoke(entity);
+		OnEntityDeathEvent?.Invoke(entity);
+	}
+
+	public static void OnPoiCapture(GameObject poi)
+	{
+		OnPoiCaptureEvent?.Invoke(poi);
 	}
 }

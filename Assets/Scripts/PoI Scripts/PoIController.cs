@@ -38,15 +38,12 @@ public class PoIController : MonoBehaviour
 		entityDetection = GetComponent<SphereCollider>();
 		entityDetection.isTrigger = true;
 		entityDetection.radius = _PoiData.PoiDetectionRadius;
-
-		UpdatePoiOwner(_PoiData.startingOwner);
 	}
 
 	private void OnEnable()
 	{
 		GameManager.OnEntityDeathEvent += ClearUpDeadEntities;
 	}
-
 	private void OnDisable()
 	{
 		GameManager.OnEntityDeathEvent -= ClearUpDeadEntities;
@@ -56,7 +53,6 @@ public class PoIController : MonoBehaviour
 	{
 		Initilize();
 	}
-
 	private void Update()
 	{
 		foreach(IPoIStrategies poIStrategies in poIBehaviour)
@@ -67,6 +63,8 @@ public class PoIController : MonoBehaviour
 
 	void Initilize()
 	{
+		UpdatePoiOwner(_PoiData.startingOwner);
+
 		poIBehaviour = new HashSet<IPoIStrategies> 
 		{
 			new PoiAddResources(this),
@@ -171,6 +169,8 @@ public class PoIController : MonoBehaviour
 			meshRenderer.sharedMaterial = greenTeamMaterial;
 			break;
 		}
+
+		GameManager.OnPoiCapture(gameObject);
 	}
 
 	void ClearUpDeadEntities(GameObject obj)
