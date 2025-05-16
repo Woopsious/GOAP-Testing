@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using Unity.VisualScripting;
+using UnityEditor;
 using UnityEngine;
 using static EntityData;
-using static UnityEngine.EventSystems.EventTrigger;
 
-public class PoIController : MonoBehaviour
+public class PoIController : MonoBehaviour, IInteractable
 {
 	public PoiData _PoiData;
 	private MeshRenderer meshRenderer;
@@ -189,6 +189,28 @@ public class PoIController : MonoBehaviour
 		}
 
 		UpdateTeamCounts();
+	}
+
+	public void StartInteract(EntityStats entityInteracting)
+	{
+		entityCurrentlyCapturing = entityInteracting;
+
+		Debug.LogError("start capture");
+	}
+
+	public void CancelInteract(EntityStats entityInteracting)
+	{
+		entityCurrentlyCapturing = null;
+
+		Debug.LogError("cancel capture");
+	}
+
+	public void CompleteInteract(EntityStats entityInteracting)
+	{
+		UpdatePoiOwner(entityInteracting._Data.team);
+		entityCurrentlyCapturing = null;
+
+		Debug.LogError("complete capture");
 	}
 }
 

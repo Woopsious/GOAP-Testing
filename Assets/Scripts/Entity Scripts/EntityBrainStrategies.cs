@@ -58,8 +58,8 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 
 		factory.AddTargetBelief("TargetInAttackOneRange", entitySensors[2]);
 		factory.AddTargetBelief("TargetInAttackTwoRange", entitySensors[3]);
-		factory.AddTargetBackupBelief("TargetHasBackupForAttackOne", entitySensors[2]);
-		factory.AddTargetBackupBelief("TargetHasBackupForAttackTwo", entitySensors[3]);
+		factory.AddBelief("TargetNotInAttackOneRange",() => entitySensors[2].target.target == null);
+		factory.AddBelief("TargetNotInAttackTwoRange", () => entitySensors[3].target.target == null);
 
 		factory.AddBelief("AllAttacksOnCooldown", () => attackBools[0]());
 		factory.AddBelief("AttackOneReady", () => attackBools[1]());
@@ -119,15 +119,15 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("MoveToUseAttackOne")
-			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetHasBackupForAttackOne"].TargetBackupLocation, entityStats._Data.attackData[0]))
-			.AddPrecondition(beliefs["TargetHasBackupForAttackOne"])
+			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[0]))
+			.AddPrecondition(beliefs["TargetNotInAttackOneRange"])
 			.AddPrecondition(beliefs["AttackTwoNotReady"])
 			.AddEffect(beliefs["AttackOne"])
 			.Build(),
 
 			new EntityActions.Builder("MoveToUseAttackTwo")
-			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetHasBackupForAttackTwo"].TargetBackupLocation, entityStats._Data.attackData[1]))
-			.AddPrecondition(beliefs["TargetHasBackupForAttackTwo"])
+			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[1]))
+			.AddPrecondition(beliefs["TargetNotInAttackTwoRange"])
 			.AddPrecondition(beliefs["AttackOneNotReady"])
 			.AddEffect(beliefs["AttackTwo"])
 			.Build(),
@@ -251,7 +251,9 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 		factory.AddBelief("AtPoi", () => entityBrain.InRangeOf(beliefs["FoundPoi"].TargetLocation, 7.5f));
 
 		//factory.AddPoiCaptureableBelief("PoiCaptureable", entityStats._Data.team, () => entityBrain.chaseTarget.poiController);
-		factory.AddPoiRefBelief("PoiRefExists", entityBrain.chaseTarget.poiController == null, () => entityBrain.chaseTarget.poiController);
+		factory.AddBelief("PoiRefExists", () => entityBrain.chaseTarget.poiController != null);
+
+		factory.AddBelief("PoiCapturable", () => beliefs["PoiRefExists"].PoIController != null);
 
 		factory.AddBelief("CapturePoi", () => false);
 

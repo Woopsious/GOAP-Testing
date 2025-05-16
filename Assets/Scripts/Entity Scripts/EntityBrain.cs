@@ -240,7 +240,17 @@ public class EntityBrain : MonoBehaviour
 
 			case SensorType.poiDetector:
 			//pois dont move so no need to recalc plan/update move pos
-			chaseTarget = target;
+			if (chaseTarget.target == target.target)
+			{
+				Debug.LogError("chase target same");
+			}
+            else
+            {
+				chaseTarget = target;
+				currentGoal = null;
+
+				Debug.LogError("chase target different");
+			}
 			break;
 		}
 	}

@@ -124,14 +124,9 @@ public class MoveIntoAttackRange : IActionStrategy
 	void GetWithinAttackRangeMinMax()
 	{
 		float destinationDistance = Vector3.Distance(agent.transform.position, destination());
-
 		Vector3 moveDestination = Vector3.zero;
 
-		if (destinationDistance >= attackData.attackMinRange && destinationDistance <= attackData.attackMaxRange)
-		{
-			//noop
-		}
-		else if (destinationDistance < attackData.attackMinRange)
+		if (destinationDistance < attackData.attackMinRange)
 		{
 			Vector3 normDir = (agent.transform.position - destination()).normalized;
 			normDir = Quaternion.AngleAxis(Random.Range(0, 59) - 30, Vector3.up) * normDir; //add slight zigzag
@@ -139,6 +134,8 @@ public class MoveIntoAttackRange : IActionStrategy
 		}
 		else if (destinationDistance > attackData.attackMaxRange)
 			moveDestination = destination();
+		else
+			moveDestination = agent.transform.position;
 
 		agent.SetDestination(moveDestination);
 	}
@@ -299,26 +296,20 @@ public class CapturePoiStrategy : IActionStrategy
 		timer = new CountdownTimer(poIController._PoiData.timeToCapture);
 		timer.OnTimerStop += () => CompleteCapture();
 		timer.OnTimerCancel += () => CancelCapture();
-
-		capturingPoi = true;
 		timer.Start();
 
-		Debug.LogError("start capture");
-	}
-	public void CompleteCapture()
-	{
-		poIController.UpdatePoiOwner(entityStats._Data.team);
-		poIController.entityCurrentlyCapturing = null;
-		capturingPoi = false;
-
-		Debug.LogError("complete capture");
+		capturingPoi = true;
+		poIController.StartInteract(entityStats);
 	}
 	public void CancelCapture()
 	{
-		poIController.entityCurrentlyCapturing = null;
 		capturingPoi = false;
-
-		Debug.LogError("cancel capture");
+		poIController.CancelInteract(entityStats);
+	}
+	public void CompleteCapture()
+	{
+		capturingPoi = false;
+		poIController.CompleteInteract(entityStats);
 	}
 
 	public void Start() => StartCapture();
