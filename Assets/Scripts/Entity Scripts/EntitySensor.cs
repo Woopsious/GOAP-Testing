@@ -100,7 +100,10 @@ public class EntitySensor : MonoBehaviour
 	void SortTargetsInSensorRange()
 	{
 		for (int i = 0; i < targetsInRange.Count; i++)
-			targetsInRange[i].targetDistance = GetTargetDistance(targetsInRange[i].target);
+		{
+			if (targetsInRange[i].target != null)
+				targetsInRange[i].targetDistance = GetTargetDistance(targetsInRange[i].target);
+		}
 
 		targetsInRange.Sort((a, b) => a.targetDistance.CompareTo(b.targetDistance));
 	}

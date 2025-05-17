@@ -58,15 +58,10 @@ public class EntityBrain : MonoBehaviour
 
 		gPlanner = new GoapPlanner();
 	}
-
 	void Start()
 	{
-		timeSinceStart = 0;
-
 		Initilize();
 	}
-
-	float timeSinceStart;
 
 	void Update()
 	{
@@ -140,7 +135,7 @@ public class EntityBrain : MonoBehaviour
 			attackBools[1] = () => attackOneReady;
 			attackBools[2] = () => attackTwoReady;
 
-			entityBrainStrategy = new CombatBrainStrategy(this, entityStats, navMeshAgent, sensors, knownLocations, attackBools);
+			entityBrainStrategy = new CombatBrainNewStrategy(this, entityStats, navMeshAgent, sensors, knownLocations, attackBools);
 
 			beliefs = entityBrainStrategy.SetupBeliefs();
 			actions = entityBrainStrategy.SetupActions();
@@ -239,17 +234,10 @@ public class EntityBrain : MonoBehaviour
 			break;
 
 			case SensorType.poiDetector:
-			//pois dont move so no need to recalc plan/update move pos
-			if (chaseTarget.target == target.target)
+			if (chaseTarget.target != target.target)//recalc goal when poi changes
 			{
-				Debug.LogError("chase target same");
-			}
-            else
-            {
 				chaseTarget = target;
 				currentGoal = null;
-
-				Debug.LogError("chase target different");
 			}
 			break;
 		}

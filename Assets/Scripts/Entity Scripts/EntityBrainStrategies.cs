@@ -10,6 +10,185 @@ public interface IEntityBrainStrategies
 	HashSet<EntityGoals> SetupGoals();
 }
 
+public class CombatBrainNewStrategy : IEntityBrainStrategies
+{
+	readonly EntityBrain entityBrain;
+	readonly EntityStats entityStats;
+	readonly NavMeshAgent navMeshAgent;
+
+	readonly EntitySensor[] entitySensors;
+	readonly Transform[] knownLocations;
+	readonly Func<bool>[] attackBools;
+
+	public Dictionary<string, EntityBeliefs> beliefs;
+	public HashSet<EntityActions> actions;
+	public HashSet<EntityGoals> goals;
+
+	public CombatBrainNewStrategy(EntityBrain entityBrain, EntityStats entityStats, NavMeshAgent navMeshAgent,
+		EntitySensor[] entitySensors, Transform[] knownLocations, Func<bool>[] attackBools)
+	{
+		this.entityBrain = entityBrain;
+		this.entityStats = entityStats;
+		this.navMeshAgent = navMeshAgent;
+
+		this.entitySensors = entitySensors;
+		this.knownLocations = knownLocations;
+		this.attackBools = attackBools;
+	}
+
+	public Dictionary<string, EntityBeliefs> SetupBeliefs()
+	{
+		beliefs = new Dictionary<string, EntityBeliefs>();
+		BeliefFactory factory = new(entityBrain, beliefs);
+
+		factory.AddBelief("Nothing", () => false);
+
+		factory.AddBelief("AgentIdle", () => !navMeshAgent.hasPath);
+		factory.AddBelief("AgentMoving", () => navMeshAgent.hasPath);
+		factory.AddBelief("AgentHealthLow", () => entityStats.currentHealth < 40);
+		factory.AddBelief("AgentIsHealthy", () => entityStats.currentHealth >= 60);
+
+		factory.AddLocationBelief("AgentAtFoodShack", 3f, knownLocations[0]);
+
+		factory.AddTargetBelief("TargetInChaseRange", entitySensors[0]);
+		factory.AddBelief("ChasingTarget", () => false);
+
+		factory.AddTargetBelief("TargetInFleeRange", entitySensors[1]);
+		factory.AddBelief("FleeingFromTarget", () => false);
+
+		factory.AddBelief("TargetInAttackOneRange", () => entitySensors[2].target.target != null);
+		factory.AddBelief("TargetInAttackTwoRange", () => entitySensors[3].target.target != null);
+
+		factory.AddBelief("AllAttacksOnCooldown", () => attackBools[0]());
+		factory.AddBelief("AttackOneReady", () => attackBools[1]());
+		factory.AddBelief("AttackTwoReady", () => attackBools[2]());
+
+		factory.AddBelief("MoveToAttack", () => false);
+		factory.AddBelief("Attack", () => false);
+
+		return beliefs;
+	}
+	public HashSet<EntityActions> SetupActions()
+	{
+		actions = new HashSet<EntityActions>
+		{
+			new EntityActions.Builder("Relax")
+			.WithStrategy(new IdleStrategy(5))
+			.AddEffect(beliefs["Nothing"])
+			.Build(),
+
+			new EntityActions.Builder("Wander Around")
+			.WithStrategy(new WanderStrategy(navMeshAgent, 20))
+			.AddEffect(beliefs["AgentMoving"])
+			.Build(),
+
+			new EntityActions.Builder("MoveToEatingPosition")
+			.WithStrategy(new MoveStrategy(navMeshAgent, () => knownLocations[0].transform.position))
+			.AddEffect(beliefs["AgentAtFoodShack"])
+			.Build(),
+
+			new EntityActions.Builder("Eat")
+			.WithStrategy(new IdleStrategy(5f))	//Later replace with a Command
+			.AddPrecondition(beliefs["AgentAtFoodShack"])
+			.AddEffect(beliefs["AgentIsHealthy"])
+			.Build(),
+
+			new EntityActions.Builder("FleeFromTarget")
+			.WithStrategy(new FleeStrategy(navMeshAgent, () => beliefs["TargetInFleeRange"].TargetLocation))
+			.AddPrecondition(beliefs["TargetInFleeRange"])
+			.AddEffect(beliefs["FleeingFromTarget"])
+			.Build(),
+
+			new EntityActions.Builder("ChaseTarget")
+			.WithStrategy(new MoveStrategy(navMeshAgent, 3, () => beliefs["TargetInChaseRange"].TargetLocation))
+			.AddPrecondition(beliefs["TargetInChaseRange"])
+			.AddEffect(beliefs["ChasingTarget"])
+			.Build(),
+
+			new EntityActions.Builder("MoveToUseAttackOne")
+			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[0]))
+			.AddPrecondition(beliefs["AttackOneReady"])
+			.AddEffect(beliefs["MoveToAttack"])
+			.Build(),
+
+			new EntityActions.Builder("MoveToUseAttackTwo")
+			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[1]))
+			.AddPrecondition(beliefs["AttackTwoReady"])
+			.AddEffect(beliefs["MoveToAttack"])
+			.Build(),
+
+			new EntityActions.Builder("WaitForAttacks")
+			.WithStrategy(new IdleStrategy(5f))
+			.AddPrecondition(beliefs["AllAttacksOnCooldown"])
+			.AddEffect(beliefs["Attack"])
+			.Build(),
+
+			new EntityActions.Builder("AttackOne")
+			.WithStrategy(new BasicAttackStrategy(entityBrain, 1))
+			.AddPrecondition(beliefs["TargetInAttackOneRange"])
+			.AddPrecondition(beliefs["AttackOneReady"])
+			.AddEffect(beliefs["Attack"])
+			.Build(),
+
+			new EntityActions.Builder("AttackTwo")
+			.WithStrategy(new BasicAttackStrategy(entityBrain, 2))
+			.AddPrecondition(beliefs["TargetInAttackTwoRange"])
+			.AddPrecondition(beliefs["AttackTwoReady"])
+			.AddEffect(beliefs["Attack"])
+			.Build()
+		};
+
+		return actions;
+	}
+	public HashSet<EntityGoals> SetupGoals()
+	{
+		goals = new HashSet<EntityGoals>
+		{
+			new EntityGoals.Builder("Idle")
+			.WithPriority(5)
+			.WithDesiredEffect(beliefs["Nothing"])
+			.Build(),
+
+			new EntityGoals.Builder("Wander")
+			.WithPriority(10)
+			.WithDesiredEffect(beliefs["AgentMoving"])
+			.Build(),
+
+			new EntityGoals.Builder("KeepHealthUp")
+			.WithPriority(20)
+			.WithDesiredEffect(beliefs["AgentIsHealthy"])
+			.Build(),
+
+			new EntityGoals.Builder("ChaseTarget")
+			.WithPriority(50)
+			.WithDesiredEffect(beliefs["ChasingTarget"])
+			.Build(),
+
+			new EntityGoals.Builder("MoveToUseAttack")
+			.WithPriority(60)
+			.WithDesiredEffect(beliefs["MoveToAttack"])
+			.Build(),
+
+			new EntityGoals.Builder("WaitForAttacks")
+			.WithPriority(80)
+			.WithDesiredEffect(beliefs["Attack"])
+			.Build(),
+
+			new EntityGoals.Builder("Attack")
+			.WithPriority(90)
+			.WithDesiredEffect(beliefs["Attack"])
+			.Build(),
+
+			new EntityGoals.Builder("FleeFromTarget")
+			.WithPriority(40)
+			.WithDesiredEffect(beliefs["FleeingFromTarget"])
+			.Build(),
+		};
+
+		return goals;
+	}
+}
+
 public class CombatBrainStrategy : IEntityBrainStrategies
 {
 	readonly EntityBrain entityBrain;
@@ -249,11 +428,6 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 		factory.AddTargetBelief("FoundPoi", entitySensors[0]);
 
 		factory.AddBelief("AtPoi", () => entityBrain.InRangeOf(beliefs["FoundPoi"].TargetLocation, 7.5f));
-
-		//factory.AddPoiCaptureableBelief("PoiCaptureable", entityStats._Data.team, () => entityBrain.chaseTarget.poiController);
-		factory.AddBelief("PoiRefExists", () => entityBrain.chaseTarget.poiController != null);
-
-		factory.AddBelief("PoiCapturable", () => beliefs["PoiRefExists"].PoIController != null);
 
 		factory.AddBelief("CapturePoi", () => false);
 

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public class BeliefFactory
 {
@@ -37,30 +36,6 @@ public class BeliefFactory
 			.Build());
 	}
 
-	public void AddPoiRefBelief(string key, bool condition, Func<PoIController> poIController)
-	{
-		beliefs.Add(key, new EntityBeliefs.Builder(key)
-			.WithCondition(() => condition)
-			.WithPoiControllerRef(poIController)
-			.Build());
-	}
-
-	public void AddPoiCaptureableBelief(string key, EntityData.EntityTeam team, Func<PoIController> poIController)
-	{
-		beliefs.Add(key, new EntityBeliefs.Builder(key)
-			.WithCondition(() => poIController == null || team == poIController().poiOwner)
-			.WithPoiControllerRef(poIController)
-			.Build());
-	}
-
-	public void AddTargetBackupBelief(string key, EntitySensor sensor)
-	{
-		beliefs.Add(key, new EntityBeliefs.Builder(key)
-			.WithCondition(() => sensor.HasBackUpTarget)
-			.WithTargetBackupLocation(() => sensor.TargetBackupPosition)
-			.Build());
-	}
-
 	public void AddLocationBelief(string key, float distance, Transform locationCondition)
 	{
 		AddLocationBelief(key, distance, locationCondition.position);
@@ -87,12 +62,7 @@ public class EntityBeliefs
 	public Vector3 Location => observedLocation();
 
 	Func<Vector3> targetLocation = () => Vector3.zero;
-	Func<Vector3> targetBackupLocation = () => Vector3.zero;
 	public Vector3 TargetLocation => targetLocation();
-	public Vector3 TargetBackupLocation => targetBackupLocation();
-
-	Func<PoIController> poiControllerRef = () => null;
-	public PoIController PoIController => poiControllerRef();
 
 	EntityBeliefs(string name)
 	{
@@ -125,18 +95,6 @@ public class EntityBeliefs
 		public Builder WithTargetLocation(Func<Vector3> observedLocation)
 		{
 			belief.targetLocation = observedLocation;
-			return this;
-		}
-
-		public Builder WithTargetBackupLocation(Func<Vector3> observedLocation)
-		{
-			belief.targetBackupLocation = observedLocation;
-			return this;
-		}
-
-		public Builder WithPoiControllerRef(Func<PoIController> poiController)
-		{
-			belief.poiControllerRef = poiController;
 			return this;
 		}
 
