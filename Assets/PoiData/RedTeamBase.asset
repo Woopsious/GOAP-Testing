@@ -14,9 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   PoiName: Red Team Base
   startingOwner: 1
+  isTeamHomeBase: 1
   CanBeCaptured: 0
-  BeingCaptured: 0
   timeToCapture: 5
-  ResourcesProvided: 500
-  ResourcesTimerCooldown: 10
+  ResourcesProvided: 250
+  ResourcesTimerCooldown: 5
+  HealAmount: 50
+  HealTimerCooldown: 2
   PoiDetectionRadius: 3

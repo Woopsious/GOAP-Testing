@@ -28,16 +28,12 @@ public class EntitySensor : MonoBehaviour
 	[SerializeField] public List<TargetData> targetsInRange = new List<TargetData>();
 
 	public TargetData target;
-	public TargetData targetBackup;
 	Vector3 lastKnownPosition;
 	CountdownTimer timer;
 
 	//logic for beliefs
 	public Vector3 TargetPosition => target.target ? target.target.transform.position : Vector3.zero;
-	public Vector3 TargetBackupPosition => targetBackup.target ? targetBackup.target.transform.position : Vector3.zero;
-
 	public bool IsTargetInRange => TargetPosition != Vector3.zero;
-	public bool HasBackUpTarget => targetBackup != null;
 
 	[Header("Attack Sensor Info")]
 	[SerializeField] EntityAttackData attackData;
@@ -121,70 +117,11 @@ public class EntitySensor : MonoBehaviour
 		else
 			Debug.LogError("No matching sensor type");
 	}
-
-	/*
-	void UpdateOtherSensorsTargets()
-	{
-		int index = FindClosestTarget();
-		if (index < 0) return; //negative means nothing no matching target data
-
-		target = targetsInRange[index];
-		targetObj = target.target;
-
-		//attack sensors shouldnt need to worry about tracking last known pos as chase/flee sensors handle that
-		if (IsTargetInRange && (lastKnownPosition != TargetPosition || lastKnownPosition != Vector3.zero))
-		{
-			OnTargetChanged.Invoke(target, sensorType);
-			lastKnownPosition = TargetPosition;
-		}
-	}
-	void UpdateAttackSensorTargets()
-	{
-		int index = FindClosestTargetWithinValues(attackData.attackMinRange, attackData.attackMaxRange);
-		if (index < 0) return; //negative means nothing no matching target data
-
-		target = targetsInRange[index];
-		targetObj = target.target;
-
-		if (target == null)
-		{
-			OnTargetChanged.Invoke(null, sensorType);
-			index = FindClosestTarget();
-			if (index < 0) return; //negative means nothing no matching target data
-
-			targetBackup = targetsInRange[index];
-			targetBackupObj = target.target;
-		}
-		else
-		{
-			OnTargetChanged.Invoke(target, sensorType);
-			targetBackup = null;
-		}
-	}
-	void UpdatePoiDetectorTargets()
-	{
-		int index = FindClosestEnemyPoiToCapture();
-		if (index < 0) return; //negative means nothing no matching target data
-
-		target = targetsInRange[index];
-		targetObj = target.target;
-
-		//attack sensors shouldnt need to worry about tracking last known pos as chase/flee sensors handle that
-		if (IsTargetInRange && (lastKnownPosition != TargetPosition || lastKnownPosition != Vector3.zero))
-		{
-			OnTargetChanged.Invoke(target, sensorType);
-			lastKnownPosition = TargetPosition;
-		}
-	}
-	*/
-
 	void UpdateOtherSensorsTargets()
 	{
 		int index = FindClosestTarget();
 		if (index >= 0)
-		{
 			target = targetsInRange[index];
-		}
 		else
 			target.ClearTarget();
 
@@ -199,36 +136,23 @@ public class EntitySensor : MonoBehaviour
 	{
 		int index = FindClosestTargetWithinValues(attackData.attackMinRange, attackData.attackMaxRange);
 		if (index >= 0)
-		{
 			target = targetsInRange[index];
-			OnTargetChanged.Invoke(target, sensorType);
-		}
 		else
 		{
-			target.ClearTarget();
-			OnTargetChanged.Invoke(target, sensorType);
-
 			index = FindClosestTarget();
 			if (index >= 0)
-			{
-				targetBackup = targetsInRange[index];
-				OnTargetChanged.Invoke(targetBackup, sensorType);
-			}
+				target = targetsInRange[index];
 			else
-			{
-				targetBackup.ClearTarget();
-				OnTargetChanged.Invoke(targetBackup, sensorType);
-			}
+				target.ClearTarget();
 		}
+
+		OnTargetChanged.Invoke(target, sensorType);
 	}
 	void UpdatePoiDetectorTargets()
 	{
 		int index = FindClosestEnemyPoiToCapture();
 		if (index >= 0)
-		{
 			target = targetsInRange[index];
-			OnTargetChanged?.Invoke(target, sensorType);
-		}
 		else
 			target.ClearTarget();
 

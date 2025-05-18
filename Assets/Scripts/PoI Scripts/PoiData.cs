@@ -7,13 +7,16 @@ public class PoiData : ScriptableObject
 	public string PoiName;
 	public EntityData.EntityTeam startingOwner;
 
-	public bool CanBeCaptured;
-	public bool BeingCaptured;
+	public bool isTeamHomeBase;
 
+	public bool CanBeCaptured;
 	public float timeToCapture;
 
 	public int ResourcesProvided;
 	public float ResourcesTimerCooldown;
+
+	public float HealAmount;
+	public float HealTimerCooldown;
 
 	public float PoiDetectionRadius;
 }

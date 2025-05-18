@@ -22,79 +22,20 @@ public interface IPoIStrategies
 	}
 }
 
-public class PoiCapture : IPoIStrategies
-{
-	/// <summary>
-	/// poi capture could/should be some sort of interact action entities can use through entity actions
-	/// or a func called via poi controller (figure it out when it comes to it)
-	/// account for starting, cancelling and completing 
-	/// </summary>
-
-	readonly PoIController poIController;
-	readonly PoiData _Data;
-
-	CountdownTimer timer;
-
-	bool CaptureInProgress => EntityCapturingPoint != null && EntityCapturingPoint._Data.team != poIController.poiOwner;
-	EntityStats EntityCapturingPoint => poIController.entityCurrentlyCapturing;
-
-	public PoiCapture(PoIController poIController)
-	{
-		this.poIController = poIController;
-		_Data = poIController._PoiData;
-
-		timer = new CountdownTimer(_Data.timeToCapture);
-		timer.OnTimerStart += () => StartCapture();
-		timer.OnTimerStop += () => CompleteCapture();
-		timer.OnTimerCancel += () => CancelCapture();
-	}
-
-	public void Update(float deltaTime)
-	{
-		if (CaptureInProgress && timer.IsRunning)
-		{
-			timer.Tick(deltaTime, false);
-		}
-		else if (CaptureInProgress && timer.IsFinished)
-		{
-			timer.Start();
-		}
-		else if (!CaptureInProgress && timer.IsRunning)
-		{
-			timer.Cancel();
-		}
-	}
-
-	public void StartCapture()
-	{
-		//noop
-	}
-	public void CancelCapture()
-	{
-		poIController.entityCurrentlyCapturing = null;
-	}
-
-	public void CompleteCapture()
-	{
-		poIController.UpdatePoiOwner(EntityCapturingPoint._Data.team);
-		poIController.entityCurrentlyCapturing = null;
-	}
-}
-
-public class PoiAddResources : IPoIStrategies
+public class PoiResourcesStrategy : IPoIStrategies
 {
 	readonly PoIController poIController;
 	readonly PoiData _Data;
 
-	CountdownTimer timer;
+	readonly CountdownTimer timer;
 
-	public PoiAddResources(PoIController poIController)
+	public PoiResourcesStrategy(PoIController poIController)
 	{
 		this.poIController = poIController;
 		_Data = poIController._PoiData;
 
 		timer = new CountdownTimer(_Data.ResourcesTimerCooldown);
-		timer.OnTimerStart += () => AddResources();
+		timer.OnTimerStart += () => AddResourcesToCapturePoint();
 		timer.OnTimerStop += () => Start();
 	}
 
@@ -112,10 +53,56 @@ public class PoiAddResources : IPoIStrategies
 		//Debug.LogError("poi res timer update");
 	}
 
-	public void AddResources()
+	void AddResourcesToCapturePoint()
 	{
 		poIController.accumilatedResources += _Data.ResourcesProvided;
+		CheckIfResourcesNeedMoving();
 
 		//Debug.LogError("poi res timer add resources");
+	}
+
+	void CheckIfResourcesNeedMoving()
+	{
+		if (!_Data.isTeamHomeBase && poIController.accumilatedResources > 200)
+			poIController.resourcesNeedTransfering = true;
+		else
+			poIController.resourcesNeedTransfering = false;
+	}
+}
+
+public class PoiHealFriendliesStrategy : IPoIStrategies
+{
+	readonly PoIController poIController;
+	readonly PoiData _Data;
+
+	readonly CountdownTimer timer;
+
+	public PoiHealFriendliesStrategy(PoIController poIController)
+	{
+		this.poIController = poIController;
+		_Data = poIController._PoiData;
+
+		timer = new CountdownTimer(_Data.HealTimerCooldown);
+		timer.OnTimerStart += () => HealFriendlies();
+		timer.OnTimerStop += () => Start();
+	}
+
+	public void Start()
+	{
+		timer.Start();
+	}
+
+	public void Update(float deltaTime)
+	{
+		timer.Tick(deltaTime, false);
+	}
+
+	public void HealFriendlies()
+	{
+		foreach(EntityStats entity in poIController.entitiesInRange)
+		{
+			if (entity._Data.team == poIController.poiOwner)
+				entity.RecieveHealing(_Data.HealAmount);
+		}
 	}
 }

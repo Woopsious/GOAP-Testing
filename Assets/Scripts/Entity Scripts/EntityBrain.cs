@@ -21,15 +21,16 @@ public class EntityBrain : MonoBehaviour
 	[SerializeField] EntitySensor attackSensorTwo;
 
 	[Header("Known Locations")]
-	public Transform foodShack { get; private set; }
-
-	public CountdownTimer attackOneTimer;
-	public CountdownTimer attackTwoTimer;
+	public Transform HomeBase { get; private set; }
+	public PoIController[] Pois;
 
 	[Header("Attacks")]
 	public bool allAttacksOnCooldown;
 	public bool attackOneReady;
 	public bool attackTwoReady;
+
+	public CountdownTimer attackOneTimer;
+	public CountdownTimer attackTwoTimer;
 
 	[Header("EntityTargets")]
 	public TargetData chaseTarget;
@@ -76,10 +77,14 @@ public class EntityBrain : MonoBehaviour
 
 	void Initilize()
 	{
-		foodShack = GameManager.instance.foodShack.transform;
-
-		if (foodShack == null)
-			Debug.LogError("No Global Food Shack Location Set");
+		if (entityStats._Data.team == EntityTeam.redTeam)
+			HomeBase = GameManager.instance.redTeamHomeBase.transform;
+		else if (entityStats._Data.team == EntityTeam.redTeam)
+			HomeBase = GameManager.instance.greenTeamHomeBase.transform;
+		else
+		{
+			Debug.LogError("No Home Base Location Set");
+		}
 
 		attackOneReady = true;
 		attackTwoReady = true;
@@ -126,7 +131,7 @@ public class EntityBrain : MonoBehaviour
 		sensors[3] = attackSensorTwo;
 
 		Transform[] knownLocations = new Transform[1];
-		knownLocations[0] = foodShack;
+		knownLocations[0] = HomeBase;
 
 		if (entityStats._Data.type == EntityType.combat)
 		{
@@ -143,7 +148,7 @@ public class EntityBrain : MonoBehaviour
 		}
 		else if (entityStats._Data.type == EntityType.worker)
 		{
-			entityBrainStrategy = new WorkerBrainStrategy(this, entityStats, navMeshAgent, sensors, knownLocations);
+			entityBrainStrategy = new WorkerBrainNewStrategy(this, entityStats, navMeshAgent, sensors, knownLocations);
 
 			beliefs = entityBrainStrategy.SetupBeliefs();
 			actions = entityBrainStrategy.SetupActions();

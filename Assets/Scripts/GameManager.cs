@@ -10,8 +10,14 @@ public class GameManager : MonoBehaviour
 
 	public static event Action<GameObject> OnPoiCaptureEvent;
 
+	public int RedTeamResourceCounter;
+	public int GreenTeamResourceCounter;
+
 	[Header("Global Locations")]
-	public GameObject foodShack;
+	public GameObject redTeamHomeBase;
+	public GameObject greenTeamHomeBase;
+
+	public PoIController[] AllPois;
 
 	/// <summary>
 	/// TODO:
@@ -47,6 +53,16 @@ public class GameManager : MonoBehaviour
 	private void Awake()
 	{
 		instance = this;
+	}
+
+	public void UpdateTeamResourceCounter(EntityData.EntityTeam team, int resourceAmount)
+	{
+		if (team == EntityData.EntityTeam.redTeam)
+			RedTeamResourceCounter += resourceAmount;
+		else if (team == EntityData.EntityTeam.greenTeam)
+			GreenTeamResourceCounter += resourceAmount;
+		else
+			Debug.LogError("no team match found for resources");
 	}
 
 	public static void OnEntityDeath(GameObject entity)

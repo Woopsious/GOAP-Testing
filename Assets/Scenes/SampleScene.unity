@@ -148,7 +148,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4fd6ea6c4266bce43a3c3d07eb4cbd26, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  foodShack: {fileID: 1054158878}
+  RedTeamResourceCounter: 0
+  GreenTeamResourceCounter: 0
+  redTeamHomeBase: {fileID: 220120146}
+  greenTeamHomeBase: {fileID: 667141787}
+  AllPois: []
 --- !u!4 &62150453
 Transform:
   m_ObjectHideFlags: 0
@@ -284,6 +288,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
+--- !u!1 &220120146 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5687726939992160149, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
+  m_PrefabInstance: {fileID: 7804731860529095241}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &271902246
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -346,7 +355,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8906225582446445048, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: foodShack
@@ -411,7 +420,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5687726939992160149, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5717374160951434148, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
       propertyPath: _PoiData
@@ -484,7 +493,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8906225582446445048, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: foodShack
@@ -732,7 +741,7 @@ PrefabInstance:
     - target: {fileID: 15827837277303913, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: _Data
       value: 
-      objectReference: {fileID: 11400000, guid: 229ce1ef62df8ba41932908cb82bc1b0, type: 2}
+      objectReference: {fileID: 11400000, guid: 0783513b97d74c34d9144bc84b71c6a0, type: 2}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.x
       value: -20.6
@@ -783,7 +792,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8906225582446445048, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: foodShack
@@ -899,6 +908,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
+--- !u!1 &667141787 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5687726939992160149, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
+  m_PrefabInstance: {fileID: 1506528753}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &832575517
 GameObject:
   m_ObjectHideFlags: 0
@@ -948,11 +962,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1054158878 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2622915394809521691, guid: 2d8e8cc8b58e3fa47bca4ca0c3a7779e, type: 3}
-  m_PrefabInstance: {fileID: 3964016322140038307}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1372568709
 GameObject:
   m_ObjectHideFlags: 0
@@ -998,7 +1007,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 73052050d80bc7e4db913a13f326ef52, type: 2}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.1
+      value: -10.9
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1006,7 +1015,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 39.2
+      value: 48.1
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalRotation.w
@@ -1046,7 +1055,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8906225582446445048, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: foodShack
@@ -1180,7 +1189,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8906225582446445048, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: foodShack

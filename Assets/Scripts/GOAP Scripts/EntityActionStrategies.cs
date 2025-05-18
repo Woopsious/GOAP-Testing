@@ -105,6 +105,36 @@ public class MoveStrategy : IActionStrategy
 	public void Stop() => agent.SetDestination(agent.transform.position);
 }
 
+public class InteractStrategy : IActionStrategy
+{
+	readonly EntityBrain entityBrain;
+	readonly float minMoveDistanceToSatisfy;
+	readonly Func<Vector3> destination;
+
+	readonly IInteractableNew interact;
+
+	CountdownTimer timer;
+
+	public bool CanPerform => !Complete;
+	public bool Complete => false;
+
+	public InteractStrategy(EntityBrain entityBrain, IInteractableNew interactable)
+	{
+		this.entityBrain = entityBrain;
+	}
+
+	public void Start()
+	{
+		//timer = new CountdownTimer();
+		timer.OnTimerStart += () => interact.StartInteract(entityBrain.entityStats);
+		timer.OnTimerStop += () => interact.CompleteInteract(entityBrain.entityStats);
+		timer.OnTimerCancel += () => interact.CancelInteract(entityBrain.entityStats);
+		timer.Start();
+	}
+	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
+	public void Stop() => timer.Cancel();
+}
+
 public class MoveIntoAttackRange : IActionStrategy
 {
 	readonly NavMeshAgent agent;
@@ -206,38 +236,6 @@ public class BasicAttackStrategy : IActionStrategy
 	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
 }
 
-public class CollectPoiResources
-{
-	readonly EntityBrain entityBrain;
-	readonly NavMeshAgent agent;
-	readonly float wanderRadius;
-
-	public bool CanPerform => !Complete;
-	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending || entityBrain.beliefs["FoundPoi"].Evaluate();
-
-	public CollectPoiResources(EntityBrain entity, NavMeshAgent agent, float wanderRadius)
-	{
-		this.entityBrain = entity;
-		this.agent = agent;
-		this.wanderRadius = wanderRadius;
-	}
-
-	public void Start()
-	{
-		for (int i = 0; i < 5; i++)
-		{
-			Vector3 randomPositon = Random.insideUnitSphere * wanderRadius;
-			Vector3 randomDirection = new(randomPositon.x, 0, randomPositon.z);
-
-			if (NavMesh.SamplePosition(agent.transform.position + randomDirection, out NavMeshHit hit, wanderRadius, 1))
-			{
-				agent.SetDestination(hit.position);
-				return;
-			}
-		}
-	}
-}
-
 public class FindPoiStrategy : IActionStrategy
 {
 	readonly EntityBrain entityBrain;
@@ -298,18 +296,112 @@ public class CapturePoiStrategy : IActionStrategy
 		timer.OnTimerCancel += () => CancelCapture();
 		timer.Start();
 
-		capturingPoi = true;
 		poIController.StartInteract(entityStats);
+		capturingPoi = true;
 	}
 	public void CancelCapture()
 	{
-		capturingPoi = false;
 		poIController.CancelInteract(entityStats);
+		capturingPoi = false;
 	}
 	public void CompleteCapture()
 	{
-		capturingPoi = false;
 		poIController.CompleteInteract(entityStats);
+		capturingPoi = false;
+	}
+
+	public void Start() => StartCapture();
+	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
+	public void Stop() => timer.Cancel();
+}
+
+public class CollectPoiResourcesStrategy : IActionStrategy
+{
+	readonly EntityStats entityStats;
+	readonly EntityBrain entityBrain;
+
+	public PoIController poIController;
+	bool capturingPoi;
+
+	public bool CanPerform => true; // Agent can always capture
+	public bool Complete => !capturingPoi;
+
+	CountdownTimer timer;
+
+	public CollectPoiResourcesStrategy(EntityStats entityStats, EntityBrain entityBrain)
+	{
+		this.entityStats = entityStats;
+		this.entityBrain = entityBrain;
+	}
+
+	public void StartCapture()
+	{
+		poIController = entityBrain.chaseTarget.GetTarget<PoIController>();
+
+		timer = new CountdownTimer(poIController._PoiData.timeToCapture);
+		timer.OnTimerStop += () => CompleteCapture();
+		timer.OnTimerCancel += () => CancelCapture();
+		timer.Start();
+
+		poIController.StartInteract(entityStats);
+		capturingPoi = true;
+	}
+	public void CancelCapture()
+	{
+		poIController.CancelInteract(entityStats);
+		capturingPoi = false;
+	}
+	public void CompleteCapture()
+	{
+		poIController.CompleteInteract(entityStats);
+		capturingPoi = false;
+	}
+
+	public void Start() => StartCapture();
+	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
+	public void Stop() => timer.Cancel();
+}
+
+public class DepositPoiResourcesStrategy : IActionStrategy
+{
+	readonly EntityStats entityStats;
+	readonly EntityBrain entityBrain;
+
+	public PoIController poIController;
+	bool capturingPoi;
+
+	public bool CanPerform => true; // Agent can always capture
+	public bool Complete => !capturingPoi;
+
+	CountdownTimer timer;
+
+	public DepositPoiResourcesStrategy(EntityStats entityStats, EntityBrain entityBrain)
+	{
+		this.entityStats = entityStats;
+		this.entityBrain = entityBrain;
+	}
+
+	public void StartCapture()
+	{
+		poIController = entityBrain.chaseTarget.GetTarget<PoIController>();
+
+		timer = new CountdownTimer(poIController._PoiData.timeToCapture);
+		timer.OnTimerStop += () => CompleteCapture();
+		timer.OnTimerCancel += () => CancelCapture();
+		timer.Start();
+
+		poIController.StartInteract(entityStats);
+		capturingPoi = true;
+	}
+	public void CancelCapture()
+	{
+		poIController.CancelInteract(entityStats);
+		capturingPoi = false;
+	}
+	public void CompleteCapture()
+	{
+		poIController.CompleteInteract(entityStats);
+		capturingPoi = false;
 	}
 
 	public void Start() => StartCapture();

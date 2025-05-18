@@ -10,6 +10,8 @@ public class EntityStats : MonoBehaviour
 	public EntityData _Data;
 	public float currentHealth;
 
+	public float carriedResources;
+
 	CountdownTimer statsTimer;
 
 	public Material redTeamMaterial;
@@ -57,7 +59,7 @@ public class EntityStats : MonoBehaviour
 	private void UpdateStats()
 	{
 		if (player != null) return;
-		if (InRangeOf(entityBrain.foodShack.position, 3f))
+		if (InRangeOf(entityBrain.HomeBase.position, 3f))
 			currentHealth += 50;
 		else
 		{
@@ -72,6 +74,10 @@ public class EntityStats : MonoBehaviour
 	{
 		currentHealth -= damageRecieved;
 		OnDeath();
+	}
+	public void RecieveHealing(float healingRecieved)
+	{
+		currentHealth += healingRecieved;
 	}
 
 	private void OnDeath()

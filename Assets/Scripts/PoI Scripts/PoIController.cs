@@ -11,7 +11,9 @@ public class PoIController : MonoBehaviour, IInteractable
 	private SphereCollider entityDetection;
 
 	public EntityTeam poiOwner;
+
 	public int accumilatedResources;
+	public bool resourcesNeedTransfering;
 
 	public List<EntityStats> entitiesInRange = new List<EntityStats>();
 
@@ -67,8 +69,8 @@ public class PoIController : MonoBehaviour, IInteractable
 
 		poIBehaviour = new HashSet<IPoIStrategies> 
 		{
-			new PoiAddResources(this),
-			//new PoiCapture(this)
+			new PoiResourcesStrategy(this),
+			new PoiHealFriendliesStrategy(this),
 		};
 
 		foreach (IPoIStrategies poIStrategies in poIBehaviour)
@@ -212,20 +214,4 @@ public class PoIController : MonoBehaviour, IInteractable
 
 		Debug.LogError("complete capture");
 	}
-}
-
-public class PoiBehaviour
-{
-	IPoIStrategies strategy;
-
-	public PoiBehaviour(IPoIStrategies strategy)
-	{
-		this.strategy = strategy;
-	}
-
-	public void Start() => strategy.Start();
-
-	public void Update(float deltaTime) => strategy.Update(deltaTime);
-
-	public void Stop() => strategy.Stop();
 }
