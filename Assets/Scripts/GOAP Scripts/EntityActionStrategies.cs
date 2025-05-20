@@ -1,4 +1,5 @@
 using System;
+using Unity.Multiplayer.Center.Common.Analytics;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
@@ -108,29 +109,46 @@ public class MoveStrategy : IActionStrategy
 public class InteractStrategy : IActionStrategy
 {
 	readonly EntityBrain entityBrain;
-	readonly float minMoveDistanceToSatisfy;
-	readonly Func<Vector3> destination;
+	readonly IEntityInteractStrategies interaction;
 
-	readonly IInteractableNew interact;
+	public InteractType interactType;
+	public enum InteractType
+	{
+		poiController
+	}
 
 	CountdownTimer timer;
 
 	public bool CanPerform => !Complete;
 	public bool Complete => false;
 
-	public InteractStrategy(EntityBrain entityBrain, IInteractableNew interactable)
+	public InteractStrategy(EntityBrain entityBrain, IEntityInteractStrategies interaction, InteractType interactType)
 	{
 		this.entityBrain = entityBrain;
+		this.interaction = interaction;
+		this.interactType = interactType;
 	}
 
 	public void Start()
 	{
-		//timer = new CountdownTimer();
-		timer.OnTimerStart += () => interact.StartInteract(entityBrain.entityStats);
-		timer.OnTimerStop += () => interact.CompleteInteract(entityBrain.entityStats);
-		timer.OnTimerCancel += () => interact.CancelInteract(entityBrain.entityStats);
+		if (interactType == InteractType.poiController)
+		{
+			SetupPoiInteraction();
+		}
+	}
+
+	//interact type setups
+	void SetupPoiInteraction()
+	{
+		interaction.SetInteractType(entityBrain.chaseTarget.poiController);
+
+		timer = new CountdownTimer(interaction.GetInteractTimer());
+		timer.OnTimerStart += () => interaction.StartInteract(entityBrain.entityStats);
+		timer.OnTimerStop += () => interaction.CompleteInteract(entityBrain.entityStats);
+		timer.OnTimerCancel += () => interaction.CancelInteract(entityBrain.entityStats);
 		timer.Start();
 	}
+
 	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
 	public void Stop() => timer.Cancel();
 }
@@ -243,7 +261,7 @@ public class FindPoiStrategy : IActionStrategy
 	readonly float wanderRadius;
 
 	public bool CanPerform => !Complete;
-	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending || entityBrain.beliefs["FoundPoi"].Evaluate();
+	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending || entityBrain.beliefs["FoundCapturablePoi"].Evaluate();
 
 	public FindPoiStrategy(EntityBrain entity, NavMeshAgent agent, float wanderRadius)
 	{
@@ -266,145 +284,4 @@ public class FindPoiStrategy : IActionStrategy
 			}
 		}
 	}
-}
-
-public class CapturePoiStrategy : IActionStrategy
-{
-	readonly EntityStats entityStats;
-	readonly EntityBrain entityBrain;
-
-	public PoIController poIController;
-	bool capturingPoi;
-
-	public bool CanPerform => true; // Agent can always capture
-	public bool Complete => !capturingPoi;
-
-	CountdownTimer timer;
-
-	public CapturePoiStrategy(EntityStats entityStats, EntityBrain entityBrain)
-	{
-		this.entityStats = entityStats;
-		this.entityBrain = entityBrain;
-	}
-
-	public void StartCapture()
-	{
-		poIController = entityBrain.chaseTarget.GetTarget<PoIController>();
-
-		timer = new CountdownTimer(poIController._PoiData.timeToCapture);
-		timer.OnTimerStop += () => CompleteCapture();
-		timer.OnTimerCancel += () => CancelCapture();
-		timer.Start();
-
-		poIController.StartInteract(entityStats);
-		capturingPoi = true;
-	}
-	public void CancelCapture()
-	{
-		poIController.CancelInteract(entityStats);
-		capturingPoi = false;
-	}
-	public void CompleteCapture()
-	{
-		poIController.CompleteInteract(entityStats);
-		capturingPoi = false;
-	}
-
-	public void Start() => StartCapture();
-	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
-	public void Stop() => timer.Cancel();
-}
-
-public class CollectPoiResourcesStrategy : IActionStrategy
-{
-	readonly EntityStats entityStats;
-	readonly EntityBrain entityBrain;
-
-	public PoIController poIController;
-	bool capturingPoi;
-
-	public bool CanPerform => true; // Agent can always capture
-	public bool Complete => !capturingPoi;
-
-	CountdownTimer timer;
-
-	public CollectPoiResourcesStrategy(EntityStats entityStats, EntityBrain entityBrain)
-	{
-		this.entityStats = entityStats;
-		this.entityBrain = entityBrain;
-	}
-
-	public void StartCapture()
-	{
-		poIController = entityBrain.chaseTarget.GetTarget<PoIController>();
-
-		timer = new CountdownTimer(poIController._PoiData.timeToCapture);
-		timer.OnTimerStop += () => CompleteCapture();
-		timer.OnTimerCancel += () => CancelCapture();
-		timer.Start();
-
-		poIController.StartInteract(entityStats);
-		capturingPoi = true;
-	}
-	public void CancelCapture()
-	{
-		poIController.CancelInteract(entityStats);
-		capturingPoi = false;
-	}
-	public void CompleteCapture()
-	{
-		poIController.CompleteInteract(entityStats);
-		capturingPoi = false;
-	}
-
-	public void Start() => StartCapture();
-	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
-	public void Stop() => timer.Cancel();
-}
-
-public class DepositPoiResourcesStrategy : IActionStrategy
-{
-	readonly EntityStats entityStats;
-	readonly EntityBrain entityBrain;
-
-	public PoIController poIController;
-	bool capturingPoi;
-
-	public bool CanPerform => true; // Agent can always capture
-	public bool Complete => !capturingPoi;
-
-	CountdownTimer timer;
-
-	public DepositPoiResourcesStrategy(EntityStats entityStats, EntityBrain entityBrain)
-	{
-		this.entityStats = entityStats;
-		this.entityBrain = entityBrain;
-	}
-
-	public void StartCapture()
-	{
-		poIController = entityBrain.chaseTarget.GetTarget<PoIController>();
-
-		timer = new CountdownTimer(poIController._PoiData.timeToCapture);
-		timer.OnTimerStop += () => CompleteCapture();
-		timer.OnTimerCancel += () => CancelCapture();
-		timer.Start();
-
-		poIController.StartInteract(entityStats);
-		capturingPoi = true;
-	}
-	public void CancelCapture()
-	{
-		poIController.CancelInteract(entityStats);
-		capturingPoi = false;
-	}
-	public void CompleteCapture()
-	{
-		poIController.CompleteInteract(entityStats);
-		capturingPoi = false;
-	}
-
-	public void Start() => StartCapture();
-	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
-	public void Stop() => timer.Cancel();
 }

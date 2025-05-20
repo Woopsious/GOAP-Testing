@@ -4,10 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEngine.EventSystems.EventTrigger;
 
 public class EntitySensor : MonoBehaviour
 {
+	/// <summary>
+	/// 
+	/// </summary>
+
+
 	[Header("Sensor Info")]
 	[SerializeField] SensorType sensorType;
 	public enum SensorType
@@ -25,7 +29,7 @@ public class EntitySensor : MonoBehaviour
 	public event Action<TargetData, SensorType> OnTargetChanged = delegate { };
 
 	[Header("Target Info")]
-	[SerializeField] public List<TargetData> targetsInRange = new List<TargetData>();
+	public List<TargetData> targetsInRange = new List<TargetData>();
 
 	public TargetData target;
 	Vector3 lastKnownPosition;
@@ -186,6 +190,7 @@ public class EntitySensor : MonoBehaviour
 		for (int i = 0; i < targetsInRange.Count; i++)
 		{
 			PoIController poIController = targetsInRange[i].GetTarget<PoIController>(); 
+			if (poIController == null) return -10;
 
 			if (poIController.poiOwner != entityTeam)
 				return i;

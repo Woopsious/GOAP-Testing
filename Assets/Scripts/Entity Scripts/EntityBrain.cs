@@ -32,10 +32,14 @@ public class EntityBrain : MonoBehaviour
 	public CountdownTimer attackOneTimer;
 	public CountdownTimer attackTwoTimer;
 
-	[Header("EntityTargets")]
+	[Header("Entity Targets")]
 	public TargetData chaseTarget;
 	public TargetData attackTargetOne;
 	public TargetData attackTargetTwo;
+
+	[Header("Poi Targets")]
+	public TargetData closestCapturablePoi;
+	public TargetData closesetFriendlyPoi;
 
 	public EntityGoals lastGoal;
 	public EntityGoals currentGoal;
@@ -140,7 +144,7 @@ public class EntityBrain : MonoBehaviour
 			attackBools[1] = () => attackOneReady;
 			attackBools[2] = () => attackTwoReady;
 
-			entityBrainStrategy = new CombatBrainNewStrategy(this, entityStats, navMeshAgent, sensors, knownLocations, attackBools);
+			entityBrainStrategy = new CombatBrainStrategy(this, entityStats, navMeshAgent, sensors, knownLocations, attackBools);
 
 			beliefs = entityBrainStrategy.SetupBeliefs();
 			actions = entityBrainStrategy.SetupActions();
@@ -148,7 +152,7 @@ public class EntityBrain : MonoBehaviour
 		}
 		else if (entityStats._Data.type == EntityType.worker)
 		{
-			entityBrainStrategy = new WorkerBrainNewStrategy(this, entityStats, navMeshAgent, sensors, knownLocations);
+			entityBrainStrategy = new WorkerBrainStrategy(this, entityStats, navMeshAgent, sensors, knownLocations);
 
 			beliefs = entityBrainStrategy.SetupBeliefs();
 			actions = entityBrainStrategy.SetupActions();

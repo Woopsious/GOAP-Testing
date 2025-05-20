@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using static EntityData;
 
-public class PoIController : MonoBehaviour, IInteractable
+public class PoIController : MonoBehaviour
 {
 	public PoiData _PoiData;
 	private MeshRenderer meshRenderer;
@@ -191,27 +191,5 @@ public class PoIController : MonoBehaviour, IInteractable
 		}
 
 		UpdateTeamCounts();
-	}
-
-	public void StartInteract(EntityStats entityInteracting)
-	{
-		entityCurrentlyCapturing = entityInteracting;
-
-		Debug.LogError("start capture");
-	}
-
-	public void CancelInteract(EntityStats entityInteracting)
-	{
-		entityCurrentlyCapturing = null;
-
-		Debug.LogError("cancel capture");
-	}
-
-	public void CompleteInteract(EntityStats entityInteracting)
-	{
-		UpdatePoiOwner(entityInteracting._Data.team);
-		entityCurrentlyCapturing = null;
-
-		Debug.LogError("complete capture");
 	}
 }
