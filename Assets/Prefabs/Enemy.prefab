@@ -69,14 +69,19 @@ MonoBehaviour:
   sensorType: 3
   detectionRadius: 5
   timerInterval: 0.5
+  targetsInRange: []
+  target:
+    target: {fileID: 0}
+    poiController: {fileID: 0}
+    entityBrain: {fileID: 0}
+    type: 0
+    targetDistance: 0
   attackData:
     attackType: 0
     attackDamage: 0
     attackCooldown: 0
     attackMinRange: 0
     attackMaxRange: 0
-  target: {fileID: 0}
-  targetBackup: {fileID: 0}
 --- !u!1 &1850757724687073674
 GameObject:
   m_ObjectHideFlags: 0
@@ -143,17 +148,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sensorType: 1
+  sensorType: 0
   detectionRadius: 5
   timerInterval: 0.25
+  targetsInRange: []
+  target:
+    target: {fileID: 0}
+    poiController: {fileID: 0}
+    entityBrain: {fileID: 0}
+    type: 0
+    targetDistance: 0
   attackData:
     attackType: 0
     attackDamage: 0
     attackCooldown: 0
     attackMinRange: 0
     attackMaxRange: 0
-  target: {fileID: 0}
-  targetBackup: {fileID: 0}
 --- !u!1 &4132808136157353397
 GameObject:
   m_ObjectHideFlags: 0
@@ -223,14 +233,19 @@ MonoBehaviour:
   sensorType: 2
   detectionRadius: 5
   timerInterval: 0.5
+  targetsInRange: []
+  target:
+    target: {fileID: 0}
+    poiController: {fileID: 0}
+    entityBrain: {fileID: 0}
+    type: 0
+    targetDistance: 0
   attackData:
     attackType: 0
     attackDamage: 0
     attackCooldown: 0
     attackMinRange: 0
     attackMaxRange: 0
-  target: {fileID: 0}
-  targetBackup: {fileID: 0}
 --- !u!1 &4185409361200469531
 GameObject:
   m_ObjectHideFlags: 0
@@ -297,17 +312,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sensorType: 0
+  sensorType: 1
   detectionRadius: 5
   timerInterval: 0.25
+  targetsInRange: []
+  target:
+    target: {fileID: 0}
+    poiController: {fileID: 0}
+    entityBrain: {fileID: 0}
+    type: 0
+    targetDistance: 0
   attackData:
     attackType: 0
     attackDamage: 0
     attackCooldown: 0
     attackMinRange: 0
     attackMaxRange: 0
-  target: {fileID: 0}
-  targetBackup: {fileID: 0}
 --- !u!1 &8151942388671483916
 GameObject:
   m_ObjectHideFlags: 0
@@ -344,8 +364,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3818468417507857389}
   - {fileID: 7911888664233030472}
+  - {fileID: 3818468417507857389}
   - {fileID: 60718108651283027}
   - {fileID: 3473255358023357217}
   m_Father: {fileID: 0}
@@ -415,8 +435,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44e777bb2c84d0b49a23a8b0e70fef0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  entityBrain: {fileID: 0}
   _Data: {fileID: 0}
   currentHealth: 0
+  carriedResources: 0
   redTeamMaterial: {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
   greenTeamMaterial: {fileID: 2100000, guid: d3c784064aacc7a4fb05fde26fc3385d, type: 2}
 --- !u!114 &6056201479809704718
@@ -431,16 +453,45 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9c47eb2782350d94bb54fdef3bb34165, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  entityStats: {fileID: 0}
   chaseSensor: {fileID: 3851985788758652946}
   fleeSensor: {fileID: 6024228860040524787}
   attackSensorOne: {fileID: 8565384823491112431}
   attackSensorTwo: {fileID: 8933791809597984084}
+  Pois: []
   allAttacksOnCooldown: 0
   attackOneReady: 0
   attackTwoReady: 0
-  chaseTarget: {fileID: 0}
-  attackTargetOne: {fileID: 0}
-  attackTargetTwo: {fileID: 0}
+  chaseTarget:
+    target: {fileID: 0}
+    poiController: {fileID: 0}
+    entityBrain: {fileID: 0}
+    type: 0
+    targetDistance: 0
+  attackTargetOne:
+    target: {fileID: 0}
+    poiController: {fileID: 0}
+    entityBrain: {fileID: 0}
+    type: 0
+    targetDistance: 0
+  attackTargetTwo:
+    target: {fileID: 0}
+    poiController: {fileID: 0}
+    entityBrain: {fileID: 0}
+    type: 0
+    targetDistance: 0
+  closestCapturablePoi:
+    target: {fileID: 0}
+    poiController: {fileID: 0}
+    entityBrain: {fileID: 0}
+    type: 0
+    targetDistance: 0
+  closesetFriendlyPoi:
+    target: {fileID: 0}
+    poiController: {fileID: 0}
+    entityBrain: {fileID: 0}
+    type: 0
+    targetDistance: 0
 --- !u!195 &5829567236386544650
 NavMeshAgent:
   m_ObjectHideFlags: 0

@@ -33,6 +33,7 @@ public class BeliefFactory
 		beliefs.Add(key, new EntityBeliefs.Builder(key)
 			.WithCondition(() => sensor.IsTargetInRange)
 			.WithTargetLocation(() => sensor.TargetPosition)
+			.WithTargetRef(() => sensor.target)
 			.Build());
 	}
 
@@ -63,6 +64,9 @@ public class EntityBeliefs
 
 	Func<Vector3> targetLocation = () => Vector3.zero;
 	public Vector3 TargetLocation => targetLocation();
+
+	Func<TargetData> targetData = () => null;
+	public TargetData TargetData => targetData();
 
 	EntityBeliefs(string name)
 	{
@@ -95,6 +99,12 @@ public class EntityBeliefs
 		public Builder WithTargetLocation(Func<Vector3> observedLocation)
 		{
 			belief.targetLocation = observedLocation;
+			return this;
+		}
+
+		public Builder WithTargetRef(Func<TargetData> target)
+		{
+			belief.targetData = target;
 			return this;
 		}
 

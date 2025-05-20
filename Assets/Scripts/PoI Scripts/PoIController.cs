@@ -70,7 +70,7 @@ public class PoIController : MonoBehaviour
 		poIBehaviour = new HashSet<IPoIStrategies> 
 		{
 			new PoiResourcesStrategy(this),
-			new PoiHealFriendliesStrategy(this),
+			//new PoiHealFriendliesStrategy(this),
 		};
 
 		foreach (IPoIStrategies poIStrategies in poIBehaviour)

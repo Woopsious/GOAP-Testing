@@ -8,7 +8,9 @@ using UnityEngine;
 public class EntitySensor : MonoBehaviour
 {
 	/// <summary>
+	/// sensor types work as they are now, needing 1 target to be set per sensor
 	/// 
+	/// attack sensors focus on finding attack targets fo
 	/// </summary>
 
 
@@ -16,7 +18,7 @@ public class EntitySensor : MonoBehaviour
 	[SerializeField] SensorType sensorType;
 	public enum SensorType
 	{
-		chase, flee, attackSensorOne, attackSensorTwo, poiDetector
+		flee, chase, attackSensorOne, attackSensorTwo, captureEnemyPoi, closestFriendlyPoi
 	}
 
 	[SerializeField] float detectionRadius = 5f;
@@ -36,7 +38,7 @@ public class EntitySensor : MonoBehaviour
 	CountdownTimer timer;
 
 	//logic for beliefs
-	public Vector3 TargetPosition => target.target ? target.target.transform.position : Vector3.zero;
+	public Vector3 TargetPosition => target.obj ? target.obj.transform.position : Vector3.zero;
 	public bool IsTargetInRange => TargetPosition != Vector3.zero;
 
 	[Header("Attack Sensor Info")]
@@ -101,8 +103,8 @@ public class EntitySensor : MonoBehaviour
 	{
 		for (int i = 0; i < targetsInRange.Count; i++)
 		{
-			if (targetsInRange[i].target != null)
-				targetsInRange[i].targetDistance = GetTargetDistance(targetsInRange[i].target);
+			if (targetsInRange[i].obj != null)
+				targetsInRange[i].targetDistance = GetTargetDistance(targetsInRange[i].obj);
 		}
 
 		targetsInRange.Sort((a, b) => a.targetDistance.CompareTo(b.targetDistance));
@@ -111,12 +113,12 @@ public class EntitySensor : MonoBehaviour
 	//sensor type target logic
 	void UpdateSensorTargets()
 	{
-		if (sensorType == SensorType.chase || sensorType == SensorType.flee)
+		if (sensorType == SensorType.flee || sensorType == SensorType.chase)
 			UpdateOtherSensorsTargets();
 
 		else if (sensorType == SensorType.attackSensorOne || sensorType == SensorType.attackSensorTwo)
 			UpdateAttackSensorTargets();
-		else if (sensorType == SensorType.poiDetector)
+		else if (sensorType == SensorType.captureEnemyPoi || sensorType == SensorType.closestFriendlyPoi)
 			UpdatePoiDetectorTargets();
 		else
 			Debug.LogError("No matching sensor type");
@@ -154,11 +156,22 @@ public class EntitySensor : MonoBehaviour
 	}
 	void UpdatePoiDetectorTargets()
 	{
-		int index = FindClosestEnemyPoiToCapture();
-		if (index >= 0)
-			target = targetsInRange[index];
-		else
-			target.ClearTarget();
+		if (sensorType == SensorType.captureEnemyPoi)
+		{
+			int index = FindClosestEnemyPoiToCapture();
+			if (index >= 0)
+				target = targetsInRange[index];
+			else
+				target.ClearTarget();
+		}
+		else if (sensorType == SensorType.closestFriendlyPoi)
+		{
+			int index = FindClosestFriendlyPoi();
+			if (index >= 0)
+				target = targetsInRange[index];
+			else
+				target.ClearTarget();
+		}
 
 		//attack sensors shouldnt need to worry about tracking last known pos as chase/flee sensors handle that
 		if (IsTargetInRange && (lastKnownPosition != TargetPosition || lastKnownPosition != Vector3.zero))
@@ -197,10 +210,22 @@ public class EntitySensor : MonoBehaviour
 		}
 		return -10;
 	}
+	int FindClosestFriendlyPoi()
+	{
+		for (int i = 0; i < targetsInRange.Count; i++)
+		{
+			PoIController poIController = targetsInRange[i].GetTarget<PoIController>();
+			if (poIController == null) return -10;
+
+			if (poIController.poiOwner == entityTeam)
+				return i;
+		}
+		return -10;
+	}
 
 	void OnTriggerEnter(Collider other)
 	{
-		if (sensorType == SensorType.poiDetector)
+		if (sensorType == SensorType.captureEnemyPoi || sensorType == SensorType.closestFriendlyPoi)
 		{
 			if (other.GetComponent<PoIController>() == null) return;
 			AddTargetToList(other.gameObject, TargetData.TargetType.poi);
@@ -216,9 +241,7 @@ public class EntitySensor : MonoBehaviour
 	}
 	void OnTriggerExit(Collider other)
 	{
-		if (other.GetComponent<EntityStats>() == null && other.GetComponent<PoIController>() == null) return;
-
-		if (sensorType == SensorType.poiDetector)
+		if (sensorType == SensorType.captureEnemyPoi || sensorType == SensorType.closestFriendlyPoi)
 		{
 			if (other.GetComponent<PoIController>() == null) return;
 			RemoveTargetFromList(other.gameObject);
@@ -243,7 +266,7 @@ public class EntitySensor : MonoBehaviour
 
 		for (int i = 0; i < targetsInRange.Count; i++)
 		{
-			if (targetsInRange[i].target == obj)
+			if (targetsInRange[i].obj == obj)
 				continue;
 			else
 				targetsInRange.Add(new(targetType, obj, GetTargetDistance(obj)));
@@ -253,7 +276,7 @@ public class EntitySensor : MonoBehaviour
 	{
 		for (int i = targetsInRange.Count - 1; i >= 0; i--)
 		{
-			if (targetsInRange[i].target == obj)
+			if (targetsInRange[i].obj == obj)
 				targetsInRange.RemoveAt(i);
 		}
 	}
@@ -268,7 +291,7 @@ public class EntitySensor : MonoBehaviour
 	{
 		for (int i = targetsInRange.Count - 1; i >= 0; i--)
 		{
-			if (targetsInRange[i].target == entity || targetsInRange[i].target == null)
+			if (targetsInRange[i].obj == entity || targetsInRange[i].obj == null)
 				targetsInRange.RemoveAt(i); //also remove possible null refs
 		}
 	}
@@ -276,7 +299,7 @@ public class EntitySensor : MonoBehaviour
 	void OnDrawGizmos()
 	{
 		if (sensorType == SensorType.attackSensorOne ||  sensorType == SensorType.attackSensorTwo)
-			Gizmos.color = target.target ? Color.blue : Color.green;
+			Gizmos.color = target.obj ? Color.blue : Color.green;
 		else
 			Gizmos.color = IsTargetInRange ? Color.red : Color.green;
 
@@ -287,7 +310,7 @@ public class EntitySensor : MonoBehaviour
 [Serializable]
 public class TargetData
 {
-	public GameObject target;
+	public GameObject obj;
 
 	public PoIController poiController;
 	public EntityBrain entityBrain;
@@ -307,7 +330,7 @@ public class TargetData
 		else if (type == TargetType.entity)
 			entityBrain = obj.GetComponent<EntityBrain>();
 
-		target = obj;
+		this.obj = obj;
 		this.type = type;
 		this.targetDistance = targetDistance;
 	}
@@ -324,7 +347,7 @@ public class TargetData
 
 	public void ClearTarget()
 	{
-		target = null;
+		obj = null;
 		poiController = null;
 		entityBrain = null;
 	}

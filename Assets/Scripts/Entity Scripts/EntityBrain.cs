@@ -15,8 +15,8 @@ public class EntityBrain : MonoBehaviour
 	Rigidbody rb;
 
 	[Header("Sensors")]
-	[SerializeField] EntitySensor chaseSensor;
 	[SerializeField] EntitySensor fleeSensor;
+	[SerializeField] EntitySensor chaseSensor;
 	[SerializeField] EntitySensor attackSensorOne;
 	[SerializeField] EntitySensor attackSensorTwo;
 
@@ -77,6 +77,8 @@ public class EntityBrain : MonoBehaviour
 		else allAttacksOnCooldown = false;
 
 		CreateNewPlan();
+
+		Debug.LogError("capturable Poi location: " + beliefs["FoundCapturablePoi"].TargetLocation);
 	}
 
 	void Initilize()
@@ -114,23 +116,24 @@ public class EntityBrain : MonoBehaviour
 					fleeRange = attackData.attackMinRange;
 			}
 
-			chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
 			fleeSensor.UpdateSensorSettings(fleeRange);
+			chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
 
 			attackSensorOne.UpdateSensorSettings(entityStats._Data.attackData[0]);
 			attackSensorTwo.UpdateSensorSettings(entityStats._Data.attackData[1]);
 		}
         else if (entityStats._Data.type == EntityType.worker)
         {
-			chaseSensor.UpdateSensorSettings(SensorType.poiDetector, entityStats._Data.chaseRange);
 			fleeSensor.UpdateSensorSettings(entityStats._Data.fleeRange);
+			chaseSensor.UpdateSensorSettings(SensorType.captureEnemyPoi, entityStats._Data.chaseRange);
+			attackSensorOne.UpdateSensorSettings(SensorType.closestFriendlyPoi, entityStats._Data.chaseRange);
 		}
     }
 	void SetupBrainType()
 	{
 		EntitySensor[] sensors = new EntitySensor[4];
-		sensors[0] = chaseSensor;
-		sensors[1] = fleeSensor;
+		sensors[0] = fleeSensor;
+		sensors[1] = chaseSensor;
 		sensors[2] = attackSensorOne;
 		sensors[3] = attackSensorTwo;
 
@@ -242,10 +245,19 @@ public class EntityBrain : MonoBehaviour
 			attackTargetTwo = target;
 			break;
 
-			case SensorType.poiDetector:
-			if (chaseTarget.target != target.target)//recalc goal when poi changes
+			case SensorType.captureEnemyPoi:
+			if (chaseTarget.obj != target.obj)//recalc goal when poi changes
 			{
 				chaseTarget = target;
+				currentAction = null;
+				currentGoal = null;
+			}
+			break;
+			case SensorType.closestFriendlyPoi:
+			if (chaseTarget.obj != target.obj)//recalc goal when poi changes
+			{
+				chaseTarget = target;
+				currentAction = null;
 				currentGoal = null;
 			}
 			break;

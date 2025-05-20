@@ -51,14 +51,14 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 
 		factory.AddLocationBelief("AgentAtFoodShack", 3f, knownLocations[0]);
 
-		factory.AddTargetBelief("TargetInChaseRange", entitySensors[0]);
-		factory.AddBelief("ChasingTarget", () => false);
-
-		factory.AddTargetBelief("TargetInFleeRange", entitySensors[1]);
+		factory.AddTargetBelief("TargetInFleeRange", entitySensors[0]);
 		factory.AddBelief("FleeingFromTarget", () => false);
 
-		factory.AddBelief("TargetInAttackOneRange", () => entitySensors[2].target.target != null);
-		factory.AddBelief("TargetInAttackTwoRange", () => entitySensors[3].target.target != null);
+		factory.AddTargetBelief("TargetInChaseRange", entitySensors[1]);
+		factory.AddBelief("ChasingTarget", () => false);
+
+		factory.AddBelief("TargetInAttackOneRange", () => entitySensors[2].target.obj != null);
+		factory.AddBelief("TargetInAttackTwoRange", () => entitySensors[3].target.obj != null);
 
 		factory.AddBelief("AllAttacksOnCooldown", () => attackBools[0]());
 		factory.AddBelief("AttackOneReady", () => attackBools[1]());
@@ -226,14 +226,17 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 		factory.AddBelief("AgentHealthLow", () => entityStats.currentHealth < 30);
 		factory.AddBelief("AgentIsHealthy", () => entityStats.currentHealth >= 40);
 
-		factory.AddLocationBelief("AgentAtFoodShack", 3f, knownLocations[0]);
+		//factory.AddTargetBelief("flee", entitySensors[0]);
 
-		factory.AddBelief("FoundCapturablePoi", () => entityBrain.chaseTarget.GetTarget<PoIController>() != null);
+		factory.AddTargetBelief("FoundCapturablePoi", entitySensors[1]);
+		//factory.AddLocationBelief("AtCapturablePoi", 15f, beliefs["FoundCapturablePoi"].TargetLocation);
+		factory.AddBelief("AtCapturablePoi", () => entityBrain.InRangeOf(beliefs["FoundCapturablePoi"].TargetLocation, 9f));
 
-		factory.AddBelief("AtPoi", () => entityBrain.chaseTarget.target != null && 
-			entityBrain.InRangeOf(entityBrain.chaseTarget.GetTarget<PoIController>().transform.position, 7.5f));
+		factory.AddTargetBelief("FoundFriendlyPoi", entitySensors[2]);
+		//factory.AddLocationBelief("AtFriendlyPoi", 15f, beliefs["FoundFriendlyPoi"].TargetLocation);
+		factory.AddBelief("AtFriendlyPoi", () => entityBrain.InRangeOf(beliefs["FoundFriendlyPoi"].TargetLocation, 9f));
 
-		factory.AddBelief("PoiMoveResources", () => entityBrain.chaseTarget.target != null &&
+		factory.AddBelief("PoiMoveResources", () => entityBrain.chaseTarget.obj != null &&
 			entityBrain.chaseTarget.GetTarget<PoIController>().resourcesNeedTransfering);
 
 		factory.AddBelief("CapturePoi", () => false);
@@ -254,32 +257,40 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.AddEffect(beliefs["AgentMoving"])
 			.Build(),
 
-			new EntityActions.Builder("MoveToEatingPosition")
-			.WithStrategy(new MoveStrategy(navMeshAgent, () => knownLocations[0].position))
-			.AddEffect(beliefs["AgentAtFoodShack"])
-			.Build(),
-
-			new EntityActions.Builder("HealAtFriendlyPoi")
-			.WithStrategy(new InteractStrategy(entityBrain, new HealAtPoiInteract(), InteractType.poiController))  // Later replace with a Command
-			.AddPrecondition(beliefs["AgentAtFoodShack"])
-			.AddEffect(beliefs["AgentIsHealthy"])
-			.Build(),
-
-			new EntityActions.Builder("LookForPoi")
+			new EntityActions.Builder("LookForCapturablePoi")
 			.WithStrategy(new FindPoiStrategy(entityBrain, navMeshAgent, 50))
 			.AddEffect(beliefs["FoundCapturablePoi"])
 			.Build(),
 
-			new EntityActions.Builder("MoveToPoi")
+			new EntityActions.Builder("MoveToCapturablePoi")
 			.WithStrategy(new MoveStrategy(navMeshAgent, 9f, () => beliefs["FoundCapturablePoi"].TargetLocation))
 			.AddPrecondition(beliefs["FoundCapturablePoi"])
-			.AddEffect(beliefs["AtPoi"])
+			.AddEffect(beliefs["AtCapturablePoi"])
 			.Build(),
 
 			new EntityActions.Builder("CapturePoi")
 			.WithStrategy(new InteractStrategy(entityBrain, new CapturePoiInteract(), InteractType.poiController))
-			.AddPrecondition(beliefs["AtPoi"])
+			.AddPrecondition(beliefs["AtCapturablePoi"])
 			.AddEffect(beliefs["CapturePoi"])
+			.Build(),
+
+			new EntityActions.Builder("LookForCapturablePoi")
+			.WithStrategy(new FindPoiStrategy(entityBrain, navMeshAgent, 50))
+			.AddEffect(beliefs["FoundFriendlyPoi"])
+			.Build(),
+
+			new EntityActions.Builder("MoveToFriendlyPoi")
+			.WithStrategy(new MoveStrategy(navMeshAgent, 9f, () => beliefs["FoundFriendlyPoi"].TargetLocation))
+			.AddPrecondition(beliefs["AgentHealthLow"])
+			.AddPrecondition(beliefs["FoundFriendlyPoi"])
+			.AddEffect(beliefs["AtFriendlyPoi"])
+			.Build(),
+
+			new EntityActions.Builder("HealAtFriendlyPoi")
+			.WithStrategy(new InteractStrategy(entityBrain, new HealAtPoiInteract(), InteractType.poiController))  // Later replace with a Command
+			.AddPrecondition(beliefs["AgentHealthLow"])
+			.AddPrecondition(beliefs["AtFriendlyPoi"])
+			.AddEffect(beliefs["AgentIsHealthy"])
 			.Build(),
 		};
 
@@ -294,19 +305,24 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.WithDesiredEffect(beliefs["Nothing"])
 			.Build(),
 
-			new EntityGoals.Builder("FindPoi")
+			new EntityGoals.Builder("FindCapturablePoi")
 			.WithPriority(10)
 			.WithDesiredEffect(beliefs["FoundCapturablePoi"])
 			.Build(),
 
-			new EntityGoals.Builder("KeepHealthUp")
+			new EntityGoals.Builder("FindFriendlyPoi")
 			.WithPriority(20)
-			.WithDesiredEffect(beliefs["AgentIsHealthy"])
+			.WithDesiredEffect(beliefs["FoundFriendlyPoi"])
 			.Build(),
 
 			new EntityGoals.Builder("CapturePoi")
-			.WithPriority(80)
+			.WithPriority(40)
 			.WithDesiredEffect(beliefs["CapturePoi"])
+			.Build(),
+
+			new EntityGoals.Builder("KeepHealthUp")
+			.WithPriority(80)
+			.WithDesiredEffect(beliefs["AgentIsHealthy"])
 			.Build(),
 		};
 
