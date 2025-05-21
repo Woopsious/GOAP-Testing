@@ -10,7 +10,7 @@ public class EntityStats : MonoBehaviour
 	public EntityData _Data;
 	public float currentHealth;
 
-	public float carriedResources;
+	public int carriedResources;
 
 	CountdownTimer statsTimer;
 

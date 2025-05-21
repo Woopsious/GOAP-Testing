@@ -1,4 +1,4 @@
-using System;
+using UnityEngine;
 
 public interface IEntityInteractStrategies
 {
@@ -25,22 +25,16 @@ public class CapturePoiInteract : IEntityInteractStrategies
 
 	public void StartInteract(EntityStats entity)
 	{
-		//poiController.StartInteract(entity);
-		//Interacting = true;
 		poiController.entityCurrentlyCapturing = entity;
 	}
 
 	public void CancelInteract(EntityStats entity)
 	{
-		//poiController.CancelInteract(entity);
-		//Interacting = false;
 		poiController.entityCurrentlyCapturing = null;
 	}
 
 	public void CompleteInteract(EntityStats entity)
 	{
-		//poiController.CompleteInteract(entity);
-		//Interacting = false;
 		poiController.UpdatePoiOwner(entity._Data.team);
 		poiController.entityCurrentlyCapturing = null;
 	}
@@ -61,17 +55,97 @@ public class HealAtPoiInteract : IEntityInteractStrategies
 
 	public void StartInteract(EntityStats entity)
 	{
-
+		//noop
 	}
 
 	public void CancelInteract(EntityStats entity)
 	{
-
+		//noop
 	}
 
 	public void CompleteInteract(EntityStats entity)
 	{
 		entity.RecieveHealing(poiController._PoiData.HealAmount);
+	}
+}
+
+public class PickupResourcesInteract : IEntityInteractStrategies
+{
+	public PoIController poiController;
+
+	public void SetInteractType<T>(T interactedObject)
+	{
+		poiController = interactedObject as PoIController;
+	}
+	public float GetInteractTimer()
+	{
+		return poiController._PoiData.ResourceTransferTime;
+	}
+
+	public void StartInteract(EntityStats entity)
+	{
+		Debug.LogError("pick up res interact start");
+		//noop
+	}
+
+	public void CancelInteract(EntityStats entity)
+	{
+		Debug.LogError("pick up res interact cancel");
+		//noop
+	}
+
+	public void CompleteInteract(EntityStats entity)
+	{
+		Debug.LogError("pick up res interact complete");
+
+		if (poiController.accumilatedResources >= 250)
+		{
+			entity.carriedResources = 250;
+			poiController.accumilatedResources -= 250;
+		}
+		else
+		{
+			entity.carriedResources = poiController.accumilatedResources;
+			poiController.accumilatedResources = 0;
+		}
+	}
+}
+
+public class DropOffResourcesInteract : IEntityInteractStrategies
+{
+	public PoIController poiController;
+
+	public void SetInteractType<T>(T interactedObject)
+	{
+		poiController = interactedObject as PoIController;
+	}
+	public float GetInteractTimer()
+	{
+		return poiController._PoiData.ResourceTransferTime;
+	}
+
+	public void StartInteract(EntityStats entity)
+	{
+		//noop
+	}
+
+	public void CancelInteract(EntityStats entity)
+	{
+		//noop
+	}
+
+	public void CompleteInteract(EntityStats entity)
+	{
+		if (poiController.accumilatedResources >= 250)
+		{
+			poiController.accumilatedResources += 250;
+			entity.carriedResources = 0;
+		}
+		else
+		{
+			poiController.accumilatedResources += entity.carriedResources;
+			entity.carriedResources = 0;
+		}
 	}
 }
 

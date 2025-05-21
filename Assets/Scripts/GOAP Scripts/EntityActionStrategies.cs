@@ -77,11 +77,11 @@ public class WanderStrategy : IActionStrategy
 public class MoveStrategy : IActionStrategy
 {
 	readonly NavMeshAgent agent;
-	readonly float minMoveDistanceToSatisfy;
+	readonly float minMoveDistance;
 	readonly Func<Vector3> destination;
 
 	public bool CanPerform => !Complete;
-	public bool Complete => agent.remainingDistance <= minMoveDistanceToSatisfy && !agent.pathPending;
+	public bool Complete => agent.remainingDistance <= minMoveDistance && !agent.pathPending;
 
 	public MoveStrategy(NavMeshAgent agent, Func<Vector3> destination)
 	{
@@ -93,16 +93,14 @@ public class MoveStrategy : IActionStrategy
 	{
 		this.agent = agent;
 		this.destination = destination;
-		minMoveDistanceToSatisfy = GetMinMoveDistanceToSatisfy(minMoveDistance);
-	}
-
-	float GetMinMoveDistanceToSatisfy(float minMoveDistance)
-	{
-		minMoveDistance *= 0.75f;
-		return minMoveDistance;
+		this.minMoveDistance = minMoveDistance;
 	}
 
 	public void Start() => agent.SetDestination(destination());
+	public void Update(float deltaTime)
+	{
+		//Debug.LogError("move distance: " + agent.remainingDistance + " distance to meet: " + minMoveDistance);
+	}
 	public void Stop() => agent.SetDestination(agent.transform.position);
 }
 
@@ -119,8 +117,8 @@ public class InteractStrategy : IActionStrategy
 
 	CountdownTimer timer;
 
-	public bool CanPerform => !Complete;
-	public bool Complete => false;
+	public bool CanPerform => true;
+	public bool Complete => timer.IsFinished;
 
 	public InteractStrategy(EntityBrain entityBrain, IEntityInteractStrategies interaction, InteractType interactType)
 	{

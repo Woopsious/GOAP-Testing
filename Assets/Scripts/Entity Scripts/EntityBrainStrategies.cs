@@ -228,18 +228,26 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 
 		//factory.AddTargetBelief("flee", entitySensors[0]);
 
+		if (entityStats._Data.team == EntityData.EntityTeam.redTeam)
+			factory.AddLocationBelief("AtHomeBase", 10f, GameManager.instance.redTeamHomeBase.transform.position);
+        else if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
+			factory.AddLocationBelief("AtHomeBase", 10f, GameManager.instance.greenTeamHomeBase.transform.position);
+
 		factory.AddTargetBelief("FoundCapturablePoi", entitySensors[1]);
+		factory.AddBelief("AtCapturablePoi", () => entityBrain.InRangeOf(beliefs["FoundCapturablePoi"].TargetLocation, 10f));
 		//factory.AddLocationBelief("AtCapturablePoi", 15f, beliefs["FoundCapturablePoi"].TargetLocation);
-		factory.AddBelief("AtCapturablePoi", () => entityBrain.InRangeOf(beliefs["FoundCapturablePoi"].TargetLocation, 9f));
 
 		factory.AddTargetBelief("FoundFriendlyPoi", entitySensors[2]);
+		factory.AddBelief("AtFriendlyPoi", () => entityBrain.InRangeOf(beliefs["FoundFriendlyPoi"].TargetLocation, 10f));
 		//factory.AddLocationBelief("AtFriendlyPoi", 15f, beliefs["FoundFriendlyPoi"].TargetLocation);
-		factory.AddBelief("AtFriendlyPoi", () => entityBrain.InRangeOf(beliefs["FoundFriendlyPoi"].TargetLocation, 9f));
 
-		factory.AddBelief("PoiMoveResources", () => entityBrain.chaseTarget.obj != null &&
-			entityBrain.chaseTarget.GetTarget<PoIController>().resourcesNeedTransfering);
+		factory.AddBelief("FriendlyPoiNeedsResTransfer", () => beliefs["FoundFriendlyPoi"].TargetData.poiController != null &&
+			beliefs["FoundFriendlyPoi"].TargetData.poiController.accumilatedResources > 100);
+		factory.AddBelief("TransferResourceToHomeBase", () => entityStats.carriedResources != 0);
 
 		factory.AddBelief("CapturePoi", () => false);
+		factory.AddBelief("PickUpResources", () => false);
+		factory.AddBelief("DropOffResources", () => false);
 
 		return beliefs;
 	}
@@ -263,7 +271,7 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("MoveToCapturablePoi")
-			.WithStrategy(new MoveStrategy(navMeshAgent, 9f, () => beliefs["FoundCapturablePoi"].TargetLocation))
+			.WithStrategy(new MoveStrategy(navMeshAgent, 3f, () => beliefs["FoundCapturablePoi"].TargetLocation))
 			.AddPrecondition(beliefs["FoundCapturablePoi"])
 			.AddEffect(beliefs["AtCapturablePoi"])
 			.Build(),
@@ -279,8 +287,8 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.AddEffect(beliefs["FoundFriendlyPoi"])
 			.Build(),
 
-			new EntityActions.Builder("MoveToFriendlyPoi")
-			.WithStrategy(new MoveStrategy(navMeshAgent, 9f, () => beliefs["FoundFriendlyPoi"].TargetLocation))
+			new EntityActions.Builder("MoveToHealAtFriendlyPoi")
+			.WithStrategy(new MoveStrategy(navMeshAgent, 3f, () => beliefs["FoundFriendlyPoi"].TargetLocation))
 			.AddPrecondition(beliefs["AgentHealthLow"])
 			.AddPrecondition(beliefs["FoundFriendlyPoi"])
 			.AddEffect(beliefs["AtFriendlyPoi"])
@@ -291,6 +299,32 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.AddPrecondition(beliefs["AgentHealthLow"])
 			.AddPrecondition(beliefs["AtFriendlyPoi"])
 			.AddEffect(beliefs["AgentIsHealthy"])
+			.Build(),
+
+			new EntityActions.Builder("MoveToPickUpResources")
+			.WithStrategy(new MoveStrategy(navMeshAgent, 3f, () => beliefs["FoundFriendlyPoi"].TargetLocation))
+			.AddPrecondition(beliefs["FoundFriendlyPoi"])
+			.AddEffect(beliefs["AtFriendlyPoi"])
+			.Build(),
+
+			new EntityActions.Builder("PickUpResources")
+			.WithStrategy(new InteractStrategy(entityBrain, new PickupResourcesInteract(), InteractType.poiController))
+			.AddPrecondition(beliefs["AtFriendlyPoi"])
+			.AddPrecondition(beliefs["FriendlyPoiNeedsResTransfer"])
+			.AddEffect(beliefs["PickUpResources"])
+			.Build(),
+
+			new EntityActions.Builder("MoveToDropOffResources")
+			.WithStrategy(new MoveStrategy(navMeshAgent, 3f, () => beliefs["AtHomeBase"].Location))
+			.AddPrecondition(beliefs["TransferResourceToHomeBase"])
+			.AddEffect(beliefs["AtHomeBase"])
+			.Build(),
+
+			new EntityActions.Builder("DropOffResources")
+			.WithStrategy(new InteractStrategy(entityBrain, new DropOffResourcesInteract(), InteractType.poiController))
+			.AddPrecondition(beliefs["AtHomeBase"])
+			.AddPrecondition(beliefs["TransferResourceToHomeBase"])
+			.AddEffect(beliefs["DropOffResources"])
 			.Build(),
 		};
 
@@ -318,6 +352,16 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			new EntityGoals.Builder("CapturePoi")
 			.WithPriority(40)
 			.WithDesiredEffect(beliefs["CapturePoi"])
+			.Build(),
+
+			new EntityGoals.Builder("PickUpResources")
+			.WithPriority(50)
+			.WithDesiredEffect(beliefs["PickUpResources"])
+			.Build(),
+
+			new EntityGoals.Builder("DropOffResources")
+			.WithPriority(60)
+			.WithDesiredEffect(beliefs["DropOffResources"])
 			.Build(),
 
 			new EntityGoals.Builder("KeepHealthUp")

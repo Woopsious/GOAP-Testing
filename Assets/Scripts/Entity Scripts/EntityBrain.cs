@@ -77,8 +77,6 @@ public class EntityBrain : MonoBehaviour
 		else allAttacksOnCooldown = false;
 
 		CreateNewPlan();
-
-		Debug.LogError("capturable Poi location: " + beliefs["FoundCapturablePoi"].TargetLocation);
 	}
 
 	void Initilize()

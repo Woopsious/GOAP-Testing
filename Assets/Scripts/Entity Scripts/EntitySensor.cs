@@ -205,7 +205,7 @@ public class EntitySensor : MonoBehaviour
 			PoIController poIController = targetsInRange[i].GetTarget<PoIController>(); 
 			if (poIController == null) return -10;
 
-			if (poIController.poiOwner != entityTeam)
+			if (poIController.poiOwner != entityTeam && poIController.entityCurrentlyCapturing == null)
 				return i;
 		}
 		return -10;

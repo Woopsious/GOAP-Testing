@@ -19,6 +19,7 @@ MonoBehaviour:
   timeToCapture: 5
   ResourcesProvided: 250
   ResourcesTimerCooldown: 5
+  ResourceTransferTime: 5
   HealAmount: 50
   HealTimerCooldown: 2
   PoiDetectionRadius: 3

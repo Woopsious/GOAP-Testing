@@ -13,12 +13,13 @@ MonoBehaviour:
   m_Name: CapturePoint
   m_EditorClassIdentifier: 
   PoiName: CapturePoint
-  startingOwner: 0
+  startingOwner: 1
   isTeamHomeBase: 0
   CanBeCaptured: 1
   timeToCapture: 3
-  ResourcesProvided: 25
+  ResourcesProvided: 100
   ResourcesTimerCooldown: 2
+  ResourceTransferTime: 2
   HealAmount: 50
   HealTimerCooldown: 2
   PoiDetectionRadius: 3
