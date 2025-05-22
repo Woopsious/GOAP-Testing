@@ -17,8 +17,8 @@ public class EntityBrain : MonoBehaviour
 	[Header("Sensors")]
 	[SerializeField] EntitySensor fleeSensor;
 	[SerializeField] EntitySensor chaseSensor;
-	[SerializeField] EntitySensor attackSensorOne;
-	[SerializeField] EntitySensor attackSensorTwo;
+	[SerializeField] EntitySensor targetSensorOne;
+	[SerializeField] EntitySensor targetSensorTwo;
 
 	[Header("Known Locations")]
 	public Transform HomeBase { get; private set; }
@@ -34,12 +34,8 @@ public class EntityBrain : MonoBehaviour
 
 	[Header("Entity Targets")]
 	public TargetData chaseTarget;
-	public TargetData attackTargetOne;
-	public TargetData attackTargetTwo;
-
-	[Header("Poi Targets")]
-	public TargetData closestCapturablePoi;
-	public TargetData closesetFriendlyPoi;
+	public TargetData targetOne;
+	public TargetData targetTwo;
 
 	public EntityGoals lastGoal;
 	public EntityGoals currentGoal;
@@ -117,14 +113,16 @@ public class EntityBrain : MonoBehaviour
 			fleeSensor.UpdateSensorSettings(fleeRange);
 			chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
 
-			attackSensorOne.UpdateSensorSettings(entityStats._Data.attackData[0]);
-			attackSensorTwo.UpdateSensorSettings(entityStats._Data.attackData[1]);
+			targetSensorOne.UpdateSensorSettings(entityStats._Data.attackData[0]);
+			targetSensorTwo.UpdateSensorSettings(entityStats._Data.attackData[1]);
 		}
         else if (entityStats._Data.type == EntityType.worker)
         {
 			fleeSensor.UpdateSensorSettings(entityStats._Data.fleeRange);
-			chaseSensor.UpdateSensorSettings(SensorType.captureEnemyPoi, entityStats._Data.chaseRange);
-			attackSensorOne.UpdateSensorSettings(SensorType.closestFriendlyPoi, entityStats._Data.chaseRange);
+			chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
+
+			targetSensorOne.UpdateSensorSettings(SensorType.closestFriendlyPoi, entityStats._Data.chaseRange);
+			targetSensorTwo.UpdateSensorSettings(SensorType.closestEnemyPoi, entityStats._Data.chaseRange);
 		}
     }
 	void SetupBrainType()
@@ -132,8 +130,8 @@ public class EntityBrain : MonoBehaviour
 		EntitySensor[] sensors = new EntitySensor[4];
 		sensors[0] = fleeSensor;
 		sensors[1] = chaseSensor;
-		sensors[2] = attackSensorOne;
-		sensors[3] = attackSensorTwo;
+		sensors[2] = targetSensorOne;
+		sensors[3] = targetSensorTwo;
 
 		Transform[] knownLocations = new Transform[1];
 		knownLocations[0] = HomeBase;
@@ -189,11 +187,11 @@ public class EntityBrain : MonoBehaviour
 
 	void UseAttackOne()
 	{
-		attackTargetOne.GetTarget<EntityBrain>().entityStats.RecieveDamage(entityStats._Data.attackData[0].attackDamage);
+		targetOne.GetTarget<EntityBrain>().entityStats.RecieveDamage(entityStats._Data.attackData[0].attackDamage);
 	}
 	void UseAttackTwo()
 	{
-		attackTargetTwo.GetTarget<EntityBrain>().entityStats.RecieveDamage(entityStats._Data.attackData[1].attackDamage);
+		targetTwo.GetTarget<EntityBrain>().entityStats.RecieveDamage(entityStats._Data.attackData[1].attackDamage);
 	}
 
 	void TickAllTimers()
@@ -213,14 +211,14 @@ public class EntityBrain : MonoBehaviour
 	void OnEnable()
 	{
 		chaseSensor.OnTargetChanged += OnTargetChanges;
-		attackSensorOne.OnTargetChanged += OnTargetChanges;
-		attackSensorTwo.OnTargetChanged += OnTargetChanges;
+		targetSensorOne.OnTargetChanged += OnTargetChanges;
+		targetSensorTwo.OnTargetChanged += OnTargetChanges;
 	}
 	void OnDisable()
 	{
 		chaseSensor.OnTargetChanged -= OnTargetChanges;
-		attackSensorOne.OnTargetChanged -= OnTargetChanges;
-		attackSensorTwo.OnTargetChanged -= OnTargetChanges;
+		targetSensorOne.OnTargetChanged -= OnTargetChanges;
+		targetSensorTwo.OnTargetChanged -= OnTargetChanges;
 	}
 
 	void OnTargetChanges(TargetData target, SensorType sensorType)
@@ -228,7 +226,6 @@ public class EntityBrain : MonoBehaviour
 		switch (sensorType)
 		{
 			case SensorType.chase:
-			Debug.Log("Target changed, clearing current action and goal");
 			// Force the planner to re-evaluate the plan
 			chaseTarget = target;
 			currentAction = null;
@@ -236,25 +233,25 @@ public class EntityBrain : MonoBehaviour
 			break;
 
 			case SensorType.attackSensorOne:
-			attackTargetOne = target;
+			targetOne = target;
 			break;
 
 			case SensorType.attackSensorTwo:
-			attackTargetTwo = target;
+			targetOne = target;
 			break;
 
-			case SensorType.captureEnemyPoi:
-			if (chaseTarget.obj != target.obj)//recalc goal when poi changes
+			case SensorType.closestFriendlyPoi:
+			if (targetOne.obj != target.obj)//recalc goal when poi changes
 			{
-				chaseTarget = target;
+				targetOne = target;
 				currentAction = null;
 				currentGoal = null;
 			}
 			break;
-			case SensorType.closestFriendlyPoi:
-			if (chaseTarget.obj != target.obj)//recalc goal when poi changes
+			case SensorType.closestEnemyPoi:
+			if (targetTwo.obj != target.obj)//recalc goal when poi changes
 			{
-				chaseTarget = target;
+				targetTwo = target;
 				currentAction = null;
 				currentGoal = null;
 			}

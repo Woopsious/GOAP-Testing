@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 515924525347073205}
   - component: {fileID: 8933791809597984084}
   m_Layer: 0
-  m_Name: AttackSensorTwo
+  m_Name: TargetSensorTwo
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -71,7 +71,7 @@ MonoBehaviour:
   timerInterval: 0.5
   targetsInRange: []
   target:
-    target: {fileID: 0}
+    obj: {fileID: 0}
     poiController: {fileID: 0}
     entityBrain: {fileID: 0}
     type: 0
@@ -153,7 +153,7 @@ MonoBehaviour:
   timerInterval: 0.25
   targetsInRange: []
   target:
-    target: {fileID: 0}
+    obj: {fileID: 0}
     poiController: {fileID: 0}
     entityBrain: {fileID: 0}
     type: 0
@@ -176,7 +176,7 @@ GameObject:
   - component: {fileID: 4456792336311181943}
   - component: {fileID: 8565384823491112431}
   m_Layer: 0
-  m_Name: AttackSensorOne
+  m_Name: TargetSensorOne
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -235,7 +235,7 @@ MonoBehaviour:
   timerInterval: 0.5
   targetsInRange: []
   target:
-    target: {fileID: 0}
+    obj: {fileID: 0}
     poiController: {fileID: 0}
     entityBrain: {fileID: 0}
     type: 0
@@ -317,7 +317,7 @@ MonoBehaviour:
   timerInterval: 0.25
   targetsInRange: []
   target:
-    target: {fileID: 0}
+    obj: {fileID: 0}
     poiController: {fileID: 0}
     entityBrain: {fileID: 0}
     type: 0
@@ -454,40 +454,28 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   entityStats: {fileID: 0}
-  chaseSensor: {fileID: 3851985788758652946}
   fleeSensor: {fileID: 6024228860040524787}
-  attackSensorOne: {fileID: 8565384823491112431}
-  attackSensorTwo: {fileID: 8933791809597984084}
+  chaseSensor: {fileID: 3851985788758652946}
+  targetSensorOne: {fileID: 8565384823491112431}
+  targetSensorTwo: {fileID: 8933791809597984084}
   Pois: []
   allAttacksOnCooldown: 0
   attackOneReady: 0
   attackTwoReady: 0
   chaseTarget:
-    target: {fileID: 0}
+    obj: {fileID: 0}
     poiController: {fileID: 0}
     entityBrain: {fileID: 0}
     type: 0
     targetDistance: 0
-  attackTargetOne:
-    target: {fileID: 0}
+  targetOne:
+    obj: {fileID: 0}
     poiController: {fileID: 0}
     entityBrain: {fileID: 0}
     type: 0
     targetDistance: 0
-  attackTargetTwo:
-    target: {fileID: 0}
-    poiController: {fileID: 0}
-    entityBrain: {fileID: 0}
-    type: 0
-    targetDistance: 0
-  closestCapturablePoi:
-    target: {fileID: 0}
-    poiController: {fileID: 0}
-    entityBrain: {fileID: 0}
-    type: 0
-    targetDistance: 0
-  closesetFriendlyPoi:
-    target: {fileID: 0}
+  targetTwo:
+    obj: {fileID: 0}
     poiController: {fileID: 0}
     entityBrain: {fileID: 0}
     type: 0

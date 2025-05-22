@@ -17,7 +17,7 @@ MonoBehaviour:
   isTeamHomeBase: 1
   CanBeCaptured: 0
   timeToCapture: 5
-  ResourcesProvided: 250
+  ResourcesProvided: 100
   ResourcesTimerCooldown: 5
   ResourceTransferTime: 5
   HealAmount: 50

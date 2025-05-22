@@ -115,7 +115,7 @@ public class InteractStrategy : IActionStrategy
 		poiController
 	}
 
-	CountdownTimer timer;
+	readonly CountdownTimer timer;
 
 	public bool CanPerform => true;
 	public bool Complete => timer.IsFinished;
@@ -125,6 +125,8 @@ public class InteractStrategy : IActionStrategy
 		this.entityBrain = entityBrain;
 		this.interaction = interaction;
 		this.interactType = interactType;
+
+		timer = new CountdownTimer(0);
 	}
 
 	public void Start()
@@ -138,16 +140,26 @@ public class InteractStrategy : IActionStrategy
 	//interact type setups
 	void SetupPoiInteraction()
 	{
-		interaction.SetInteractType(entityBrain.chaseTarget.poiController);
+		if (interaction is CapturePoiInteract) //need a better way to do this (if possible) but this also works for now
+		{
+			interaction.SetInteractType(entityBrain.beliefs["FoundEnemyPoi"].TargetData.poiController);
+		}
+		else
+		{
+			interaction.SetInteractType(entityBrain.beliefs["FoundFriendlyPoi"].TargetData.poiController);
+		}
 
-		timer = new CountdownTimer(interaction.GetInteractTimer());
+		timer.Reset(interaction.GetInteractTimer());
 		timer.OnTimerStart += () => interaction.StartInteract(entityBrain.entityStats);
 		timer.OnTimerStop += () => interaction.CompleteInteract(entityBrain.entityStats);
 		timer.OnTimerCancel += () => interaction.CancelInteract(entityBrain.entityStats);
 		timer.Start();
 	}
 
-	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
+	public void Update(float deltaTime)
+	{
+		timer.Tick(deltaTime, false);
+	}
 	public void Stop() => timer.Cancel();
 }
 
@@ -258,8 +270,13 @@ public class FindPoiStrategy : IActionStrategy
 	readonly NavMeshAgent agent;
 	readonly float wanderRadius;
 
+
 	public bool CanPerform => !Complete;
-	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending || entityBrain.beliefs["FoundCapturablePoi"].Evaluate();
+	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending;
+
+	//public bool CanPerform => !Complete;
+	//public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending || 
+		//entityBrain.beliefs["FoundEnemyPoi"].Evaluate() && entityBrain.beliefs["FoundFriendlyPoi"].Evaluate();
 
 	public FindPoiStrategy(EntityBrain entity, NavMeshAgent agent, float wanderRadius)
 	{

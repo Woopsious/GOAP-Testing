@@ -25,18 +25,18 @@ public class CapturePoiInteract : IEntityInteractStrategies
 
 	public void StartInteract(EntityStats entity)
 	{
-		poiController.entityCurrentlyCapturing = entity;
+		poiController.UpdateEntityCapturingPoint(entity);
 	}
 
 	public void CancelInteract(EntityStats entity)
 	{
-		poiController.entityCurrentlyCapturing = null;
+		poiController.UpdateEntityCapturingPoint(null);
 	}
 
 	public void CompleteInteract(EntityStats entity)
 	{
 		poiController.UpdatePoiOwner(entity._Data.team);
-		poiController.entityCurrentlyCapturing = null;
+		poiController.UpdateEntityCapturingPoint(null);
 	}
 }
 

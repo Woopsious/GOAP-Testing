@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4cd81236ff3a96246845dbf486ec2a3d, type: 3}
-  m_Name: CapturePoint
+  m_Name: GreenCapturePoint
   m_EditorClassIdentifier: 
   PoiName: CapturePoint
-  startingOwner: 0
+  startingOwner: 2
   isTeamHomeBase: 0
   CanBeCaptured: 1
   timeToCapture: 3
