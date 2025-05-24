@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: RedRanged
   m_EditorClassIdentifier: 
   Name: Red Ranged Entity
-  type: 0
+  type: 8
+  brainType: 0
   team: 1
   maxHealth: 100
   speed: 6

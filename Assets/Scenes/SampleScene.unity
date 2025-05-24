@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 62150453}
   - component: {fileID: 62150452}
+  - component: {fileID: 62150454}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -168,6 +169,28 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &62150454
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 62150451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 268fcf7785011a744a58e8d1dfaee28e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  entityData:
+  - {fileID: 11400000, guid: cc74c57f9c02f984ab87fdd1ee825a8d, type: 2}
+  - {fileID: 11400000, guid: 229ce1ef62df8ba41932908cb82bc1b0, type: 2}
+  - {fileID: 11400000, guid: 0783513b97d74c34d9144bc84b71c6a0, type: 2}
+  - {fileID: 11400000, guid: c00e77739464dc840bb18bad257e3e0c, type: 2}
+  - {fileID: 11400000, guid: 17e03d7beb5397545bde009788309366, type: 2}
+  - {fileID: 11400000, guid: 5400d9ce8851cdf49a4b9ac9c2837a06, type: 2}
+  - {fileID: 11400000, guid: b6663124c7a292444bfa25cb267f83aa, type: 2}
+  - {fileID: 11400000, guid: 14c10b9ef2c6df74f9e435aae17931ca, type: 2}
+  - {fileID: 11400000, guid: 73052050d80bc7e4db913a13f326ef52, type: 2}
 --- !u!1 &140724595
 GameObject:
   m_ObjectHideFlags: 0
@@ -1064,7 +1087,7 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: 73052050d80bc7e4db913a13f326ef52, type: 2}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 1.5
+      value: 67.7
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.y
@@ -1072,7 +1095,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 18.1
+      value: 87.3
       objectReference: {fileID: 0}
     - target: {fileID: 538383744467613240, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_LocalRotation.w

@@ -73,6 +73,9 @@ public class PoIController : MonoBehaviour
 			//new PoiHealFriendliesStrategy(this),
 		};
 
+		if (_PoiData.isTeamHomeBase)
+			poIBehaviour.Add(new HomeBasePopulationStrategy(this));
+
 		foreach (IPoIStrategies poIStrategies in poIBehaviour)
 		{
 			poIStrategies.Start();
@@ -212,7 +215,7 @@ public class PoIController : MonoBehaviour
 	public bool PoiNeedsResourceTransfer()
 	{
 		if (_PoiData.isTeamHomeBase) return false;
-		if (accumilatedResources > 200) return false;
+		if (accumilatedResources < 200) return false;
 		else return true;
 	}
 }

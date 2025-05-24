@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: RedDualist
   m_EditorClassIdentifier: 
   Name: Red Dualist Entity
-  type: 0
+  type: 6
+  brainType: 0
   team: 1
   maxHealth: 100
   speed: 5

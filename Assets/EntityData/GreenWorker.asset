@@ -10,27 +10,17 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ea2991e052f6b844c82c7212037cb7bc, type: 3}
-  m_Name: GreenDualist
+  m_Name: GreenWorker
   m_EditorClassIdentifier: 
-  Name: Green Dualist Entity
-  type: 2
-  brainType: 0
+  Name: Green Worker Entity
+  type: 1
+  brainType: 1
   team: 2
-  maxHealth: 100
+  maxHealth: 50
   speed: 5
-  angularSpeed: 180
-  acceleration: 8
+  angularSpeed: 90
+  acceleration: 5
   stoppingDistance: 1.5
   chaseRange: 25
-  fleeRange: 1
-  attackData:
-  - attackType: 0
-    attackDamage: 4
-    attackCooldown: 2
-    attackMinRange: 0
-    attackMaxRange: 3
-  - attackType: 1
-    attackDamage: 8
-    attackCooldown: 4
-    attackMinRange: 8
-    attackMaxRange: 15
+  fleeRange: 20
+  attackData: []

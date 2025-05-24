@@ -109,46 +109,21 @@ public class InteractStrategy : IActionStrategy
 	readonly EntityBrain entityBrain;
 	readonly IEntityInteractStrategies interaction;
 
-	public InteractType interactType;
-	public enum InteractType
-	{
-		poiController
-	}
-
 	readonly CountdownTimer timer;
 
 	public bool CanPerform => true;
 	public bool Complete => timer.IsFinished;
 
-	public InteractStrategy(EntityBrain entityBrain, IEntityInteractStrategies interaction, InteractType interactType)
+	public InteractStrategy(EntityBrain entityBrain, IEntityInteractStrategies interaction)
 	{
 		this.entityBrain = entityBrain;
 		this.interaction = interaction;
-		this.interactType = interactType;
 
 		timer = new CountdownTimer(0);
 	}
 
 	public void Start()
 	{
-		if (interactType == InteractType.poiController)
-		{
-			SetupPoiInteraction();
-		}
-	}
-
-	//interact type setups
-	void SetupPoiInteraction()
-	{
-		if (interaction is CapturePoiInteract) //need a better way to do this (if possible) but this also works for now
-		{
-			interaction.SetInteractType(entityBrain.beliefs["FoundEnemyPoi"].TargetData.poiController);
-		}
-		else
-		{
-			interaction.SetInteractType(entityBrain.beliefs["FoundFriendlyPoi"].TargetData.poiController);
-		}
-
 		timer.Reset(interaction.GetInteractTimer());
 		timer.OnTimerStart += () => interaction.StartInteract(entityBrain.entityStats);
 		timer.OnTimerStop += () => interaction.CompleteInteract(entityBrain.entityStats);

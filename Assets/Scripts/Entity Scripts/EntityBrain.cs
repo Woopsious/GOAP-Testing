@@ -101,7 +101,7 @@ public class EntityBrain : MonoBehaviour
 
 	void SetupSensors()
 	{
-		if (entityStats._Data.type == EntityType.combat)
+		if (entityStats._Data.brainType == EntityBrainType.combat)
 		{
 			float fleeRange = 1;
 			foreach (EntityAttackData attackData in entityStats._Data.attackData)
@@ -116,7 +116,7 @@ public class EntityBrain : MonoBehaviour
 			targetSensorOne.UpdateSensorSettings(entityStats._Data.attackData[0]);
 			targetSensorTwo.UpdateSensorSettings(entityStats._Data.attackData[1]);
 		}
-        else if (entityStats._Data.type == EntityType.worker)
+        else if (entityStats._Data.brainType == EntityBrainType.worker)
         {
 			fleeSensor.UpdateSensorSettings(entityStats._Data.fleeRange);
 			chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
@@ -136,7 +136,7 @@ public class EntityBrain : MonoBehaviour
 		Transform[] knownLocations = new Transform[1];
 		knownLocations[0] = HomeBase;
 
-		if (entityStats._Data.type == EntityType.combat)
+		if (entityStats._Data.brainType == EntityBrainType.combat)
 		{
 			Func<bool>[] attackBools = new Func<bool>[3];
 			attackBools[0] = () => allAttacksOnCooldown;
@@ -149,7 +149,7 @@ public class EntityBrain : MonoBehaviour
 			actions = entityBrainStrategy.SetupActions();
 			goals = entityBrainStrategy.SetupGoals();
 		}
-		else if (entityStats._Data.type == EntityType.worker)
+		else if (entityStats._Data.brainType == EntityBrainType.worker)
 		{
 			entityBrainStrategy = new WorkerBrainStrategy(this, entityStats, navMeshAgent, sensors, knownLocations);
 
@@ -160,7 +160,7 @@ public class EntityBrain : MonoBehaviour
 	}
 	void SetupTimers()
 	{
-		if (entityStats._Data.type != EntityType.combat) return; //workers have no attacks atm
+		if (entityStats._Data.brainType != EntityBrainType.combat) return; //workers have no attacks atm
 
 		attackOneTimer = new CountdownTimer(entityStats._Data.attackData[0].attackCooldown);
 		attackOneTimer.OnTimerStart += () =>

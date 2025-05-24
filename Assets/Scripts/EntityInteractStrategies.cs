@@ -2,7 +2,6 @@ using UnityEngine;
 
 public interface IEntityInteractStrategies
 {
-	public void SetInteractType<T>(T interactedObject);
 	public float GetInteractTimer();
 
 	public void StartInteract(EntityStats entityInteracting);
@@ -12,45 +11,47 @@ public interface IEntityInteractStrategies
 
 public class CapturePoiInteract : IEntityInteractStrategies
 {
-	public PoIController poiController;
+	readonly EntityBeliefs belief;
 
-	public void SetInteractType<T>(T interactedObject)
+	public CapturePoiInteract(EntityBeliefs belief)
 	{
-		poiController = interactedObject as PoIController;
+		this.belief = belief;
 	}
+
 	public float GetInteractTimer()
 	{
-		return poiController._PoiData.timeToCapture;
+		return belief.TargetData.poiController._PoiData.timeToCapture;
 	}
 
 	public void StartInteract(EntityStats entity)
 	{
-		poiController.UpdateEntityCapturingPoint(entity);
+		belief.TargetData.poiController.UpdateEntityCapturingPoint(entity);
 	}
 
 	public void CancelInteract(EntityStats entity)
 	{
-		poiController.UpdateEntityCapturingPoint(null);
+		belief.TargetData.poiController.UpdateEntityCapturingPoint(null);
 	}
 
 	public void CompleteInteract(EntityStats entity)
 	{
-		poiController.UpdatePoiOwner(entity._Data.team);
-		poiController.UpdateEntityCapturingPoint(null);
+		belief.TargetData.poiController.UpdatePoiOwner(entity._Data.team);
+		belief.TargetData.poiController.UpdateEntityCapturingPoint(null);
 	}
 }
 
 public class HealAtPoiInteract : IEntityInteractStrategies
 {
-	public PoIController poiController;
+	readonly EntityBeliefs belief;
 
-	public void SetInteractType<T>(T interactedObject)
+	public HealAtPoiInteract(EntityBeliefs belief)
 	{
-		poiController = interactedObject as PoIController;
+		this.belief = belief;
 	}
+
 	public float GetInteractTimer()
 	{
-		return poiController._PoiData.timeToCapture;
+		return belief.TargetData.poiController._PoiData.timeToCapture;
 	}
 
 	public void StartInteract(EntityStats entity)
@@ -65,63 +66,61 @@ public class HealAtPoiInteract : IEntityInteractStrategies
 
 	public void CompleteInteract(EntityStats entity)
 	{
-		entity.RecieveHealing(poiController._PoiData.HealAmount);
+		entity.RecieveHealing(belief.TargetData.poiController._PoiData.HealAmount);
 	}
 }
 
 public class PickupResourcesInteract : IEntityInteractStrategies
 {
-	public PoIController poiController;
+	readonly EntityBeliefs belief;
 
-	public void SetInteractType<T>(T interactedObject)
+	public PickupResourcesInteract(EntityBeliefs belief)
 	{
-		poiController = interactedObject as PoIController;
+		this.belief = belief;
 	}
+
 	public float GetInteractTimer()
 	{
-		return poiController._PoiData.ResourceTransferTime;
+		return belief.TargetData.poiController._PoiData.ResourceTransferTime;
 	}
 
 	public void StartInteract(EntityStats entity)
 	{
-		Debug.LogError("pick up res interact start");
 		//noop
 	}
 
 	public void CancelInteract(EntityStats entity)
 	{
-		Debug.LogError("pick up res interact cancel");
 		//noop
 	}
 
 	public void CompleteInteract(EntityStats entity)
 	{
-		Debug.LogError("pick up res interact complete");
-
-		if (poiController.accumilatedResources >= 250)
+		if (belief.TargetData.poiController.accumilatedResources >= 250)
 		{
 			entity.carriedResources = 250;
-			poiController.accumilatedResources -= 250;
+			belief.TargetData.poiController.accumilatedResources -= 250;
 		}
 		else
 		{
-			entity.carriedResources = poiController.accumilatedResources;
-			poiController.accumilatedResources = 0;
+			entity.carriedResources = belief.TargetData.poiController.accumilatedResources;
+			belief.TargetData.poiController.accumilatedResources = 0;
 		}
 	}
 }
 
 public class DropOffResourcesInteract : IEntityInteractStrategies
 {
-	public PoIController poiController;
+	readonly EntityBeliefs belief;
 
-	public void SetInteractType<T>(T interactedObject)
+	public DropOffResourcesInteract(EntityBeliefs belief)
 	{
-		poiController = interactedObject as PoIController;
+		this.belief = belief;
 	}
+
 	public float GetInteractTimer()
 	{
-		return poiController._PoiData.ResourceTransferTime;
+		return belief.TargetData.poiController._PoiData.ResourceTransferTime;
 	}
 
 	public void StartInteract(EntityStats entity)
@@ -136,14 +135,14 @@ public class DropOffResourcesInteract : IEntityInteractStrategies
 
 	public void CompleteInteract(EntityStats entity)
 	{
-		if (poiController.accumilatedResources >= 250)
+		if (belief.TargetData.poiController.accumilatedResources >= 250)
 		{
-			poiController.accumilatedResources += 250;
+			belief.TargetData.poiController.accumilatedResources += 250;
 			entity.carriedResources = 0;
 		}
 		else
 		{
-			poiController.accumilatedResources += entity.carriedResources;
+			belief.TargetData.poiController.accumilatedResources += entity.carriedResources;
 			entity.carriedResources = 0;
 		}
 	}

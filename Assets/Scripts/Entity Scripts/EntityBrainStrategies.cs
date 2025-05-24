@@ -224,7 +224,7 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 
 		factory.AddBelief("FriendlyPoiNeedsResTransfer", () =>
 			beliefs["FoundFriendlyPoi"].TargetData.poiController != null &&
-			!beliefs["FoundFriendlyPoi"].TargetData.poiController.PoiNeedsResourceTransfer());
+			beliefs["FoundFriendlyPoi"].TargetData.poiController.PoiNeedsResourceTransfer());
 		factory.AddBelief("TransferResourceToHomeBase", () => entityStats.carriedResources != 0);
 
 		factory.AddTargetBelief("FoundEnemyPoi", entitySensors[3]);
@@ -264,7 +264,7 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("HealAtFriendlyPoi")
-			.WithStrategy(new InteractStrategy(entityBrain, new HealAtPoiInteract(), InteractType.poiController))  // Later replace with a Command
+			.WithStrategy(new InteractStrategy(entityBrain, new HealAtPoiInteract(beliefs["FoundFriendlyPoi"])))
 			.AddPrecondition(beliefs["AgentHealthLow"])
 			.AddPrecondition(beliefs["AtFriendlyPoi"])
 			.AddEffect(beliefs["AgentIsHealthy"])
@@ -277,7 +277,7 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("PickUpResources")
-			.WithStrategy(new InteractStrategy(entityBrain, new PickupResourcesInteract(), InteractType.poiController))
+			.WithStrategy(new InteractStrategy(entityBrain, new PickupResourcesInteract(beliefs["FoundFriendlyPoi"])))
 			.AddPrecondition(beliefs["AtFriendlyPoi"])
 			.AddPrecondition(beliefs["FriendlyPoiNeedsResTransfer"])
 			.AddEffect(beliefs["PickUpResources"])
@@ -290,7 +290,7 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("DropOffResources")
-			.WithStrategy(new InteractStrategy(entityBrain, new DropOffResourcesInteract(), InteractType.poiController))
+			.WithStrategy(new InteractStrategy(entityBrain, new DropOffResourcesInteract(beliefs["FoundFriendlyPoi"])))
 			.AddPrecondition(beliefs["AtHomeBase"])
 			.AddPrecondition(beliefs["TransferResourceToHomeBase"])
 			.AddEffect(beliefs["DropOffResources"])
@@ -303,7 +303,7 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("CapturePoi")
-			.WithStrategy(new InteractStrategy(entityBrain, new CapturePoiInteract(), InteractType.poiController))
+			.WithStrategy(new InteractStrategy(entityBrain, new CapturePoiInteract(beliefs["FoundEnemyPoi"])))
 			.AddPrecondition(beliefs["AtEnemyPoi"])
 			.AddPrecondition(beliefs["EnemyPoiCapturable"])
 			.AddEffect(beliefs["CapturePoi"])

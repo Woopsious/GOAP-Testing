@@ -9,8 +9,14 @@ public class EntityData : ScriptableObject
 	[Header("Info")]
 	public string Name;
 
-	public EntityType type;
-	public enum EntityType
+	public EntityDataType type;
+	public enum EntityDataType
+	{
+		player, greenWorker, greenDualist, greenMelee, greenRanged, redWorker, redDualist, redMelee, redRanged,
+	}
+
+	public EntityBrainType brainType;
+	public enum EntityBrainType
 	{
 		combat, worker
 	}

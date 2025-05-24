@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: RedMelee
   m_EditorClassIdentifier: 
   Name: Red Melee Entity
-  type: 0
+  type: 7
+  brainType: 0
   team: 1
   maxHealth: 100
   speed: 5

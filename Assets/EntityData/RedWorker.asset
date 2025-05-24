@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: RedWorker
   m_EditorClassIdentifier: 
   Name: Red Worker Entity
-  type: 1
+  type: 5
+  brainType: 1
   team: 1
   maxHealth: 50
   speed: 5
