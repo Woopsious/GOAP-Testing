@@ -35,7 +35,7 @@ public class CapturePoiInteract : IEntityInteractStrategies
 
 	public void CompleteInteract(EntityStats entity)
 	{
-		belief.TargetData.poiController.UpdatePoiOwner(entity._Data.team);
+		belief.TargetData.poiController.CapturePoi(entity._Data.team);
 		belief.TargetData.poiController.UpdateEntityCapturingPoint(null);
 	}
 }

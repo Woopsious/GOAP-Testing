@@ -1,17 +1,33 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 public class GameManager : MonoBehaviour
 {
 	public static GameManager instance;
 
-	public static event Action<GameObject> OnEntityDeathEvent;
+	public List<EntityStats> StartingEntities = new List<EntityStats>();
 
-	public static event Action<GameObject> OnPoiCaptureEvent;
+	public static event Action<PoIController> OnPoiCaptureEvent;
 
+	public static event Action<EntityStats> OnEntitySpawnEvent;
+	public static event Action<EntityStats> OnEntityDeathEvent;
+
+	[Header("Red Team Global Info")]
 	public int RedTeamResourceCounter;
+	public int RedTeamCapturedPois;
+	public int RedTeamWorkers;
+	public int RedTeamDualists;
+	public int RedTeamMelee;
+	public int RedTeamRanged;
+
+	[Header("Green Team Global Info")]
 	public int GreenTeamResourceCounter;
+	public int GreenTeamCapturedPois;
+	public int GreenTeamWorkers;
+	public int GreenTeamDualists;
+	public int GreenTeamMelee;
+	public int GreenTeamRanged;
 
 	[Header("Global Locations")]
 	public GameObject redTeamHomeBase;
@@ -50,9 +66,18 @@ public class GameManager : MonoBehaviour
 	/// 
 	/// </summary>
 
-	private void Awake()
+	void Awake()
 	{
 		instance = this;
+	}
+
+	void Start()
+	{
+		foreach (EntityStats entity in StartingEntities)
+		{
+			if (entity.isActiveAndEnabled)      //only add active and enabled entities
+				AddEntityToCounters(entity);
+		}
 	}
 
 	public void UpdateTeamResourceCounter(EntityData.EntityTeam team, int resourceAmount)
@@ -65,13 +90,104 @@ public class GameManager : MonoBehaviour
 			Debug.LogError("no team match found for resources");
 	}
 
-	public static void OnEntityDeath(GameObject entity)
+	//entity spawn/destroy events + counter
+	public static void OnEntitySpawn(EntityStats entity)
 	{
-		OnEntityDeathEvent?.Invoke(entity);
+		OnEntitySpawnEvent?.Invoke(entity);
+		AddEntityToCounters(entity);
+	}
+	static void AddEntityToCounters(EntityStats entity)
+	{
+		if (entity._Data.team == EntityData.EntityTeam.redTeam)
+		{
+			if (entity._Data.type == EntityData.EntityDataType.redWorker)
+				instance.RedTeamWorkers++;
+			else if (entity._Data.type == EntityData.EntityDataType.redDualist)
+				instance.RedTeamDualists++;
+			else if (entity._Data.type == EntityData.EntityDataType.redMelee)
+				instance.RedTeamMelee++;
+			else if (entity._Data.type == EntityData.EntityDataType.redRanged)
+				instance.RedTeamRanged++;
+			else
+				Debug.LogError("no matching entity data type set up");
+		}
+		else if (entity._Data.team == EntityData.EntityTeam.greenTeam)
+		{
+			if (entity._Data.type == EntityData.EntityDataType.greenWorker)
+				instance.GreenTeamWorkers++;
+			else if (entity._Data.type == EntityData.EntityDataType.greenDualist)
+				instance.GreenTeamDualists++;
+			else if (entity._Data.type == EntityData.EntityDataType.greenMelee)
+				instance.GreenTeamMelee++;
+			else if (entity._Data.type == EntityData.EntityDataType.greenRanged)
+				instance.GreenTeamRanged++;
+			else
+				Debug.LogError("no matching entity data type set up");
+		}
+		else
+			Debug.LogError("no matching team set up");
 	}
 
-	public static void OnPoiCapture(GameObject poi)
+	public static void OnEntityDeath(EntityStats entity)
+	{
+		OnEntityDeathEvent?.Invoke(entity);
+		MinusEntityFromCounters(entity);
+	}
+	static void MinusEntityFromCounters(EntityStats entity)
+	{
+		if (entity._Data.team == EntityData.EntityTeam.redTeam)
+		{
+			if (entity._Data.type == EntityData.EntityDataType.redWorker)
+				instance.RedTeamWorkers--;
+			else if (entity._Data.type == EntityData.EntityDataType.redDualist)
+				instance.RedTeamDualists--;
+			else if (entity._Data.type == EntityData.EntityDataType.redMelee)
+				instance.RedTeamMelee--;
+			else if (entity._Data.type == EntityData.EntityDataType.redRanged)
+				instance.RedTeamRanged--;
+			else
+				Debug.LogError("no matching entity data type set up");
+		}
+		else if (entity._Data.team == EntityData.EntityTeam.greenTeam)
+		{
+			if (entity._Data.type == EntityData.EntityDataType.greenWorker)
+				instance.GreenTeamWorkers--;
+			else if (entity._Data.type == EntityData.EntityDataType.greenDualist)
+				instance.GreenTeamDualists--;
+			else if (entity._Data.type == EntityData.EntityDataType.greenMelee)
+				instance.GreenTeamMelee--;
+			else if (entity._Data.type == EntityData.EntityDataType.greenRanged)
+				instance.GreenTeamRanged--;
+			else
+				Debug.LogError("no matching entity data type set up");
+		}
+		else
+			Debug.LogError("no matching team set up");
+	}
+
+	public static void OnPoiCapture(PoIController poi)
 	{
 		OnPoiCaptureEvent?.Invoke(poi);
+		instance.UpdateCapturePointCounters(poi);
+	}
+	void UpdateCapturePointCounters(PoIController poi)
+	{
+		if (poi.previousPoiOwner == EntityData.EntityTeam.redTeam)
+			RedTeamCapturedPois--;
+		else if (poi.previousPoiOwner == EntityData.EntityTeam.greenTeam)
+			GreenTeamCapturedPois--;
+		else if (poi.poiOwner == EntityData.EntityTeam.neutral)
+			Debug.Log("neutral poi captured");
+		else
+			Debug.LogError("previous poi owner not set up");
+
+		if (poi.poiOwner == EntityData.EntityTeam.redTeam)
+			RedTeamCapturedPois++;
+		else if (poi.poiOwner == EntityData.EntityTeam.greenTeam)
+			GreenTeamCapturedPois++;
+		else if (poi.poiOwner == EntityData.EntityTeam.neutral)
+			Debug.LogError("poi captured to neutral team, shouldnt be possible");
+		else
+			Debug.LogError("poi owner not set up");
 	}
 }

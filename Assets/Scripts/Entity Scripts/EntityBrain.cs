@@ -79,12 +79,10 @@ public class EntityBrain : MonoBehaviour
 	{
 		if (entityStats._Data.team == EntityTeam.redTeam)
 			HomeBase = GameManager.instance.redTeamHomeBase.transform;
-		else if (entityStats._Data.team == EntityTeam.redTeam)
+		else if (entityStats._Data.team == EntityTeam.greenTeam)
 			HomeBase = GameManager.instance.greenTeamHomeBase.transform;
 		else
-		{
 			Debug.LogError("No Home Base Location Set");
-		}
 
 		attackOneReady = true;
 		attackTwoReady = true;
@@ -237,7 +235,7 @@ public class EntityBrain : MonoBehaviour
 			break;
 
 			case SensorType.attackSensorTwo:
-			targetOne = target;
+			targetTwo = target;
 			break;
 
 			case SensorType.closestFriendlyPoi:

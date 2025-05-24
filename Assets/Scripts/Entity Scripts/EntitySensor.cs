@@ -291,11 +291,11 @@ public class EntitySensor : MonoBehaviour
 		return aggroDistance;
 	}
 
-	void ClearDeadEntitiesFromTargetList(GameObject entity)
+	void ClearDeadEntitiesFromTargetList(EntityStats entity)
 	{
 		for (int i = targetsInRange.Count - 1; i >= 0; i--)
 		{
-			if (targetsInRange[i].obj == entity || targetsInRange[i].obj == null)
+			if (targetsInRange[i].obj == entity.gameObject || targetsInRange[i].obj == null)
 				targetsInRange.RemoveAt(i); //also remove possible null refs
 		}
 	}

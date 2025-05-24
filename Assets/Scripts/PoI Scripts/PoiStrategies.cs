@@ -20,6 +20,17 @@ public class PoiResourcesStrategy : IPoIStrategies
 
 	readonly CountdownTimer timer;
 
+	//goals
+	float workerGoal;
+	float dualistGoal;
+	float meleeGoal;
+	float rangedGoal;
+
+	float workerNeed;
+	float dualistNeed;
+	float meleeNeed;
+	float rangedNeed;
+
 	public PoiResourcesStrategy(PoIController poIController)
 	{
 		this.poIController = poIController;

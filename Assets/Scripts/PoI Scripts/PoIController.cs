@@ -10,6 +10,7 @@ public class PoIController : MonoBehaviour
 	private MeshRenderer meshRenderer;
 	private SphereCollider entityDetection;
 
+	public EntityTeam previousPoiOwner;
 	public EntityTeam poiOwner;
 
 	public int accumilatedResources;
@@ -65,6 +66,7 @@ public class PoIController : MonoBehaviour
 
 	void Initilize()
 	{
+		previousPoiOwner = EntityTeam.neutral;
 		UpdatePoiOwner(_PoiData.startingOwner);
 
 		poIBehaviour = new HashSet<IPoIStrategies> 
@@ -77,9 +79,7 @@ public class PoIController : MonoBehaviour
 			poIBehaviour.Add(new HomeBasePopulationStrategy(this));
 
 		foreach (IPoIStrategies poIStrategies in poIBehaviour)
-		{
 			poIStrategies.Start();
-		}
 	}
 
 	private void OnTriggerEnter(Collider other)
@@ -159,15 +159,8 @@ public class PoIController : MonoBehaviour
 			}
 		}
 	}
-	void ClearUpDeadEntities(GameObject obj)
+	void ClearUpDeadEntities(EntityStats entity)
 	{
-		EntityStats entity;
-
-		if (obj.GetComponent<EntityStats>() == null)
-			return;
-		else
-			entity = obj.GetComponent<EntityStats>();
-
 		for (int i = entitiesInRange.Count - 1; i >= 0; i--)
 		{
 			if (entitiesInRange[i] == entity || entitiesInRange[i] == null) //remove possible null refs
@@ -191,7 +184,13 @@ public class PoIController : MonoBehaviour
 	{
 		entityCurrentlyCapturing = entity;
 	}
-	public void UpdatePoiOwner(EntityTeam newOwner)
+
+	public void CapturePoi(EntityTeam newOwner)
+	{
+		previousPoiOwner = poiOwner;
+		UpdatePoiOwner(newOwner);
+	}
+	void UpdatePoiOwner(EntityTeam newOwner)
 	{
 		poiOwner = newOwner;
 
@@ -207,8 +206,7 @@ public class PoIController : MonoBehaviour
 			meshRenderer.sharedMaterial = greenTeamMaterial;
 			break;
 		}
-
-		GameManager.OnPoiCapture(gameObject);
+		GameManager.OnPoiCapture(this);
 	}
 
 	//transfering poi resources
