@@ -181,6 +181,18 @@ MonoBehaviour:
   - {fileID: 44561828}
   - {fileID: 2051609588}
   - {fileID: 29722721}
+  RedTeamResourceCounter: 0
+  RedTeamCapturedPois: 0
+  RedTeamWorkers: 0
+  RedTeamDualists: 0
+  RedTeamMelee: 0
+  RedTeamRanged: 0
+  GreenTeamResourceCounter: 0
+  GreenTeamCapturedPois: 0
+  GreenTeamWorkers: 0
+  GreenTeamDualists: 0
+  GreenTeamMelee: 0
+  GreenTeamRanged: 0
   redTeamHomeBase: {fileID: 220120146}
   greenTeamHomeBase: {fileID: 667141787}
   AllPois: []
@@ -479,10 +491,6 @@ PrefabInstance:
       propertyPath: _PoiData
       value: 
       objectReference: {fileID: 11400000, guid: 1bd89c2f4e5e1064ba21fcc93aa2db29, type: 2}
-    - target: {fileID: 5717374160951434148, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
-      propertyPath: poiOwner
-      value: 1
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -561,7 +569,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8906225582446445048, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: foodShack
@@ -871,7 +879,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8906225582446445048, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: foodShack
@@ -1159,11 +1167,7 @@ PrefabInstance:
     - target: {fileID: 5717374160951434148, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
       propertyPath: _PoiData
       value: 
-      objectReference: {fileID: 11400000, guid: 16b959ed7d47e32468862bcfeeb25ddc, type: 2}
-    - target: {fileID: 5717374160951434148, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
-      propertyPath: poiOwner
-      value: 1
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 11400000, guid: 1bd89c2f4e5e1064ba21fcc93aa2db29, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1231,7 +1235,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8906225582446445048, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
       propertyPath: foodShack
@@ -1524,11 +1528,7 @@ PrefabInstance:
     - target: {fileID: 5717374160951434148, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
       propertyPath: _PoiData
       value: 
-      objectReference: {fileID: 11400000, guid: 3a765f19eb306b943a08dc3fffba1b04, type: 2}
-    - target: {fileID: 5717374160951434148, guid: 3b95c3a26b4954a408652717ed22761d, type: 3}
-      propertyPath: poiOwner
-      value: 1
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 11400000, guid: 1bd89c2f4e5e1064ba21fcc93aa2db29, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

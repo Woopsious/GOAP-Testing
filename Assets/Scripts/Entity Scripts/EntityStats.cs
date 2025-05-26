@@ -19,14 +19,6 @@ public class EntityStats : MonoBehaviour
 
 	private void Awake()
 	{
-		if (_Data == null)
-			Debug.LogError("Entity Data not set for gameobject: " + gameObject.name);
-
-		if (_Data.team == EntityData.EntityTeam.redTeam)
-			GetComponent<MeshRenderer>().sharedMaterial = redTeamMaterial;
-		else if (_Data.team == EntityData.EntityTeam.greenTeam)
-			GetComponent<MeshRenderer>().sharedMaterial = greenTeamMaterial;
-
 		player = GetComponent<PlayerMovement>();
 		entityBrain = GetComponent<EntityBrain>();
 	}
@@ -43,8 +35,16 @@ public class EntityStats : MonoBehaviour
 	}
 	private void Initilize()
 	{
+		if (_Data == null)
+			Debug.LogError("Entity Data not set for gameobject: " + gameObject.name);
+
 		name = _Data.Name;
 		currentHealth = _Data.maxHealth;
+
+		if (_Data.team == EntityData.EntityTeam.redTeam)
+			GetComponent<MeshRenderer>().sharedMaterial = redTeamMaterial;
+		else if (_Data.team == EntityData.EntityTeam.greenTeam)
+			GetComponent<MeshRenderer>().sharedMaterial = greenTeamMaterial;
 
 		if (player != null) return;
 

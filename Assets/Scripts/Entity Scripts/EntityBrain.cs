@@ -108,16 +108,16 @@ public class EntityBrain : MonoBehaviour
 					fleeRange = attackData.attackMinRange;
 			}
 
-			fleeSensor.UpdateSensorSettings(fleeRange);
-			chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
+			fleeSensor.UpdateSensorSettings(SensorType.flee, fleeRange);
+			chaseSensor.UpdateSensorSettings(SensorType.chase, entityStats._Data.chaseRange);
 
-			targetSensorOne.UpdateSensorSettings(entityStats._Data.attackData[0]);
-			targetSensorTwo.UpdateSensorSettings(entityStats._Data.attackData[1]);
+			targetSensorOne.UpdateSensorSettings(SensorType.attackSensorOne, entityStats._Data.attackData[0]);
+			targetSensorTwo.UpdateSensorSettings(SensorType.attackSensorTwo, entityStats._Data.attackData[1]);
 		}
         else if (entityStats._Data.brainType == EntityBrainType.worker)
         {
-			fleeSensor.UpdateSensorSettings(entityStats._Data.fleeRange);
-			chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange);
+			fleeSensor.UpdateSensorSettings(SensorType.flee, entityStats._Data.fleeRange);
+			chaseSensor.UpdateSensorSettings(SensorType.chase, entityStats._Data.chaseRange);
 
 			targetSensorOne.UpdateSensorSettings(SensorType.closestFriendlyPoi, entityStats._Data.chaseRange);
 			targetSensorTwo.UpdateSensorSettings(SensorType.closestEnemyPoi, entityStats._Data.chaseRange);
@@ -185,11 +185,11 @@ public class EntityBrain : MonoBehaviour
 
 	void UseAttackOne()
 	{
-		targetOne.GetTarget<EntityBrain>().entityStats.RecieveDamage(entityStats._Data.attackData[0].attackDamage);
+		targetOne.entity.RecieveDamage(entityStats._Data.attackData[0].attackDamage);
 	}
 	void UseAttackTwo()
 	{
-		targetTwo.GetTarget<EntityBrain>().entityStats.RecieveDamage(entityStats._Data.attackData[1].attackDamage);
+		targetTwo.entity.RecieveDamage(entityStats._Data.attackData[1].attackDamage);
 	}
 
 	void TickAllTimers()

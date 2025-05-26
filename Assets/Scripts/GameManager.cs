@@ -83,9 +83,9 @@ public class GameManager : MonoBehaviour
 	public void UpdateTeamResourceCounter(EntityData.EntityTeam team, int resourceAmount)
 	{
 		if (team == EntityData.EntityTeam.redTeam)
-			RedTeamResourceCounter += resourceAmount;
+			RedTeamResourceCounter = resourceAmount;
 		else if (team == EntityData.EntityTeam.greenTeam)
-			GreenTeamResourceCounter += resourceAmount;
+			GreenTeamResourceCounter = resourceAmount;
 		else
 			Debug.LogError("no team match found for resources");
 	}
@@ -172,11 +172,13 @@ public class GameManager : MonoBehaviour
 	}
 	void UpdateCapturePointCounters(PoIController poi)
 	{
+		if (poi.previousPoiOwner == EntityData.EntityTeam.neutral && poi.poiOwner == EntityData.EntityTeam.neutral) return;
+
 		if (poi.previousPoiOwner == EntityData.EntityTeam.redTeam)
 			RedTeamCapturedPois--;
 		else if (poi.previousPoiOwner == EntityData.EntityTeam.greenTeam)
 			GreenTeamCapturedPois--;
-		else if (poi.poiOwner == EntityData.EntityTeam.neutral)
+		else if (poi.previousPoiOwner == EntityData.EntityTeam.neutral)
 			Debug.Log("neutral poi captured");
 		else
 			Debug.LogError("previous poi owner not set up");

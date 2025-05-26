@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Unity.VisualScripting;
+using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 
 public class EntitySensor : MonoBehaviour
@@ -13,6 +14,7 @@ public class EntitySensor : MonoBehaviour
 	/// attack sensors focus on finding attack targets fo
 	/// </summary>
 
+	private EntityStats entityStats;
 
 	[Header("Sensor Info")]
 	[SerializeField] SensorType sensorType;
@@ -21,10 +23,9 @@ public class EntitySensor : MonoBehaviour
 		flee, chase, attackSensorOne, attackSensorTwo, closestFriendlyPoi, closestEnemyPoi
 	}
 
-	[SerializeField] float detectionRadius = 5f;
-	[SerializeField] float timerInterval = 1f;
+	float detectionRadius;
+	float timerInterval;
 
-	EntityBrain entityBrain;
 	EntityData.EntityTeam entityTeam;
 	SphereCollider detectionRange;
 
@@ -46,13 +47,21 @@ public class EntitySensor : MonoBehaviour
 
 	void Awake()
 	{
-		entityBrain = GetComponentInParent<EntityBrain>();
-		EntityStats stats = GetComponentInParent<EntityStats>();
-		entityTeam = stats._Data.team;
-
+		entityStats = GetComponentInParent<EntityStats>();
 		detectionRange = GetComponent<SphereCollider>();
+	}
+	void Start()
+	{
+		entityTeam = entityStats._Data.team;
 		detectionRange.isTrigger = true;
 		detectionRange.radius = detectionRadius;
+
+		timer = new CountdownTimer(timerInterval);
+		timer.OnTimerStop += () => {
+			UpdateSensorLogic();
+			timer.Start();
+		};
+		timer.Start();
 	}
 
 	void OnEnable()
@@ -64,32 +73,27 @@ public class EntitySensor : MonoBehaviour
 		GameManager.OnEntityDeathEvent -= ClearDeadEntitiesFromTargetList;
 	}
 
-	void Start()
-	{
-		timer = new CountdownTimer(timerInterval);
-		timer.OnTimerStop += () => {
-			UpdateSensorLogic();
-			timer.Start();
-		};
-		timer.Start();
-	}
 	void Update()
 	{
 		timer.Tick(Time.deltaTime, false);
 	}
 
+	public void UpdateSensorSettings(SensorType sensorType, EntityAttackData attackData)
+	{
+		this.attackData = attackData;
+		UpdateSensorSettings(sensorType, attackData.attackMaxRange);
+	}
 	public void UpdateSensorSettings(SensorType sensorType, float detectionRadius)
 	{
 		this.sensorType = sensorType;
-		UpdateSensorSettings(detectionRadius);
-	}
-	public void UpdateSensorSettings(EntityAttackData attackData)
-	{
-		this.attackData = attackData;
-		UpdateSensorSettings(attackData.attackMaxRange);
-	}
-	public void UpdateSensorSettings(float detectionRadius)
-	{
+
+		if (sensorType == SensorType.flee || sensorType == SensorType.chase)
+			timerInterval = 0.25f;
+		else if (sensorType == SensorType.closestFriendlyPoi || sensorType == SensorType.closestEnemyPoi)
+			timerInterval = 1f;
+		else
+			timerInterval = 0.5f;
+
 		this.detectionRadius = detectionRadius;
 		detectionRange.radius = detectionRadius;
 	}
@@ -204,7 +208,7 @@ public class EntitySensor : MonoBehaviour
 	{
 		for (int i = 0; i < targetsInRange.Count; i++)
 		{
-			PoIController poIController = targetsInRange[i].GetTarget<PoIController>(); 
+			PoIController poIController = targetsInRange[i].poi; 
 
 			if (poIController == null) continue;
 
@@ -217,7 +221,7 @@ public class EntitySensor : MonoBehaviour
 	{
 		for (int i = 0; i < targetsInRange.Count; i++)
 		{
-			PoIController poIController = targetsInRange[i].GetTarget<PoIController>();
+			PoIController poIController = targetsInRange[i].poi;
 
 			if (poIController == null) continue;
 
@@ -316,8 +320,8 @@ public class TargetData
 {
 	public GameObject obj;
 
-	public PoIController poiController;
-	public EntityBrain entityBrain;
+	public PoIController poi;
+	public EntityStats entity;
 
 	public TargetType type;
 	public enum TargetType
@@ -330,29 +334,19 @@ public class TargetData
 	public TargetData(TargetType type, GameObject obj, float targetDistance)
 	{
 		if (type == TargetType.poi)
-			poiController = obj.GetComponent<PoIController>();
+			poi = obj.GetComponent<PoIController>();
 		else if (type == TargetType.entity)
-			entityBrain = obj.GetComponent<EntityBrain>();
+			entity = obj.GetComponent<EntityStats>();
 
 		this.obj = obj;
 		this.type = type;
 		this.targetDistance = targetDistance;
 	}
 
-	public T GetTarget<T>()
-	{
-		if (type == TargetType.poi)
-			return (T)Convert.ChangeType(poiController, typeof(T));
-		else if (type == TargetType.entity)
-			return (T)Convert.ChangeType(entityBrain, typeof(T));
-		else
-			return (T)Convert.ChangeType(null, typeof(T));
-	}
-
 	public void ClearTarget()
 	{
 		obj = null;
-		poiController = null;
-		entityBrain = null;
+		poi = null;
+		entity = null;
 	}
 }

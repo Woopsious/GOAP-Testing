@@ -11,7 +11,7 @@ public class Database : MonoBehaviour
 		_Database = this;
 	}
 
-	public static EntityData GetEntityFromDatabase(EntityData.EntityDataType dataType)
+	public static EntityData GetEntity(EntityData.EntityDataType dataType)
 	{
         foreach (EntityData data in _Database.entityData)
         {

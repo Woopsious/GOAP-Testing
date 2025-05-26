@@ -95,12 +95,14 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 
 			new EntityActions.Builder("MoveToUseAttackOne")
 			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[0]))
+			.AddPrecondition(beliefs["TargetInChaseRange"])
 			.AddPrecondition(beliefs["AttackOneReady"])
 			.AddEffect(beliefs["MoveToAttack"])
 			.Build(),
 
 			new EntityActions.Builder("MoveToUseAttackTwo")
 			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[1]))
+			.AddPrecondition(beliefs["TargetInChaseRange"])
 			.AddPrecondition(beliefs["AttackTwoReady"])
 			.AddEffect(beliefs["MoveToAttack"])
 			.Build(),
@@ -223,15 +225,15 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 		//factory.AddLocationBelief("AtFriendlyPoi", 15f, beliefs["FoundFriendlyPoi"].TargetLocation);
 
 		factory.AddBelief("FriendlyPoiNeedsResTransfer", () =>
-			beliefs["FoundFriendlyPoi"].TargetData.poiController != null &&
-			beliefs["FoundFriendlyPoi"].TargetData.poiController.PoiNeedsResourceTransfer());
+			beliefs["FoundFriendlyPoi"].TargetData.poi != null &&
+			beliefs["FoundFriendlyPoi"].TargetData.poi.PoiNeedsResourceTransfer());
 		factory.AddBelief("TransferResourceToHomeBase", () => entityStats.carriedResources != 0);
 
 		factory.AddTargetBelief("FoundEnemyPoi", entitySensors[3]);
 		factory.AddBelief("AtEnemyPoi", () => entityBrain.InRangeOf(beliefs["FoundEnemyPoi"].TargetLocation, 10f));
 		factory.AddBelief("EnemyPoiCapturable", () => 
-			beliefs["FoundEnemyPoi"].TargetData.poiController != null &&
-			beliefs["FoundEnemyPoi"].TargetData.poiController.PoiCapturable(entityStats));
+			beliefs["FoundEnemyPoi"].TargetData.poi != null &&
+			beliefs["FoundEnemyPoi"].TargetData.poi.PoiCapturable(entityStats));
 		//factory.AddLocationBelief("AtCapturablePoi", 15f, beliefs["FoundCapturablePoi"].TargetLocation);
 
 		factory.AddBelief("FindPois", () => false);

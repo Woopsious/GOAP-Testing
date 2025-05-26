@@ -16,8 +16,6 @@ public class PoIController : MonoBehaviour
 	public int accumilatedResources;
 	public bool resourcesNeedTransfering;
 
-	public List<EntityStats> entitiesInRange = new List<EntityStats>();
-
 	[SerializeField] private EntityStats entityCurrentlyCapturing;
 
 	public int redTeamEntitiesCount;
@@ -25,6 +23,8 @@ public class PoIController : MonoBehaviour
 	public int playerTeamEntitiesCount;
 
 	public HashSet<IPoIStrategies> poIBehaviour;
+
+	public GameObject EntityPrefab;
 
 	public Material neutralTeamMaterial;
 	public Material redTeamMaterial;
@@ -42,20 +42,11 @@ public class PoIController : MonoBehaviour
 		entityDetection.isTrigger = true;
 		entityDetection.radius = _PoiData.PoiDetectionRadius;
 	}
-
-	private void OnEnable()
-	{
-		GameManager.OnEntityDeathEvent += ClearUpDeadEntities;
-	}
-	private void OnDisable()
-	{
-		GameManager.OnEntityDeathEvent -= ClearUpDeadEntities;
-	}
-
 	private void Start()
 	{
 		Initilize();
 	}
+
 	private void Update()
 	{
 		foreach(IPoIStrategies poIStrategies in poIBehaviour)
@@ -76,98 +67,17 @@ public class PoIController : MonoBehaviour
 		};
 
 		if (_PoiData.isTeamHomeBase)
-			poIBehaviour.Add(new HomeBasePopulationStrategy(this));
+		{
+			if (_PoiData.startingOwner == EntityTeam.redTeam)
+				poIBehaviour.Add(new RedTeamPopulationStrategy(this));
+			//else if (_PoiData.startingOwner == EntityTeam.greenTeam)
+				//poIBehaviour.Add(new GreenTeamPopulationStrategy(this));
+			else
+				Debug.LogError("no population strategy exists for this team");
+		}
 
 		foreach (IPoIStrategies poIStrategies in poIBehaviour)
 			poIStrategies.Start();
-	}
-
-	private void OnTriggerEnter(Collider other)
-	{
-		TryAddEntityToEntitiesInRange(other.GetComponent<EntityStats>());
-	}
-	private void OnTriggerExit(Collider other)
-	{
-		TryRemoveEntitiesFromEntitiesInRange(other.GetComponent<EntityStats>());
-	}
-
-	//track entities in range of poi
-	void TryAddEntityToEntitiesInRange(EntityStats entity)
-	{
-		if (entity == null)
-			return;
-
-		if (entitiesInRange.Count == 0)
-		{
-			entitiesInRange.Add(entity);
-			UpdateTeamCounts();
-			return;
-		}
-
-		for (int i = 0; i < entitiesInRange.Count; i++)
-		{
-			if (entitiesInRange[i] == entity)
-				continue;
-			else
-			{
-				entitiesInRange.Add(entity);
-				UpdateTeamCounts();
-			}
-		}
-	}
-	void TryRemoveEntitiesFromEntitiesInRange(EntityStats entity)
-	{
-		if (entity == null)
-			return;
-
-		for (int i = entitiesInRange.Count - 1; i >= 0; i--)
-		{
-			if (entitiesInRange[i] == entity)
-			{
-				entitiesInRange.RemoveAt(i);
-				UpdateTeamCounts();
-			}
-		}
-	}
-	void UpdateTeamCounts()
-	{
-		redTeamEntitiesCount = 0;
-		greenTeamEntitiesCount = 0;
-		playerTeamEntitiesCount = 0;
-
-		for (int i = 0; i < entitiesInRange.Count; i++)
-		{
-			EntityTeam team = entitiesInRange[i]._Data.team;
-
-			switch (team)
-			{
-				case EntityTeam.neutral:
-				Debug.LogError("team neutral this shouldnt happen");
-				break;
-
-				case EntityTeam.redTeam:
-				redTeamEntitiesCount++;
-				break;
-
-				case EntityTeam.greenTeam:
-				greenTeamEntitiesCount++;
-				break;
-
-				case EntityTeam.playerTeam:
-				playerTeamEntitiesCount++;
-				break;
-			}
-		}
-	}
-	void ClearUpDeadEntities(EntityStats entity)
-	{
-		for (int i = entitiesInRange.Count - 1; i >= 0; i--)
-		{
-			if (entitiesInRange[i] == entity || entitiesInRange[i] == null) //remove possible null refs
-				entitiesInRange.RemoveAt(i);
-		}
-
-		UpdateTeamCounts();
 	}
 
 	//capturing pois
@@ -215,5 +125,13 @@ public class PoIController : MonoBehaviour
 		if (_PoiData.isTeamHomeBase) return false;
 		if (accumilatedResources < 200) return false;
 		else return true;
+	}
+
+	//entitySpawning
+	public EntityStats SpawnNewEntity()
+	{
+		GameObject go = Instantiate(EntityPrefab, gameObject.transform.position, Quaternion.identity);
+		go.transform.SetParent(null);
+		return go.GetComponent<EntityStats>();
 	}
 }

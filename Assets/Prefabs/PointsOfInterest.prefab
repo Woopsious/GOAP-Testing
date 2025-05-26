@@ -102,13 +102,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _PoiData: {fileID: 0}
+  previousPoiOwner: 0
   poiOwner: 0
   accumilatedResources: 0
+  resourcesNeedTransfering: 0
   entitiesInRange: []
   entityCurrentlyCapturing: {fileID: 0}
   redTeamEntitiesCount: 0
   greenTeamEntitiesCount: 0
   playerTeamEntitiesCount: 0
+  EntityPrefab: {fileID: 8151942388671483916, guid: 0ec1cac7bace5994d862c6b505b4aca4, type: 3}
   neutralTeamMaterial: {fileID: 2100000, guid: 3ef26c09b1205844baa0193177854497, type: 2}
   redTeamMaterial: {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
   greenTeamMaterial: {fileID: 2100000, guid: d3c784064aacc7a4fb05fde26fc3385d, type: 2}
