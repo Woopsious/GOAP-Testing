@@ -29,6 +29,8 @@ public class EntityData : ScriptableObject
 
 	[Header("Stats")]
 	public float maxHealth;
+	public float armour;
+	public int resourceCost;
 
 	[Header("NavMesh Settings")]
 	public float speed;

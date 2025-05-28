@@ -44,8 +44,6 @@ public class GameManager : MonoBehaviour
 	/// a way to filter out too many entities answering a call or none answering a call, possibly via checking current goals
 	/// adding a sensor to detect friendlies in call range
 	/// 
-	/// ENTITY SPAWNING
-	/// 
 	/// ENTITY POI's
 	/// team base's/neutral bases: (ATM just get team bases working)
 	///		supplies resources entities can use to replenish there population and spawn new ones here

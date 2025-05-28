@@ -85,7 +85,7 @@ public class RedTeamPopulationStrategy : IPoIStrategies
 		_Data = poIController._PoiData;
 		hasSpawnedStartingEntities = false;
 
-		popGoalTimer = new CountdownTimer(5f);
+		popGoalTimer = new CountdownTimer(3f);
 		popGoalTimer.OnTimerStart += () => RunPopulationLogic();
 		popGoalTimer.OnTimerStop += () => Start();
 		popGoalTimer.OnTimerCancel += () => Stop();
@@ -120,23 +120,58 @@ public class RedTeamPopulationStrategy : IPoIStrategies
 	void RunPopulationLogic()
 	{
 		if (!_Data.isTeamHomeBase) return;
-		TrySpawnStartingEntities();
 
-		workerPopData.CalculatePopGoal(GameManager.instance.RedTeamCapturedPois, GameManager.instance.RedTeamResourceCounter);
-		dualistPopData.CalculatePopGoal(GameManager.instance.RedTeamCapturedPois, GameManager.instance.RedTeamResourceCounter);
-		meleePopData.CalculatePopGoal(GameManager.instance.RedTeamCapturedPois, GameManager.instance.RedTeamResourceCounter);
-		rangedPopData.CalculatePopGoal(GameManager.instance.RedTeamCapturedPois, GameManager.instance.RedTeamResourceCounter);
+		if (!hasSpawnedStartingEntities)
+			SpawnStartingEntities();
 
-		workerPopData.CalculateNeed(GameManager.instance.RedTeamWorkers);
-		dualistPopData.CalculateNeed(GameManager.instance.RedTeamDualists);
-		meleePopData.CalculateNeed(GameManager.instance.RedTeamMelee);
-		rangedPopData.CalculateNeed(GameManager.instance.RedTeamRanged);
+		CalculatePopData();
 
-		workerPopData.DebugData(true);
-		dualistPopData.DebugData(true);
-		meleePopData.DebugData(true);
-		rangedPopData.DebugData(true);
+		workerPopData.DebugPopData(false);
+		dualistPopData.DebugPopData(false);
+		meleePopData.DebugPopData(false);
+		rangedPopData.DebugPopData(false);
 
+		EntityPopulationData popToSpawn = GetMostNeededPop();
+
+		if (popToSpawn == null)
+		{
+			Debug.LogError("failed to find pop data with matching index");
+			return;
+		}
+		else if (popToSpawn.PopNeed() <= 5)
+		{
+			//Debug.LogWarning("no pop spawned, pop needs not high enough: " + popToSpawn.PopNeed() + " <= 5");
+			return;
+		}
+
+		if (popToSpawn.CurrentPop() >= 1)
+		{
+			if (!popToSpawn.CanAffordPopCost(poIController.accumilatedResources))
+			{
+				//Debug.LogWarning("no pop spawned, low resources: " + poIController.accumilatedResources + "/" + popToSpawn.PopData().resourceCost);
+				return;
+			}
+			else
+				SpawnNewPop(popToSpawn, false);
+		}
+		else
+			SpawnNewPop(popToSpawn, true);
+	}
+
+	void CalculatePopData()
+	{
+		workerPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, poIController.accumilatedResources);
+		dualistPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, poIController.accumilatedResources);
+		meleePopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, poIController.accumilatedResources);
+		rangedPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, poIController.accumilatedResources);
+
+		workerPopData.CalculatePopNeeds(GameManager.instance.RedTeamWorkers);
+		dualistPopData.CalculatePopNeeds(GameManager.instance.RedTeamDualists);
+		meleePopData.CalculatePopNeeds(GameManager.instance.RedTeamMelee);
+		rangedPopData.CalculatePopNeeds(GameManager.instance.RedTeamRanged);
+	}
+	EntityPopulationData GetMostNeededPop()
+	{
 		float[] popNeeds = new float[4];
 		popNeeds[0] = workerPopData.PopNeed();
 		popNeeds[1] = dualistPopData.PopNeed();
@@ -155,28 +190,18 @@ public class RedTeamPopulationStrategy : IPoIStrategies
 			}
 		}
 
-		if (popNeed <= 5) //pop need has to be above X value to spawn new entity
-		{
-			Debug.LogError("no pop spawned, pop need: " + popNeed);
-			return;
-		}
-		else
-			Debug.LogError("pop spawned with need: " + popNeed);
-
 		switch (popIndex)
 		{
 			case 0:
-			SpawnNewEntity(workerPopData.GetPopData());
-			break;
+			return workerPopData;
 			case 1:
-			SpawnNewEntity(dualistPopData.GetPopData());
-			break;
+			return dualistPopData;
 			case 2:
-			SpawnNewEntity(meleePopData.GetPopData());
-			break;
+			return meleePopData;
 			case 3:
-			SpawnNewEntity(rangedPopData.GetPopData());
-			break;
+			return rangedPopData;
+			default:
+			return null;
 		}
 	}
 
@@ -188,18 +213,31 @@ public class RedTeamPopulationStrategy : IPoIStrategies
 		rangedPopData.RandomizePopCount();
 	}
 
-	void TrySpawnStartingEntities()
+	void SpawnStartingEntities()
 	{
-		if (hasSpawnedStartingEntities) return;
-
 		hasSpawnedStartingEntities = true;
+
+		SpawnNewPop(workerPopData, true);
+		SpawnNewPop(meleePopData, true);
+		SpawnNewPop(rangedPopData, true);
 	}
 
 	//instantiate and spawn entity
-	void SpawnNewEntity(EntityData entityData)
+	void SpawnNewPop(EntityPopulationData pop, bool freeCost)
 	{
+		if (!freeCost)
+		{
+			//Debug.LogWarning("pop spawned, pop need: " + pop.PopNeed() + " | pop cost: " + pop.PopData().resourceCost);
+			poIController.accumilatedResources -= pop.PopData().resourceCost;
+		}
+		else
+		{
+			//Debug.LogWarning("pop spawned, pop need: " + pop.PopNeed() + " | pop cost: 0");
+		}
+
 		EntityStats entity = poIController.SpawnNewEntity();
-		entity._Data = entityData;
+		entity._Data = pop.PopData();
 		GameManager.OnEntitySpawn(entity);
+		GameManager.instance.UpdateTeamResourceCounter(poIController.poiOwner, poIController.accumilatedResources);
 	}
 }

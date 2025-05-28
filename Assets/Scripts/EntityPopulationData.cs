@@ -9,15 +9,16 @@ public class EntityPopulationData
 	//goal weights
 	readonly float popGoalPerCapturePoint;
 	readonly float popGoalPerThousandResources;
-	float popGoalRandomizer;
+	int popGoalRandomizer;
 
 	//seperated goals
-	float popBaseGoal;
+	readonly float popBaseGoal;
 	float popCapturePointGoal;
 	float popResourcesGoal;
 
 	//total goal
-	float popGoal;
+	int currentPop;
+	int popGoal;
 
 	//need weights
 	readonly float popWeightedNeed;
@@ -25,7 +26,15 @@ public class EntityPopulationData
 	//need
 	float popNeed;
 
-	public float PopGoal()
+	public EntityData PopData()
+	{
+		return popData;
+	}
+	public int CurrentPop()
+	{
+		return currentPop;
+	}
+	public int PopGoal()
 	{
 		return popGoal;
 	}
@@ -33,27 +42,31 @@ public class EntityPopulationData
 	{
 		return popNeed;
 	}
-	public EntityData GetPopData()
+	public bool CanAffordPopCost(int resourcesAmount)
 	{
-		return popData;
+		if (popData.resourceCost > resourcesAmount)
+			return false;
+		else return true;
 	}
 
-	public EntityPopulationData(EntityData popData, float popBaseGoal, float popGoalPerCapturePoint, float popGoalPerThousandResources, float popWeightedNeed)
+	public EntityPopulationData(EntityData popData, 
+		float popBaseGoal, float popGoalPerCapturePoint, float popGoalPerThousandResources, float popWeightedNeed)
 	{
 		this.popData = popData;
 		this.popBaseGoal = popBaseGoal;
 		this.popGoalPerCapturePoint = popGoalPerCapturePoint;
 		this.popGoalPerThousandResources = popGoalPerThousandResources;
+
+		currentPop = 0;
 		this.popWeightedNeed = popWeightedNeed;
 	}
 
-	public void CalculatePopGoal(float ownedCapturePoints, float resourcesAmount)
+	public void CalculatePopGoals(float ownedCapturePoints, float resourcesAmount)
 	{
 		popCapturePointGoal = GetCapturePointGoal(ownedCapturePoints);
 		popResourcesGoal = GetResourcesGoal(resourcesAmount);
-		popGoal = popBaseGoal + popCapturePointGoal + popResourcesGoal + popGoalRandomizer;
+		popGoal = Mathf.RoundToInt(popBaseGoal + popCapturePointGoal + popResourcesGoal + popGoalRandomizer);
 	}
-
 	float GetCapturePointGoal(float ownedCapturePoints)
 	{
 		return popGoalPerCapturePoint * ownedCapturePoints;
@@ -63,17 +76,19 @@ public class EntityPopulationData
 		return popGoalPerThousandResources * Mathf.RoundToInt(resourcesAmount / 1000);
 	}
 
-	public void CalculateNeed(float currentPop)
+	public void RandomizePopCount()
 	{
+		int popGoalRandomizedAmount = Mathf.RoundToInt(popGoal / 4);
+		popGoalRandomizer = Random.Range(-popGoalRandomizedAmount, popGoalRandomizedAmount);
+	}
+
+	public void CalculatePopNeeds(int currentPop)
+	{
+		this.currentPop = currentPop;
 		popNeed = (popGoal - currentPop) * popWeightedNeed;
 	}
 
-	public void RandomizePopCount()
-	{
-		//popGoalRandomizer = Random.Range(-4, 4);
-	}
-
-	public void DebugData(bool debug)
+	public void DebugPopData(bool debug)
 	{
 		if (!debug) return;
 		string popType = "";
@@ -95,9 +110,10 @@ public class EntityPopulationData
 		else if (popData.type == EntityData.EntityDataType.greenRanged)
 			popType = "green ranged pop Info:";
 		else
-			Debug.LogError("no data type match");
+			Debug.LogWarning("no data type match");
 
-		Debug.LogError(popType + " base goal: " + popBaseGoal + " cap goal: " + popCapturePointGoal + " res goal: " + popResourcesGoal + 
-			" random goal: " + popGoalRandomizer + " total goal: " + popGoal + " need: " + popNeed);
+		Debug.LogWarning(popType + " POP GOALS BREAKDOWN: \nbase pop goal: " + popBaseGoal + " pop cap goal: " + popCapturePointGoal + 
+			" pop res goal: " + popResourcesGoal + " pop random goal: " + popGoalRandomizer + " \n" +
+			"TOTALS: total pop goal: " + popGoal + " current pop: " + currentPop + " pop need: " + popNeed);
 	}
 }

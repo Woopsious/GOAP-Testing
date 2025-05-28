@@ -17,6 +17,8 @@ MonoBehaviour:
   brainType: 0
   team: 1
   maxHealth: 100
+  armour: 6
+  resourceCost: 100
   speed: 5
   angularSpeed: 120
   acceleration: 5
@@ -25,7 +27,7 @@ MonoBehaviour:
   fleeRange: 1
   attackData:
   - attackType: 0
-    attackDamage: 4
+    attackDamage: 8
     attackCooldown: 1
     attackMinRange: 0
     attackMaxRange: 3

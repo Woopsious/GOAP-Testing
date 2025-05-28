@@ -72,7 +72,11 @@ public class EntityStats : MonoBehaviour
 
 	public void RecieveDamage(float damageRecieved)
 	{
-		currentHealth -= damageRecieved;
+		float adjustedDamage = damageRecieved - _Data.armour;
+		if (adjustedDamage < 3)
+			adjustedDamage = 3;
+
+		currentHealth -= adjustedDamage;
 		OnDeath();
 	}
 	public void RecieveHealing(float healingRecieved)

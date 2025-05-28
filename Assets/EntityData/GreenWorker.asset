@@ -17,6 +17,8 @@ MonoBehaviour:
   brainType: 1
   team: 2
   maxHealth: 50
+  armour: 2
+  resourceCost: 50
   speed: 5
   angularSpeed: 90
   acceleration: 5

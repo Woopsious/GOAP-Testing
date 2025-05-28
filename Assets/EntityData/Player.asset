@@ -13,8 +13,16 @@ MonoBehaviour:
   m_Name: Player
   m_EditorClassIdentifier: 
   Name: Player
+  type: 0
+  brainType: 0
   team: 3
   maxHealth: 100
+  armour: 5
+  resourceCost: 0
+  speed: 0
+  angularSpeed: 0
+  acceleration: 0
+  stoppingDistance: 0
   chaseRange: 25
   fleeRange: 1
   attackData: []
