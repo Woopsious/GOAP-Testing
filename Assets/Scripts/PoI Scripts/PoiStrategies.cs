@@ -65,7 +65,7 @@ public class PoiResourcesStrategy : IPoIStrategies
 	}
 }
 
-public class RedTeamPopulationStrategy : IPoIStrategies
+public class TeamPopStrategy : IPoIStrategies
 {
 	readonly PoIController poIController;
 	readonly PoiData _Data;
@@ -75,7 +75,7 @@ public class RedTeamPopulationStrategy : IPoIStrategies
 
 	bool hasSpawnedStartingEntities;
 
-	public RedTeamPopulationStrategy(PoIController poIController)
+	public TeamPopStrategy(PoIController poIController)
 	{
 		this.poIController = poIController;
 		_Data = poIController._PoiData;
@@ -87,7 +87,7 @@ public class RedTeamPopulationStrategy : IPoIStrategies
 		popGoalTimer.OnTimerCancel += () => Stop();
 
 		popGoalRandomizerTimer = new CountdownTimer(15f);
-		popGoalRandomizerTimer.OnTimerStart += () => EntityPopManager.instance.RandomizeRedTeamPopulationGoals();
+		popGoalRandomizerTimer.OnTimerStart += () => EntityPopManager.instance.RandomizePopGoals(poIController.poiOwner);
 		popGoalRandomizerTimer.OnTimerStop += () => Start();
 		popGoalRandomizerTimer.OnTimerCancel += () => Stop();
 	}
@@ -115,110 +115,8 @@ public class RedTeamPopulationStrategy : IPoIStrategies
 		if (!hasSpawnedStartingEntities)
 			SpawnStartingEntities();
 
-		EntityPopManager.instance.UpdateRedTeamPopData(poIController.accumilatedResources);
-		EntityPopData popToSpawn = EntityPopManager.instance.GetMostNeededRedTeamPop();
-
-		if (popToSpawn.PopNeed() <= 5)
-		{
-			//Debug.LogWarning("no pop spawned, pop needs not high enough: " + popToSpawn.PopNeed() + " <= 5");
-			return;
-		}
-
-		else if (popToSpawn.CurrentPop() >= 1)
-		{
-			if (!popToSpawn.CanAffordPopCost(poIController.accumilatedResources))
-			{
-				//Debug.LogWarning("no pop spawned, low resources: " + poIController.accumilatedResources + "/" + popToSpawn.PopData().resourceCost);
-				return;
-			}
-			else
-				SpawnNewPop(popToSpawn, false);
-		}
-		else
-			SpawnNewPop(popToSpawn, true);
-	}
-
-	void SpawnStartingEntities()
-	{
-		hasSpawnedStartingEntities = true;
-
-		SpawnNewPop(EntityPopManager.instance.redWorkerPopData, true);
-		SpawnNewPop(EntityPopManager.instance.redMeleePopData, true);
-		SpawnNewPop(EntityPopManager.instance.redRangedPopData, true);
-	}
-
-	//instantiate and spawn entity
-	void SpawnNewPop(EntityPopData popToSpawn, bool freeCost)
-	{
-		if (!freeCost)
-		{
-			//Debug.LogWarning("pop spawned, pop need: " + pop.PopNeed() + " | pop cost: " + pop.PopData().resourceCost);
-			poIController.accumilatedResources -= popToSpawn.PopData().resourceCost;
-		}
-		else
-		{
-			//Debug.LogWarning("pop spawned, pop need: " + pop.PopNeed() + " | pop cost: 0");
-		}
-
-		EntityStats entity = poIController.SpawnNewEntity();
-		entity._Data = popToSpawn.PopData();
-		EntityPopManager.OnEntitySpawn(entity);
-		GameManager.instance.UpdateTeamResourceCounter(poIController.poiOwner, poIController.accumilatedResources);
-	}
-}
-
-public class GreenTeamPopulationStrategy : IPoIStrategies
-{
-	readonly PoIController poIController;
-	readonly PoiData _Data;
-
-	readonly CountdownTimer popGoalTimer;
-	readonly CountdownTimer popGoalRandomizerTimer;
-
-	bool hasSpawnedStartingEntities;
-
-	public GreenTeamPopulationStrategy(PoIController poIController)
-	{
-		this.poIController = poIController;
-		_Data = poIController._PoiData;
-		hasSpawnedStartingEntities = false;
-
-		popGoalTimer = new CountdownTimer(3f);
-		popGoalTimer.OnTimerStart += () => RunPopulationLogic();
-		popGoalTimer.OnTimerStop += () => Start();
-		popGoalTimer.OnTimerCancel += () => Stop();
-
-		popGoalRandomizerTimer = new CountdownTimer(15f);
-		popGoalRandomizerTimer.OnTimerStart += () => EntityPopManager.instance.RandomizeGreenTeamPopulationGoals();
-		popGoalRandomizerTimer.OnTimerStop += () => Start();
-		popGoalRandomizerTimer.OnTimerCancel += () => Stop();
-	}
-
-	public void Start()
-	{
-		popGoalTimer.Start();
-		popGoalRandomizerTimer.Start();
-	}
-	public void Update(float deltaTime)
-	{
-		popGoalTimer.Tick(deltaTime, false);
-		popGoalRandomizerTimer.Tick(deltaTime, false);
-	}
-	public void Stop()
-	{
-		popGoalTimer.Stop();
-		popGoalRandomizerTimer.Stop();
-	}
-
-	void RunPopulationLogic()
-	{
-		if (!_Data.isTeamHomeBase) return;
-
-		if (!hasSpawnedStartingEntities)
-			SpawnStartingEntities();
-
-		EntityPopManager.instance.UpdateGreenTeamPopData(poIController.accumilatedResources);
-		EntityPopData popToSpawn = EntityPopManager.instance.GetMostNeededGreenTeamPop();
+		EntityPopManager.instance.UpdateTeamPopData(poIController.poiOwner, poIController.accumilatedResources);
+		EntityPopData popToSpawn = EntityPopManager.instance.GetMostNeededTeamPop(poIController.poiOwner);
 
 		if (popToSpawn.PopNeed() <= 5)
 		{
@@ -242,10 +140,10 @@ public class GreenTeamPopulationStrategy : IPoIStrategies
 	void SpawnStartingEntities()
 	{
 		hasSpawnedStartingEntities = true;
+		List<EntityPopData> startingPopData = EntityPopManager.instance.SpawnStartingEntities(poIController.poiOwner);
 
-		SpawnNewPop(EntityPopManager.instance.greenWorkerPopData, true);
-		SpawnNewPop(EntityPopManager.instance.greenMeleePopData, true);
-		SpawnNewPop(EntityPopManager.instance.greenRangedPopData, true);
+		foreach (EntityPopData popData in startingPopData)
+			SpawnNewPop(popData, true);
 	}
 
 	//instantiate and spawn entity

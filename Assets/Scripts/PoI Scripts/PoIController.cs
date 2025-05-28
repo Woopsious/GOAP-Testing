@@ -63,18 +63,10 @@ public class PoIController : MonoBehaviour
 		poIBehaviour = new HashSet<IPoIStrategies> 
 		{
 			new PoiResourcesStrategy(this),
-			//new PoiHealFriendliesStrategy(this),
 		};
 
 		if (_PoiData.isTeamHomeBase)
-		{
-			if (_PoiData.startingOwner == EntityTeam.redTeam)
-				poIBehaviour.Add(new RedTeamPopulationStrategy(this));
-			else if (_PoiData.startingOwner == EntityTeam.greenTeam)
-				poIBehaviour.Add(new GreenTeamPopulationStrategy(this));
-			else
-				Debug.LogError("no population strategy exists for this team");
-		}
+			poIBehaviour.Add(new TeamPopStrategy(this));
 
 		foreach (IPoIStrategies poIStrategies in poIBehaviour)
 			poIStrategies.Start();

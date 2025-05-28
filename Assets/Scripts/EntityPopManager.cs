@@ -24,23 +24,83 @@ public class EntityPopManager : MonoBehaviour
 	private void Awake()
 	{
 		instance = this;
+		SetUpInitialTeamPopData();
 	}
 
-	void Start()
-	{
-		SetUpInitialRedTeamPopData();
-		SetUpInitialGreenTeamPopData();
-	}
-
-	//red team funcs
-	public void SetUpInitialRedTeamPopData()
+	//shared team funcs
+	public void SetUpInitialTeamPopData()
 	{
 		redWorkerPopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.redWorker), 1f, 1.25f, 0.1f, 3f);
 		redDualistPopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.redDualist), 1f, 1.5f, 0.3f, 2f);
 		redMeleePopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.redMelee), 2f, 2.5f, 0.5f, 1.5f);
 		redRangedPopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.redRanged), 2f, 2.5f, 0.5f, 1.5f);
+
+		greenWorkerPopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.greenWorker), 1f, 1.25f, 0.1f, 3f);
+		greenDualistPopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.greenDualist), 1f, 1.5f, 0.3f, 2f);
+		greenMeleePopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.greenMelee), 2f, 2.5f, 0.5f, 1.5f);
+		greenRangedPopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.greenRanged), 2f, 2.5f, 0.5f, 1.5f);
 	}
-	public void UpdateRedTeamPopData(int accumilatedResources)
+
+	public void UpdateTeamPopData(EntityData.EntityTeam team, int accumilatedResources)
+	{
+		if (team == EntityData.EntityTeam.redTeam)
+			UpdateRedTeamPopData(accumilatedResources);
+		else if (team == EntityData.EntityTeam.greenTeam)
+			UpdateGreenTeamPopData(accumilatedResources);
+		else
+			Debug.LogError("team pop not set up");
+	}
+	public EntityPopData GetMostNeededTeamPop(EntityData.EntityTeam team)
+	{
+		if (team == EntityData.EntityTeam.redTeam)
+			return GetMostNeededRedTeamPop();
+		else if (team == EntityData.EntityTeam.greenTeam)
+			return GetMostNeededGreenTeamPop();
+		else
+		{
+			Debug.LogError("team pop not set up");
+			return null;
+		}
+	}
+	public void RandomizePopGoals(EntityData.EntityTeam team)
+	{
+		if (team == EntityData.EntityTeam.redTeam)
+			RandomizeRedTeamPopGoals();
+		else if (team == EntityData.EntityTeam.greenTeam)
+			RandomizeGreenTeamPopGoals();
+		else
+			Debug.LogError("team pop not set up");
+	}
+
+	public List<EntityPopData> SpawnStartingEntities(EntityData.EntityTeam team)
+	{
+		List<EntityPopData> startingEntities;
+
+		if (team == EntityData.EntityTeam.redTeam)
+		{
+			startingEntities = new List<EntityPopData>
+			{
+				redWorkerPopData, redMeleePopData, redRangedPopData
+			};
+		}
+		else if (team == EntityData.EntityTeam.greenTeam)
+		{
+			startingEntities = new List<EntityPopData>
+			{
+				greenWorkerPopData, greenMeleePopData, greenRangedPopData
+			};
+		}
+		else
+		{
+			Debug.LogError("starting entities not set up for team");
+			return null;
+		}
+
+		return startingEntities;
+	}
+
+	//red team funcs
+	void UpdateRedTeamPopData(int accumilatedResources)
 	{
 		redWorkerPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
 		redDualistPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
@@ -54,7 +114,7 @@ public class EntityPopManager : MonoBehaviour
 
 		UpdateUiPopDataEvent?.Invoke(EntityData.EntityTeam.redTeam);
 	}
-	public EntityPopData GetMostNeededRedTeamPop()
+	EntityPopData GetMostNeededRedTeamPop()
 	{
 		float[] popNeeds = new float[4];
 		popNeeds[0] = redWorkerPopData.PopNeed();
@@ -89,7 +149,7 @@ public class EntityPopManager : MonoBehaviour
 			return redWorkerPopData;
 		}
 	}
-	public void RandomizeRedTeamPopulationGoals()
+	void RandomizeRedTeamPopGoals()
 	{
 		redWorkerPopData.RandomizePopCount();
 		redDualistPopData.RandomizePopCount();
@@ -98,14 +158,7 @@ public class EntityPopManager : MonoBehaviour
 	}
 
 	//green team funcs
-	public void SetUpInitialGreenTeamPopData()
-	{
-		greenWorkerPopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.greenWorker), 1f, 1.25f, 0.1f, 3f);
-		greenDualistPopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.greenDualist), 1f, 1.5f, 0.3f, 2f);
-		greenMeleePopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.greenMelee), 2f, 2.5f, 0.5f, 1.5f);
-		greenRangedPopData = new EntityPopData(Database.GetEntity(EntityData.EntityDataType.greenRanged), 2f, 2.5f, 0.5f, 1.5f);
-	}
-	public void UpdateGreenTeamPopData(int accumilatedResources)
+	void UpdateGreenTeamPopData(int accumilatedResources)
 	{
 		greenWorkerPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
 		greenDualistPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
@@ -119,7 +172,7 @@ public class EntityPopManager : MonoBehaviour
 
 		UpdateUiPopDataEvent?.Invoke(EntityData.EntityTeam.greenTeam);
 	}
-	public EntityPopData GetMostNeededGreenTeamPop()
+	EntityPopData GetMostNeededGreenTeamPop()
 	{
 		float[] popNeeds = new float[4];
 		popNeeds[0] = greenWorkerPopData.PopNeed();
@@ -154,7 +207,7 @@ public class EntityPopManager : MonoBehaviour
 			return greenWorkerPopData;
 		}
 	}
-	public void RandomizeGreenTeamPopulationGoals()
+	void RandomizeGreenTeamPopGoals()
 	{
 		greenWorkerPopData.RandomizePopCount();
 		greenDualistPopData.RandomizePopCount();
