@@ -88,7 +88,7 @@ public class EntityStats : MonoBehaviour
 	{
 		if (currentHealth > 0) return;
 
-		GameManager.OnEntityDeath(this);
+		EntityPopManager.OnEntityDeath(this);
 		Destroy(gameObject);
 	}
 }

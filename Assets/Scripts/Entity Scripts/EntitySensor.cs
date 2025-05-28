@@ -66,11 +66,11 @@ public class EntitySensor : MonoBehaviour
 
 	void OnEnable()
 	{
-		GameManager.OnEntityDeathEvent += ClearDeadEntitiesFromTargetList;
+		EntityPopManager.OnEntityDeathEvent += ClearDeadEntitiesFromTargetList;
 	}
 	void OnDisable()
 	{
-		GameManager.OnEntityDeathEvent -= ClearDeadEntitiesFromTargetList;
+		EntityPopManager.OnEntityDeathEvent -= ClearDeadEntitiesFromTargetList;
 	}
 
 	void Update()

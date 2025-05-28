@@ -70,8 +70,8 @@ public class PoIController : MonoBehaviour
 		{
 			if (_PoiData.startingOwner == EntityTeam.redTeam)
 				poIBehaviour.Add(new RedTeamPopulationStrategy(this));
-			//else if (_PoiData.startingOwner == EntityTeam.greenTeam)
-				//poIBehaviour.Add(new GreenTeamPopulationStrategy(this));
+			else if (_PoiData.startingOwner == EntityTeam.greenTeam)
+				poIBehaviour.Add(new GreenTeamPopulationStrategy(this));
 			else
 				Debug.LogError("no population strategy exists for this team");
 		}
