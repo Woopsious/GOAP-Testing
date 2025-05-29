@@ -30,31 +30,32 @@ public class GameManager : MonoBehaviour
 
 	public PoIController[] AllPois;
 
-	/// <summary>
-	/// TODO:
-	/// ENTITIY REQUEST/ANSWER HELP CALL
+	/// <summary> IDEAS TO TRY AND IMPLEMENT
+	/// ENTITIY REQUEST/ANSWER HELP CALL BEHAVIOUR:
 	/// add a way for entities to call for help from surrounding ones as a RequestHelpCall strategy
 	/// add a way for entities to answer a call for help as a AnswerHelpCall strategy
 	/// need beliefs for it to trigger these things like getting attacked by too many enemies or low on health etc..
 	/// a way to filter out too many entities answering a call or none answering a call, possibly via checking current goals
 	/// adding a sensor to detect friendlies in call range
 	/// 
-	/// ENTITY POI's
-	/// team base's/neutral bases: (ATM just get team bases working)
-	///		supplies resources entities can use to replenish there population and spawn new ones here
-	///		restore health at these + capture and defend them.
-	/// ???resoure nodes worker entities can get extra resources from.
+	/// POI RELATED IDEAS:
+	/// resoure nodes for worker entities to 'mine' extra resource from.
+	/// different resource types to use on better entity types.
 	/// 
-	/// UPDATE ENTITY TYPES/BRAINS:
-	/// have a worker (or different worker types) entity type that focuses on collecting resources or using them etc...
-	/// have multiple different offensive bot types like ranged and melee
-	///	???a commander type that can organise regular combat type entities (ATM worry about adding simpler things)
+	/// ENTITY RELATED IDEAS:
+	/// split entity brain strategies up further into melee, ranged etc... for more unique behaviour
+	/// allow entities to patrol around/defend pois them.
+	/// commander type that can organise regular combat type entities (ATM worry about adding simpler things)
 	/// 
-	/// MIGHT NOT NEED BUT COULD CONSIDER ADDING AN AI DIRECTOR:
-	/// a higher level system that will direct entities to achieve certian goals
-	/// send entities to capture points based on info of all capture points (update CapturePoi goal priority for worker brains by +- it)
-	/// help organize combat entities to attack a poi as a group or defend it based on locational positions of all entities.
-	/// manage pop counts of both teams based on current pop + resources accumalated. (update a SpawnEntity goal priority for worker brains)
+	/// AI DIRECTOR IDEAS:
+	/// a higher level system that will direct entities to achieve certian goals, either for a specific or multiple teams.
+	/// tracks references to all entities and pois.
+	/// can direct/force entities to do things via a belief that checks hasCommand bool
+	///		an action called EntityCommandStrategy that takes in an interface as an argument (similar concept to IEntityInteractStrategies)
+	///		a goal that has its priority adjusted based on the type of command issued (move command priority shouldnt excede basic attack priority
+	///		but should excede its wander/move/idle behaviour)
+	///	will take over parts of what GM script is currently doing like tracking and storing refs of the following:
+	///	to all pois and entity refs + counters for poi ownership + team resource counters.
 	/// </summary>
 
 	void Awake()
