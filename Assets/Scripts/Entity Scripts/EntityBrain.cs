@@ -196,13 +196,13 @@ public class EntityBrain : MonoBehaviour
 	{
 		if (entityStats._Data.team == EntityTeam.redTeam)
 		{
-			attackOneTimer?.Tick(Time.deltaTime, false);
-			attackTwoTimer?.Tick(Time.deltaTime, false);
+			attackOneTimer?.Tick(Time.deltaTime);
+			attackTwoTimer?.Tick(Time.deltaTime);
 		}
         else
         {
-			attackOneTimer?.Tick(Time.deltaTime, false);
-			attackTwoTimer?.Tick(Time.deltaTime, false);
+			attackOneTimer?.Tick(Time.deltaTime);
+			attackTwoTimer?.Tick(Time.deltaTime);
 		}
 	}
 

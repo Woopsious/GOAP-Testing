@@ -41,7 +41,7 @@ public class IdleStrategy : IActionStrategy
 	}
 
 	public void Start() => timer.Start();
-	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
+	public void Update(float deltaTime) => timer.Tick(deltaTime);
 }
 
 public class WanderStrategy : IActionStrategy
@@ -124,17 +124,16 @@ public class InteractStrategy : IActionStrategy
 
 	public void Start()
 	{
-		timer.Reset(interaction.GetInteractTimer());
+		if (!timer.IsFinished || timer.IsRunning) return;
+
+		timer.Reset(interaction.GetInteractTimer(), entityBrain);
 		timer.OnTimerStart += () => interaction.StartInteract(entityBrain.entityStats);
 		timer.OnTimerStop += () => interaction.CompleteInteract(entityBrain.entityStats);
 		timer.OnTimerCancel += () => interaction.CancelInteract(entityBrain.entityStats);
 		timer.Start();
 	}
 
-	public void Update(float deltaTime)
-	{
-		timer.Tick(deltaTime, false);
-	}
+	public void Update(float deltaTime) => timer.Tick(deltaTime);
 	public void Stop() => timer.Cancel();
 }
 
@@ -236,7 +235,7 @@ public class BasicAttackStrategy : IActionStrategy
 		timer.Start();
 	}
 
-	public void Update(float deltaTime) => timer.Tick(deltaTime, false);
+	public void Update(float deltaTime) => timer.Tick(deltaTime);
 }
 
 public class FindPoiStrategy : IActionStrategy

@@ -6,6 +6,7 @@ public abstract class Timer
 	protected float initialTime;
 	public float Time { get; set; }
 	public bool IsRunning { get; protected set; }
+	public bool IsFinished => Time <= 0;
 
 	public float Progress => Time / initialTime;
 
@@ -42,7 +43,7 @@ public abstract class Timer
 	{
 		if (IsRunning)
 		{
-			IsRunning = false;
+			Time = 0;
 			OnTimerCancel.Invoke();
 		}
 	}
@@ -50,17 +51,34 @@ public abstract class Timer
 	public void Resume() => IsRunning = true;
 	public void Pause() => IsRunning = false;
 
-	public abstract void Tick(float deltaTime, bool debugTime);
+	public abstract void Tick(float deltaTime);
+
+	public abstract void DebugTick(float deltaTime, EntityBrain entity);
 }
 
 public class CountdownTimer : Timer
 {
 	public CountdownTimer(float value) : base(value) { }
 
-	public override void Tick(float deltaTime, bool debugTime)
+	public override void Tick(float deltaTime)
 	{
-		if (debugTime)
-			Debug.LogError("timer: " + Time);
+		if (IsRunning && Time > 0)
+		{
+			Time -= deltaTime;
+		}
+
+		if (IsRunning && Time <= 0)
+		{
+			Stop();
+		}
+	}
+
+	public override void DebugTick(float deltaTime, EntityBrain entity)
+	{
+		if (entity.entityStats._Data.team == EntityData.EntityTeam.redTeam)
+			Debug.LogError("red entity timer: " + Time);
+		else if (entity.entityStats._Data.team == EntityData.EntityTeam.greenTeam)
+			Debug.LogError("green entity timer: " + Time);
 
 		if (IsRunning && Time > 0)
 		{
@@ -73,12 +91,15 @@ public class CountdownTimer : Timer
 		}
 	}
 
-	public bool IsFinished => Time <= 0;
-
 	public void Reset() => Time = initialTime;
 
-	public void Reset(float newTime)
+	public void Reset(float newTime, EntityBrain entity)
 	{
+		if (entity.entityStats._Data.team == EntityData.EntityTeam.redTeam)
+			Debug.LogError("red entity timer reset: " + Time);
+		else if (entity.entityStats._Data.team == EntityData.EntityTeam.greenTeam)
+			Debug.LogError("green entity timer reset: " + Time);
+
 		initialTime = newTime;
 		Reset();
 	}
@@ -88,8 +109,21 @@ public class StopwatchTimer : Timer
 {
 	public StopwatchTimer() : base(0) { }
 
-	public override void Tick(float deltaTime, bool debugTime)
+	public override void Tick(float deltaTime)
 	{
+		if (IsRunning)
+		{
+			Time += deltaTime;
+		}
+	}
+
+	public override void DebugTick(float deltaTime, EntityBrain entity)
+	{
+		if (entity.entityStats._Data.team == EntityData.EntityTeam.redTeam)
+			Debug.LogError("red entity timer: " + Time);
+		else if (entity.entityStats._Data.team == EntityData.EntityTeam.greenTeam)
+			Debug.LogError("green entity timer: " + Time);
+
 		if (IsRunning)
 		{
 			Time += deltaTime;

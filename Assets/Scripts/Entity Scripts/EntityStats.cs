@@ -31,7 +31,7 @@ public class EntityStats : MonoBehaviour
 	private void Update()
 	{
 		if (player != null) return;
-		statsTimer.Tick(Time.deltaTime, false);
+		statsTimer.Tick(Time.deltaTime);
 	}
 	private void Initilize()
 	{

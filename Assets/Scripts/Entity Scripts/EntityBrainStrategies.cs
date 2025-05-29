@@ -215,6 +215,9 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 		factory.AddBelief("AgentHealthLow", () => entityStats.currentHealth < 30);
 		factory.AddBelief("AgentIsHealthy", () => entityStats.currentHealth >= 40);
 
+		factory.AddTargetBelief("TargetInFleeRange", entitySensors[0]);
+		factory.AddBelief("FleeingFromTarget", () => false);
+
 		if (entityStats._Data.team == EntityData.EntityTeam.redTeam)
 			factory.AddLocationBelief("AtHomeBase", 10f, GameManager.instance.redTeamHomeBase.transform.position);
         else if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
@@ -250,6 +253,12 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			new EntityActions.Builder("Relax")
 			.WithStrategy(new IdleStrategy(5))
 			.AddEffect(beliefs["Nothing"])
+			.Build(),
+
+			new EntityActions.Builder("FleeFromEnemy")
+			.WithStrategy(new FleeStrategy(navMeshAgent, () => beliefs["TargetInFleeRange"].TargetLocation))
+			.AddPrecondition(beliefs["TargetInFleeRange"])
+			.AddEffect(beliefs["FleeingFromTarget"])
 			.Build(),
 
 			new EntityActions.Builder("FindPois")
@@ -324,27 +333,32 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityGoals.Builder("FindPois")
-			.WithPriority(20)
+			.WithPriority(10)
 			.WithDesiredEffect(beliefs["FindPois"])
 			.Build(),
 
 			new EntityGoals.Builder("CapturePoi")
-			.WithPriority(40)
+			.WithPriority(20)
 			.WithDesiredEffect(beliefs["CapturePoi"])
 			.Build(),
 
+			new EntityGoals.Builder("FleeFromTarget")
+			.WithPriority(40)
+			.WithDesiredEffect(beliefs["FleeingFromTarget"])
+			.Build(),
+
 			new EntityGoals.Builder("PickUpResources")
-			.WithPriority(50)
+			.WithPriority(60)
 			.WithDesiredEffect(beliefs["PickUpResources"])
 			.Build(),
 
 			new EntityGoals.Builder("DropOffResources")
-			.WithPriority(60)
+			.WithPriority(80)
 			.WithDesiredEffect(beliefs["DropOffResources"])
 			.Build(),
 
 			new EntityGoals.Builder("KeepHealthUp")
-			.WithPriority(80)
+			.WithPriority(90)
 			.WithDesiredEffect(beliefs["AgentIsHealthy"])
 			.Build(),
 		};

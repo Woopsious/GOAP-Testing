@@ -1,10 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Unity.VisualScripting;
-using UnityEditor;
-using UnityEditor.Experimental.GraphView;
-using UnityEngine;
 
 public interface IPoIStrategies
 {
@@ -39,7 +34,7 @@ public class PoiResourcesStrategy : IPoIStrategies
 	}
 	public void Update(float deltaTime)
 	{
-		timer.Tick(deltaTime, false);
+		timer.Tick(deltaTime);
 	}
 	public void Stop()
 	{
@@ -99,8 +94,8 @@ public class TeamPopStrategy : IPoIStrategies
 	}
 	public void Update(float deltaTime)
 	{
-		popGoalTimer.Tick(deltaTime, false);
-		popGoalRandomizerTimer.Tick(deltaTime, false);
+		popGoalTimer.Tick(deltaTime);
+		popGoalRandomizerTimer.Tick(deltaTime);
 	}
 	public void Stop()
 	{

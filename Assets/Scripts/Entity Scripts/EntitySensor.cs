@@ -9,9 +9,11 @@ using UnityEngine;
 public class EntitySensor : MonoBehaviour
 {
 	/// <summary>
-	/// sensor types work as they are now, needing 1 target to be set per sensor
+	/// ISSUES:
 	/// 
-	/// attack sensors focus on finding attack targets fo
+	/// 
+	/// possibly rework pois so entities always know where they are
+	/// use TargetData's targetDistance variable as a way to control if entity should care about poi or not
 	/// </summary>
 
 	private EntityStats entityStats;
@@ -75,7 +77,7 @@ public class EntitySensor : MonoBehaviour
 
 	void Update()
 	{
-		timer.Tick(Time.deltaTime, false);
+		timer.Tick(Time.deltaTime);
 	}
 
 	public void UpdateSensorSettings(SensorType sensorType, EntityAttackData attackData)
