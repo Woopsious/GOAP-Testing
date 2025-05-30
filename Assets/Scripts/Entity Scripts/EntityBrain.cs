@@ -78,9 +78,9 @@ public class EntityBrain : MonoBehaviour
 	void Initilize()
 	{
 		if (entityStats._Data.team == EntityTeam.redTeam)
-			HomeBase = GameManager.instance.redTeamHomeBase.transform;
+			HomeBase = AiDirector.instance.redTeamHomeBase.transform;
 		else if (entityStats._Data.team == EntityTeam.greenTeam)
-			HomeBase = GameManager.instance.greenTeamHomeBase.transform;
+			HomeBase = AiDirector.instance.greenTeamHomeBase.transform;
 		else
 			Debug.LogError("No Home Base Location Set");
 

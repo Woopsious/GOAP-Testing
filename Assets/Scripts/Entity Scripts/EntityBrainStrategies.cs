@@ -219,9 +219,9 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 		factory.AddBelief("FleeingFromTarget", () => false);
 
 		if (entityStats._Data.team == EntityData.EntityTeam.redTeam)
-			factory.AddLocationBelief("AtHomeBase", 10f, GameManager.instance.redTeamHomeBase.transform.position);
+			factory.AddLocationBelief("AtHomeBase", 10f, AiDirector.instance.redTeamHomeBase.transform.position);
         else if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
-			factory.AddLocationBelief("AtHomeBase", 10f, GameManager.instance.greenTeamHomeBase.transform.position);
+			factory.AddLocationBelief("AtHomeBase", 10f, AiDirector.instance.greenTeamHomeBase.transform.position);
 
 		factory.AddTargetBelief("FoundFriendlyPoi", entitySensors[2]);
 		factory.AddBelief("AtFriendlyPoi", () => entityBrain.InRangeOf(beliefs["FoundFriendlyPoi"].TargetLocation, 10f));

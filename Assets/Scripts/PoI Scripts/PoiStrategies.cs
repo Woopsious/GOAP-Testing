@@ -48,7 +48,7 @@ public class PoiResourcesStrategy : IPoIStrategies
 		CheckIfResourcesNeedMoving();
 
 		if (_Data.isTeamHomeBase)
-			GameManager.instance.UpdateTeamResourceCounter(poIController.poiOwner, poIController.accumilatedResources);
+			AiDirector.UpdateTeamResourceCounter(poIController.poiOwner, poIController.accumilatedResources);
 	}
 
 	void CheckIfResourcesNeedMoving()
@@ -156,7 +156,7 @@ public class TeamPopStrategy : IPoIStrategies
 
 		EntityStats entity = poIController.SpawnNewEntity();
 		entity._Data = popToSpawn.PopData();
-		EntityPopManager.OnEntitySpawn(entity);
-		GameManager.instance.UpdateTeamResourceCounter(poIController.poiOwner, poIController.accumilatedResources);
+		AiDirector.OnEntitySpawn(entity);
+		AiDirector.UpdateTeamResourceCounter(poIController.poiOwner, poIController.accumilatedResources);
 	}
 }

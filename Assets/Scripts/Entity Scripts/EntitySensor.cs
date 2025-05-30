@@ -1,9 +1,5 @@
-using NUnit.Framework.Internal;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using Unity.VisualScripting;
-using Unity.VisualScripting.Antlr3.Runtime.Misc;
 using UnityEngine;
 
 public class EntitySensor : MonoBehaviour
@@ -68,11 +64,11 @@ public class EntitySensor : MonoBehaviour
 
 	void OnEnable()
 	{
-		EntityPopManager.OnEntityDeathEvent += ClearDeadEntitiesFromTargetList;
+		AiDirector.OnEntityDeathEvent += ClearDeadEntitiesFromTargetList;
 	}
 	void OnDisable()
 	{
-		EntityPopManager.OnEntityDeathEvent -= ClearDeadEntitiesFromTargetList;
+		AiDirector.OnEntityDeathEvent -= ClearDeadEntitiesFromTargetList;
 	}
 
 	void Update()

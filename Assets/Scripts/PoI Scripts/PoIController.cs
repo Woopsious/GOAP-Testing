@@ -108,7 +108,7 @@ public class PoIController : MonoBehaviour
 			meshRenderer.sharedMaterial = greenTeamMaterial;
 			break;
 		}
-		GameManager.OnPoiCapture(this);
+		AiDirector.OnPoiCapture(this);
 	}
 
 	//transfering poi resources

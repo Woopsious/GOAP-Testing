@@ -27,23 +27,23 @@ public class TeamInfoUi : MonoBehaviour
 
 	void OnEnable()
 	{
-		GameManager.UpdateUiPoiCounters += UpdatePoiCounter;
-		GameManager.UpdateUiResourceCounters += UpdateResourceCounter;
-		EntityPopManager.UpdateUiPopDataEvent += UpdatePopCounters;
+		AiDirector.UpdateUiPoiCounters += UpdatePoiCounter;
+		AiDirector.UpdateUiResourceCounters += UpdateResourceCounter;
+		AiDirector.UpdateUiPopDataEvent += UpdatePopCounters;
 	}
 	void OnDisable()
 	{
-		GameManager.UpdateUiPoiCounters -= UpdatePoiCounter;
-		GameManager.UpdateUiResourceCounters -= UpdateResourceCounter;
-		EntityPopManager.UpdateUiPopDataEvent -= UpdatePopCounters;
+		AiDirector.UpdateUiPoiCounters -= UpdatePoiCounter;
+		AiDirector.UpdateUiResourceCounters -= UpdateResourceCounter;
+		AiDirector.UpdateUiPopDataEvent -= UpdatePopCounters;
 	}
 
 	void UpdatePoiCounter()
 	{
 		if (teamToTrack == EntityData.EntityTeam.redTeam)
-			ownedPois.text = "Owned Pois: " + GameManager.instance.RedTeamCapturedPois;
+			ownedPois.text = "Owned Pois: " + AiDirector.instance.RedTeamCapturedPois;
 		else if (teamToTrack == EntityData.EntityTeam.greenTeam)
-			ownedPois.text = "Owned Pois: " + GameManager.instance.GreenTeamCapturedPois;
+			ownedPois.text = "Owned Pois: " + AiDirector.instance.GreenTeamCapturedPois;
 	}
 
 	void UpdateResourceCounter(EntityData.EntityTeam team, int resourceAmount)

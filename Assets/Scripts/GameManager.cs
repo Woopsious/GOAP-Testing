@@ -6,30 +6,6 @@ public class GameManager : MonoBehaviour
 {
 	public static GameManager instance;
 
-	public static event Action<PoIController> OnPoiCaptureEvent;
-
-	//ui events
-	public static event Action UpdateUiPoiCounters;
-	public static event Action<EntityData.EntityTeam, int> UpdateUiResourceCounters;
-
-	[Header("Red Team Global Info")]
-	public int RedTeamResourceCounter;
-	public int RedTeamCapturedPois;
-
-	[Header("Green Team Global Info")]
-	public int GreenTeamResourceCounter;
-	public int GreenTeamCapturedPois;
-	public int GreenTeamWorkers;
-	public int GreenTeamDualists;
-	public int GreenTeamMelee;
-	public int GreenTeamRanged;
-
-	[Header("Global Locations")]
-	public GameObject redTeamHomeBase;
-	public GameObject greenTeamHomeBase;
-
-	public PoIController[] AllPois;
-
 	/// <summary> IDEAS TO TRY AND IMPLEMENT
 	/// ENTITIY REQUEST/ANSWER HELP CALL BEHAVIOUR:
 	/// add a way for entities to call for help from surrounding ones as a RequestHelpCall strategy
@@ -61,47 +37,5 @@ public class GameManager : MonoBehaviour
 	void Awake()
 	{
 		instance = this;
-	}
-
-	public void UpdateTeamResourceCounter(EntityData.EntityTeam team, int resourceAmount)
-	{
-		if (team == EntityData.EntityTeam.redTeam)
-			RedTeamResourceCounter = resourceAmount;
-		else if (team == EntityData.EntityTeam.greenTeam)
-			GreenTeamResourceCounter = resourceAmount;
-		else
-			Debug.LogError("no team match found for resources");
-
-		UpdateUiResourceCounters?.Invoke(team, resourceAmount);
-	}
-
-	public static void OnPoiCapture(PoIController poi)
-	{
-		OnPoiCaptureEvent?.Invoke(poi);
-		instance.UpdateCapturePointCounters(poi);
-	}
-	void UpdateCapturePointCounters(PoIController poi)
-	{
-		if (poi.previousPoiOwner == EntityData.EntityTeam.neutral && poi.poiOwner == EntityData.EntityTeam.neutral) return;
-
-		if (poi.previousPoiOwner == EntityData.EntityTeam.redTeam)
-			RedTeamCapturedPois--;
-		else if (poi.previousPoiOwner == EntityData.EntityTeam.greenTeam)
-			GreenTeamCapturedPois--;
-		else if (poi.previousPoiOwner == EntityData.EntityTeam.neutral)
-			Debug.Log("neutral poi captured");
-		else
-			Debug.LogError("previous poi owner not set up");
-
-		if (poi.poiOwner == EntityData.EntityTeam.redTeam)
-			RedTeamCapturedPois++;
-		else if (poi.poiOwner == EntityData.EntityTeam.greenTeam)
-			GreenTeamCapturedPois++;
-		else if (poi.poiOwner == EntityData.EntityTeam.neutral)
-			Debug.LogError("poi captured to neutral team, shouldnt be possible");
-		else
-			Debug.LogError("poi owner not set up");
-
-		UpdateUiPoiCounters?.Invoke();
 	}
 }

@@ -1,15 +1,11 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class EntityPopManager : MonoBehaviour
 {
 	public static EntityPopManager instance;
-
-	public static event Action<EntityStats> OnEntitySpawnEvent;
-	public static event Action<EntityStats> OnEntityDeathEvent;
-
-	public static event Action<EntityData.EntityTeam> UpdateUiPopDataEvent;
 
 	public EntityPopData redWorkerPopData;
 	public EntityPopData redDualistPopData;
@@ -25,6 +21,17 @@ public class EntityPopManager : MonoBehaviour
 	{
 		instance = this;
 		SetUpInitialTeamPopData();
+	}
+
+	void OnEnable()
+	{
+		AiDirector.OnEntitySpawnEvent += AddEntityToPopCounters;
+		AiDirector.OnEntityDeathEvent += MinusEntityFromPopCounters;
+	}
+	void OnDisable()
+	{
+		AiDirector.OnEntitySpawnEvent -= AddEntityToPopCounters;
+		AiDirector.OnEntityDeathEvent -= MinusEntityFromPopCounters;
 	}
 
 	//shared team funcs
@@ -102,17 +109,15 @@ public class EntityPopManager : MonoBehaviour
 	//red team funcs
 	void UpdateRedTeamPopData(int accumilatedResources)
 	{
-		redWorkerPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
-		redDualistPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
-		redMeleePopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
-		redRangedPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
+		redWorkerPopData.CalculatePopGoals(AiDirector.instance.RedTeamCapturedPois.Count, accumilatedResources);
+		redDualistPopData.CalculatePopGoals(AiDirector.instance.RedTeamCapturedPois.Count, accumilatedResources);
+		redMeleePopData.CalculatePopGoals(AiDirector.instance.RedTeamCapturedPois.Count, accumilatedResources);
+		redRangedPopData.CalculatePopGoals(AiDirector.instance.RedTeamCapturedPois.Count, accumilatedResources);
 
 		redWorkerPopData.CalculatePopNeeds();
 		redDualistPopData.CalculatePopNeeds();
 		redMeleePopData.CalculatePopNeeds();
 		redRangedPopData.CalculatePopNeeds();
-
-		UpdateUiPopDataEvent?.Invoke(EntityData.EntityTeam.redTeam);
 	}
 	EntityPopData GetMostNeededRedTeamPop()
 	{
@@ -160,17 +165,15 @@ public class EntityPopManager : MonoBehaviour
 	//green team funcs
 	void UpdateGreenTeamPopData(int accumilatedResources)
 	{
-		greenWorkerPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
-		greenDualistPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
-		greenMeleePopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
-		greenRangedPopData.CalculatePopGoals(GameManager.instance.RedTeamCapturedPois, accumilatedResources);
+		greenWorkerPopData.CalculatePopGoals(AiDirector.instance.RedTeamCapturedPois.Count, accumilatedResources);
+		greenDualistPopData.CalculatePopGoals(AiDirector.instance.RedTeamCapturedPois.Count, accumilatedResources);
+		greenMeleePopData.CalculatePopGoals(AiDirector.instance.RedTeamCapturedPois.Count, accumilatedResources);
+		greenRangedPopData.CalculatePopGoals(AiDirector.instance.RedTeamCapturedPois.Count, accumilatedResources);
 
 		greenWorkerPopData.CalculatePopNeeds();
 		greenDualistPopData.CalculatePopNeeds();
 		greenMeleePopData.CalculatePopNeeds();
 		greenRangedPopData.CalculatePopNeeds();
-
-		UpdateUiPopDataEvent?.Invoke(EntityData.EntityTeam.greenTeam);
 	}
 	EntityPopData GetMostNeededGreenTeamPop()
 	{
@@ -216,12 +219,7 @@ public class EntityPopManager : MonoBehaviour
 	}
 
 	//entity spawn/destroy events + counter
-	public static void OnEntitySpawn(EntityStats entity)
-	{
-		OnEntitySpawnEvent?.Invoke(entity);
-		instance.AddEntityToCounters(entity);
-	}
-	void AddEntityToCounters(EntityStats entity)
+	void AddEntityToPopCounters(EntityStats entity)
 	{
 		if (entity._Data.team == EntityData.EntityTeam.redTeam)
 		{
@@ -252,13 +250,7 @@ public class EntityPopManager : MonoBehaviour
 		else
 			Debug.LogError("no matching team set up");
 	}
-
-	public static void OnEntityDeath(EntityStats entity)
-	{
-		OnEntityDeathEvent?.Invoke(entity);
-		instance.MinusEntityFromCounters(entity);
-	}
-	void MinusEntityFromCounters(EntityStats entity)
+	void MinusEntityFromPopCounters(EntityStats entity)
 	{
 		if (entity._Data.team == EntityData.EntityTeam.redTeam)
 		{
