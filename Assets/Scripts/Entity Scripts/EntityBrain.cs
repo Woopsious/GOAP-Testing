@@ -24,15 +24,15 @@ public class EntityBrain : MonoBehaviour
 	public Transform HomeBase { get; private set; }
 
 	[Header("Attacks")]
-	[SerializeField] bool allAttacksOnCooldown;
-	[SerializeField] bool attackOneReady;
-	[SerializeField] bool attackTwoReady;
+	bool allAttacksOnCooldown;
+	bool attackOneReady;
+	bool attackTwoReady;
 
 	CountdownTimer attackOneTimer;
 	CountdownTimer attackTwoTimer;
 
 	[Header("Bool Checks")]
-	[SerializeField] bool RecievedHelpRequest;
+	public bool RecievedHelpRequest { get; private set; }
 
 	[Header("Entity Targets")]
 	[SerializeField] TargetData chaseTarget;
@@ -182,6 +182,11 @@ public class EntityBrain : MonoBehaviour
 		attackTwoReady = false;
 		targetTwo.entity.RecieveDamage(entityStats._Data.attackData[1].attackDamage);
 		attackTwoTimer.Start();
+	}
+
+	public void UpdateRecievedHelpRequest(bool RecievedHelpRequest)
+	{
+		this.RecievedHelpRequest = RecievedHelpRequest;
 	}
 
 	void TickAllTimers()

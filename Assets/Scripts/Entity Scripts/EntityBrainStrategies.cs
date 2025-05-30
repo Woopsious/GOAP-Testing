@@ -62,6 +62,21 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		factory.AddBelief("AttackOneReady", () => attackBools[1]());
 		factory.AddBelief("AttackTwoReady", () => attackBools[2]());
 
+		/// <summary>
+		/// FOR REQUEST HELP BELIEF:
+		/// consider adding friendly sensor that detects all friendly in range so i can compare friendlies count vs enemies count
+		/// (this will make getting entities in range in CallForHelpStrategy much simpler and no longer rely on AiDirector)
+		/// then based on this decide if entity should call for help + set up a cooldown timer (set to 15s or 60s etc...)
+		/// 
+		/// FOR ANSWER REQUEST HELP BELIEF:
+		/// set up cooldown timer (set to 15s or 60s etc...) consider checking if entity is currenly doing a goal with a higher priority then
+		/// its answer call to help goal priority, if it is ignore this. or figure out a way to include this in CallForHelpStrategy
+		/// should be simple as i already have the EntityStats ref and beliefs are public.
+		/// </summary>
+
+		factory.AddBelief("RequestHelp", () => entitySensors[1].targetsInRange.Count <= 1); //default 3 atm set to 1 whilst testing
+		factory.AddBelief("AnswerRequestHelp", () => entityBrain.RecievedHelpRequest);
+
 		factory.AddBelief("MoveToAttack", () => false);
 		factory.AddBelief("Attack", () => false);
 
@@ -225,7 +240,6 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 
 		factory.AddTargetBelief("FoundFriendlyPoi", entitySensors[2]);
 		factory.AddBelief("AtFriendlyPoi", () => entityBrain.InRangeOf(beliefs["FoundFriendlyPoi"].TargetLocation, 10f));
-		//factory.AddLocationBelief("AtFriendlyPoi", 15f, beliefs["FoundFriendlyPoi"].TargetLocation);
 
 		factory.AddBelief("FriendlyPoiNeedsResTransfer", () =>
 			beliefs["FoundFriendlyPoi"].TargetData.poi != null &&
@@ -237,7 +251,6 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 		factory.AddBelief("EnemyPoiCapturable", () => 
 			beliefs["FoundEnemyPoi"].TargetData.poi != null &&
 			beliefs["FoundEnemyPoi"].TargetData.poi.PoiCapturable(entityStats));
-		//factory.AddLocationBelief("AtCapturablePoi", 15f, beliefs["FoundCapturablePoi"].TargetLocation);
 
 		factory.AddBelief("FindPois", () => false);
 		factory.AddBelief("CapturePoi", () => false);
