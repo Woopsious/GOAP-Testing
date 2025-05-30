@@ -22,20 +22,22 @@ public class EntityBrain : MonoBehaviour
 
 	[Header("Known Locations")]
 	public Transform HomeBase { get; private set; }
-	public PoIController[] Pois;
 
 	[Header("Attacks")]
-	public bool allAttacksOnCooldown;
-	public bool attackOneReady;
-	public bool attackTwoReady;
+	[SerializeField] bool allAttacksOnCooldown;
+	[SerializeField] bool attackOneReady;
+	[SerializeField] bool attackTwoReady;
 
-	public CountdownTimer attackOneTimer;
-	public CountdownTimer attackTwoTimer;
+	CountdownTimer attackOneTimer;
+	CountdownTimer attackTwoTimer;
+
+	[Header("Bool Checks")]
+	[SerializeField] bool RecievedHelpRequest;
 
 	[Header("Entity Targets")]
-	public TargetData chaseTarget;
-	public TargetData targetOne;
-	public TargetData targetTwo;
+	[SerializeField] TargetData chaseTarget;
+	[SerializeField] TargetData targetOne;
+	[SerializeField] TargetData targetTwo;
 
 	public EntityGoals lastGoal;
 	public EntityGoals currentGoal;
@@ -161,35 +163,25 @@ public class EntityBrain : MonoBehaviour
 		if (entityStats._Data.brainType != EntityBrainType.combat) return; //workers have no attacks atm
 
 		attackOneTimer = new CountdownTimer(entityStats._Data.attackData[0].attackCooldown);
-		attackOneTimer.OnTimerStart += () =>
-		{
-			attackOneReady = false;
-			UseAttackOne();
-		};
-		attackOneTimer.OnTimerStop += () =>
-		{
-			attackOneReady = true;
-		};
+		attackOneTimer.OnTimerStart += () => UseAttackOne();
+		attackOneTimer.OnTimerStop += () => attackOneReady = true;
 
 		attackTwoTimer = new CountdownTimer(entityStats._Data.attackData[1].attackCooldown);
-		attackTwoTimer.OnTimerStart += () =>
-		{
-			attackTwoReady = false;
-			UseAttackTwo();
-		};
-		attackTwoTimer.OnTimerStop += () =>
-		{
-			attackTwoReady = true;
-		};
+		attackTwoTimer.OnTimerStart += () => UseAttackTwo();
+		attackTwoTimer.OnTimerStop += () => attackTwoReady = true;
 	}
 
-	void UseAttackOne()
+	public void UseAttackOne()
 	{
+		attackOneReady = false;
 		targetOne.entity.RecieveDamage(entityStats._Data.attackData[0].attackDamage);
+		attackOneTimer.Start();
 	}
-	void UseAttackTwo()
+	public void UseAttackTwo()
 	{
+		attackTwoReady = false;
 		targetTwo.entity.RecieveDamage(entityStats._Data.attackData[1].attackDamage);
+		attackTwoTimer.Start();
 	}
 
 	void TickAllTimers()

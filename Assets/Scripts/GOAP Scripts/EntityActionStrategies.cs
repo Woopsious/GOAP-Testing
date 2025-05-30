@@ -288,19 +288,16 @@ public class BasicAttackStrategy : IActionStrategy
 {
 	readonly EntityBrain entityBrain;
 	readonly int attackToUse;
+	readonly TargetData target;
 
-	public bool CanPerform => true; // Agent can always attack
-	public bool Complete { get; private set; }
+	public bool CanPerform => target.obj != null; // Agent can always attack
+	public bool Complete => target.obj == null;
 
-	readonly CountdownTimer timer;
-
-	public BasicAttackStrategy(EntityBrain entityBrain, int attackToUse)
+	public BasicAttackStrategy(EntityBrain entityBrain, int attackToUse, TargetData target)
 	{
 		this.entityBrain = entityBrain;
 		this.attackToUse = attackToUse;
-		timer = new CountdownTimer(0.1f);
-		timer.OnTimerStart += () => Complete = false;
-		timer.OnTimerStop += () => Complete = true;
+		this.target = target;
 	}
 
 	public void Start()
@@ -308,17 +305,13 @@ public class BasicAttackStrategy : IActionStrategy
 		switch (attackToUse)
 		{
 			case 1:
-				entityBrain.attackOneTimer.Start();
+				entityBrain.UseAttackOne();
 				break;
 			case 2:
-				entityBrain.attackTwoTimer.Start();
+				entityBrain.UseAttackTwo();
 				break;
 		}
-
-		timer.Start();
 	}
-
-	public void Update(float deltaTime) => timer.Tick(deltaTime);
 }
 
 public class FindPoiStrategy : IActionStrategy

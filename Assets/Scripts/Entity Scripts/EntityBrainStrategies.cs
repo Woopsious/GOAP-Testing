@@ -55,8 +55,8 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		factory.AddTargetBelief("TargetInChaseRange", entitySensors[1]);
 		factory.AddBelief("ChasingTarget", () => false);
 
-		factory.AddBelief("TargetInAttackOneRange", () => entitySensors[2].target.obj != null);
-		factory.AddBelief("TargetInAttackTwoRange", () => entitySensors[3].target.obj != null);
+		factory.AddTargetBelief("TargetInAttackOneRange", entitySensors[2]);
+		factory.AddTargetBelief("TargetInAttackTwoRange", entitySensors[3]);
 
 		factory.AddBelief("AllAttacksOnCooldown", () => attackBools[0]());
 		factory.AddBelief("AttackOneReady", () => attackBools[1]());
@@ -108,20 +108,20 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("WaitForAttacks")
-			.WithStrategy(new IdleStrategy(5f))
+			.WithStrategy(new IdleStrategy(0.5f))
 			.AddPrecondition(beliefs["AllAttacksOnCooldown"])
 			.AddEffect(beliefs["Attack"])
 			.Build(),
 
 			new EntityActions.Builder("AttackOne")
-			.WithStrategy(new BasicAttackStrategy(entityBrain, 1))
+			.WithStrategy(new BasicAttackStrategy(entityBrain, 1, beliefs["TargetInAttackOneRange"].TargetData))
 			.AddPrecondition(beliefs["TargetInAttackOneRange"])
 			.AddPrecondition(beliefs["AttackOneReady"])
 			.AddEffect(beliefs["Attack"])
 			.Build(),
 
 			new EntityActions.Builder("AttackTwo")
-			.WithStrategy(new BasicAttackStrategy(entityBrain, 2))
+			.WithStrategy(new BasicAttackStrategy(entityBrain, 2, beliefs["TargetInAttackTwoRange"].TargetData))
 			.AddPrecondition(beliefs["TargetInAttackTwoRange"])
 			.AddPrecondition(beliefs["AttackTwoReady"])
 			.AddEffect(beliefs["Attack"])
