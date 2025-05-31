@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
 
 public class EntitySensor : MonoBehaviour
 {
 	/// <summary>
 	/// ISSUES:
-	/// 
-	/// 
 	/// possibly rework pois so entities always know where they are
 	/// use TargetData's targetDistance variable as a way to control if entity should care about poi or not
 	/// </summary>
@@ -18,7 +17,7 @@ public class EntitySensor : MonoBehaviour
 	[SerializeField] SensorType sensorType;
 	public enum SensorType
 	{
-		flee, chase, attackSensorOne, attackSensorTwo, closestFriendlyPoi, closestEnemyPoi
+		fleeSensor, chaseSensor, friendlySensor, attackSensorOne, attackSensorTwo, friendlyPoiSensor, enemyPoiSensor
 	}
 
 	float detectionRadius;
@@ -53,13 +52,6 @@ public class EntitySensor : MonoBehaviour
 		entityTeam = entityStats._Data.team;
 		detectionRange.isTrigger = true;
 		detectionRange.radius = detectionRadius;
-
-		timer = new CountdownTimer(timerInterval);
-		timer.OnTimerStop += () => {
-			UpdateSensorLogic();
-			timer.Start();
-		};
-		timer.Start();
 	}
 
 	void OnEnable()
@@ -73,6 +65,7 @@ public class EntitySensor : MonoBehaviour
 
 	void Update()
 	{
+		if (sensorType == SensorType.friendlySensor) return; //atm dont need to constantly run sensor logic on friendly targets
 		timer.Tick(Time.deltaTime);
 	}
 
@@ -85,15 +78,22 @@ public class EntitySensor : MonoBehaviour
 	{
 		this.sensorType = sensorType;
 
-		if (sensorType == SensorType.flee || sensorType == SensorType.chase)
+		if (sensorType == SensorType.fleeSensor || sensorType == SensorType.chaseSensor)
 			timerInterval = 0.25f;
-		else if (sensorType == SensorType.closestFriendlyPoi || sensorType == SensorType.closestEnemyPoi)
+		else if (sensorType == SensorType.friendlyPoiSensor || sensorType == SensorType.enemyPoiSensor)
 			timerInterval = 1f;
 		else
 			timerInterval = 0.5f;
 
 		this.detectionRadius = detectionRadius;
 		detectionRange.radius = detectionRadius;
+
+		timer = new CountdownTimer(timerInterval);
+		timer.OnTimerStop += () => {
+			UpdateSensorLogic();
+			timer.Start();
+		};
+		timer.Start();
 	}
 
 	void UpdateSensorLogic()
@@ -103,12 +103,14 @@ public class EntitySensor : MonoBehaviour
 	}
 	void SortTargetsInSensorRange()
 	{
+		if (sensorType == SensorType.friendlySensor) return; //atm dont need to constantly run sensor logic on friendly targets
+
 		for (int i = targetsInRange.Count - 1; i >= 0; i--)
 		{
 			if (targetsInRange[i].obj == null)
 				targetsInRange.RemoveAt(i);
 			else
-				targetsInRange[i].targetDistance = GetTargetDistance(targetsInRange[i].obj);
+				targetsInRange[i].UpdateTargetDistance(transform.position);
 		}
 
 		targetsInRange.Sort((a, b) => a.targetDistance.CompareTo(b.targetDistance));
@@ -117,12 +119,12 @@ public class EntitySensor : MonoBehaviour
 	//sensor type target logic
 	void UpdateSensorTargets()
 	{
-		if (sensorType == SensorType.flee || sensorType == SensorType.chase)
+		if (sensorType == SensorType.fleeSensor || sensorType == SensorType.chaseSensor)
 			UpdateOtherSensorsTargets();
 
 		else if (sensorType == SensorType.attackSensorOne || sensorType == SensorType.attackSensorTwo)
 			UpdateAttackSensorTargets();
-		else if (sensorType == SensorType.closestFriendlyPoi || sensorType == SensorType.closestEnemyPoi)
+		else if (sensorType == SensorType.friendlyPoiSensor || sensorType == SensorType.enemyPoiSensor)
 			UpdatePoiDetectorTargets();
 		else
 			Debug.LogError("No matching sensor type");
@@ -160,7 +162,7 @@ public class EntitySensor : MonoBehaviour
 	}
 	void UpdatePoiDetectorTargets()
 	{
-		if (sensorType == SensorType.closestFriendlyPoi)
+		if (sensorType == SensorType.friendlyPoiSensor)
 		{
 			int index = FindClosestFriendlyPoi();
 			if (index >= 0)
@@ -168,7 +170,7 @@ public class EntitySensor : MonoBehaviour
 			else
 				target.ClearTarget();
 		}
-		else if (sensorType == SensorType.closestEnemyPoi)
+		else if (sensorType == SensorType.enemyPoiSensor)
 		{
 			int index = FindClosestEnemyPoi();
 			if (index >= 0)
@@ -231,7 +233,7 @@ public class EntitySensor : MonoBehaviour
 
 	void OnTriggerEnter(Collider other)
 	{
-		if (sensorType == SensorType.closestFriendlyPoi || sensorType == SensorType.closestEnemyPoi)
+		if (sensorType == SensorType.friendlyPoiSensor || sensorType == SensorType.enemyPoiSensor)
 		{
 			if (other.GetComponent<PoIController>() == null) return;
 			AddTargetToList(other.gameObject, TargetData.TargetType.poi);
@@ -241,13 +243,15 @@ public class EntitySensor : MonoBehaviour
 			if (other.GetComponent<EntityStats>() == null) return;
 			EntityStats entity = other.GetComponent<EntityStats>();
 
-			if (entityTeam != entity._Data.team)
+			if (sensorType == SensorType.friendlySensor && entityTeam == entity._Data.team)
+				AddTargetToList(entity.gameObject, TargetData.TargetType.entity);
+			else if (sensorType != SensorType.friendlySensor && entityTeam != entity._Data.team)
 				AddTargetToList(entity.gameObject, TargetData.TargetType.entity);
 		}
 	}
 	void OnTriggerExit(Collider other)
 	{
-		if (sensorType == SensorType.closestFriendlyPoi || sensorType == SensorType.closestEnemyPoi)
+		if (sensorType == SensorType.friendlyPoiSensor || sensorType == SensorType.enemyPoiSensor)
 		{
 			if (other.GetComponent<PoIController>() == null) return;
 			RemoveTargetFromList(other.gameObject);
@@ -257,7 +261,9 @@ public class EntitySensor : MonoBehaviour
 			if (other.GetComponent<EntityStats>() == null) return;
 			EntityStats entity = other.GetComponent<EntityStats>();
 
-			if (entityTeam != entity._Data.team)
+			if (sensorType == SensorType.friendlySensor && entityTeam == entity._Data.team)
+				RemoveTargetFromList(entity.gameObject);
+			else if (sensorType != SensorType.friendlySensor && entityTeam != entity._Data.team)
 				RemoveTargetFromList(entity.gameObject);
 		}
 	}
@@ -266,7 +272,7 @@ public class EntitySensor : MonoBehaviour
 	{
 		if (targetsInRange.Count == 0) //list empty no need to check
 		{
-			targetsInRange.Add(new(targetType, obj, GetTargetDistance(obj)));
+			targetsInRange.Add(new(targetType, obj, transform.position));
 			return;
 		}
 
@@ -275,7 +281,7 @@ public class EntitySensor : MonoBehaviour
 			if (targetsInRange[i].obj == obj)
 				continue;
 			else
-				targetsInRange.Add(new(targetType, obj, GetTargetDistance(obj)));
+				targetsInRange.Add(new(targetType, obj, transform.position));
 		}
 	}
 	void RemoveTargetFromList(GameObject obj)
@@ -285,12 +291,6 @@ public class EntitySensor : MonoBehaviour
 			if (targetsInRange[i].obj == obj)
 				targetsInRange.RemoveAt(i);
 		}
-	}
-
-	float GetTargetDistance(GameObject target)
-	{
-		float aggroDistance = Vector3.Distance(transform.position, target.transform.position);
-		return aggroDistance;
 	}
 
 	void ClearDeadEntitiesFromTargetList(EntityStats entity)
@@ -327,9 +327,9 @@ public class TargetData
 		entity, poi
 	}
 
-	public float targetDistance;
+	public float targetDistance { get; private set; }
 
-	public TargetData(TargetType type, GameObject obj, float targetDistance)
+	public TargetData(TargetType type, GameObject obj, Vector3 position)
 	{
 		if (type == TargetType.poi)
 			poi = obj.GetComponent<PoIController>();
@@ -338,7 +338,12 @@ public class TargetData
 
 		this.obj = obj;
 		this.type = type;
-		this.targetDistance = targetDistance;
+		UpdateTargetDistance(position);
+	}
+
+	public void UpdateTargetDistance(Vector3 position)
+	{
+		targetDistance = Vector3.Distance(position, obj.transform.position);
 	}
 
 	public void ClearTarget()

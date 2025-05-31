@@ -15,7 +15,7 @@ GameObject:
   - component: {fileID: 2447452308604184655}
   - component: {fileID: 4474601084492269287}
   - component: {fileID: 6507028675741482272}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -103,8 +103,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44e777bb2c84d0b49a23a8b0e70fef0c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  type: {fileID: 11400000, guid: 17e03d7beb5397545bde009788309366, type: 2}
+  entityBrain: {fileID: 0}
+  _Data: {fileID: 0}
   currentHealth: 0
+  carriedResources: 0
+  redTeamMaterial: {fileID: 0}
+  greenTeamMaterial: {fileID: 0}
 --- !u!114 &2447452308604184655
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -177,7 +181,7 @@ GameObject:
   - component: {fileID: 194129882228128162}
   - component: {fileID: 5799903702998891134}
   - component: {fileID: 4829823113936812195}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Main Camera
   m_TagString: MainCamera
   m_Icon: {fileID: 0}

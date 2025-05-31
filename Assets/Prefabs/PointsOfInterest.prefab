@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5717374160951434148}
   - component: {fileID: 3732694443863648908}
   - component: {fileID: 5555359492249666467}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: PointsOfInterest
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -106,7 +106,6 @@ MonoBehaviour:
   poiOwner: 0
   accumilatedResources: 0
   resourcesNeedTransfering: 0
-  entitiesInRange: []
   entityCurrentlyCapturing: {fileID: 0}
   redTeamEntitiesCount: 0
   greenTeamEntitiesCount: 0

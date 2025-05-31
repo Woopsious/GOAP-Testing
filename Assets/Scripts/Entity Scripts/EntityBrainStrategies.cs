@@ -55,8 +55,8 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		factory.AddTargetBelief("TargetInChaseRange", entitySensors[1]);
 		factory.AddBelief("ChasingTarget", () => false);
 
-		factory.AddTargetBelief("TargetInAttackOneRange", entitySensors[2]);
-		factory.AddTargetBelief("TargetInAttackTwoRange", entitySensors[3]);
+		factory.AddTargetBelief("TargetInAttackOneRange", entitySensors[3]);
+		factory.AddTargetBelief("TargetInAttackTwoRange", entitySensors[4]);
 
 		factory.AddBelief("AllAttacksOnCooldown", () => attackBools[0]());
 		factory.AddBelief("AttackOneReady", () => attackBools[1]());
@@ -74,11 +74,15 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		/// should be simple as i already have the EntityStats ref and beliefs are public.
 		/// </summary>
 
-		factory.AddBelief("RequestHelp", () => entitySensors[1].targetsInRange.Count <= 1); //default 3 atm set to 1 whilst testing
-		factory.AddBelief("AnswerRequestHelp", () => entityBrain.RecievedHelpRequest);
+		//check if targets in chase range > friendlies in change range
+		factory.AddBelief("NeedsHelp", () => entityBrain.EntityNeedsHelp(entitySensors[1], entitySensors[2]));
+		factory.AddBelief("CanRequestHelp", () => entityBrain.RequestHelpTimer.IsFinished);
+
+		factory.AddBelief("AnswerRequestForHelp", () => entityBrain.RecievedHelpRequest);
 
 		factory.AddBelief("MoveToAttack", () => false);
 		factory.AddBelief("Attack", () => false);
+		factory.AddBelief("RequestHelp", () => false);
 
 		return beliefs;
 	}
@@ -140,13 +144,22 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.AddPrecondition(beliefs["TargetInAttackTwoRange"])
 			.AddPrecondition(beliefs["AttackTwoReady"])
 			.AddEffect(beliefs["Attack"])
-			.Build()
+			.Build(),
+
+			new EntityActions.Builder("RequestHelp")
+			.WithStrategy(new CallForHelpStrategy(entityBrain.entityStats, 3, entitySensors[2]))
+			.AddPrecondition(beliefs["NeedsHelp"])
+			.AddPrecondition(beliefs["CanRequestHelp"])
+			.AddEffect(beliefs["RequestHelp"])
+			.Build(),
 		};
 
 		return actions;
 	}
 	public HashSet<EntityGoals> SetupGoals()
 	{
+		entityBrain.answerRequestHelpGoalPriority = 50;
+
 		goals = new HashSet<EntityGoals>
 		{
 			new EntityGoals.Builder("Idle")
@@ -162,6 +175,16 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			new EntityGoals.Builder("KeepHealthUp")
 			.WithPriority(20)
 			.WithDesiredEffect(beliefs["AgentIsHealthy"])
+			.Build(),
+
+			new EntityGoals.Builder("FleeFromTarget")
+			.WithPriority(40)
+			.WithDesiredEffect(beliefs["FleeingFromTarget"])
+			.Build(),
+
+			new EntityGoals.Builder("AnswerRequstForHelp")
+			.WithPriority(50)
+			.WithDesiredEffect(beliefs["AnswerRequestForHelp"])
 			.Build(),
 
 			new EntityGoals.Builder("ChaseTarget")
@@ -184,9 +207,9 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.WithDesiredEffect(beliefs["Attack"])
 			.Build(),
 
-			new EntityGoals.Builder("FleeFromTarget")
-			.WithPriority(40)
-			.WithDesiredEffect(beliefs["FleeingFromTarget"])
+			new EntityGoals.Builder("RequstForHelp")
+			.WithPriority(100)
+			.WithDesiredEffect(beliefs["RequestHelp"])
 			.Build(),
 		};
 
@@ -238,7 +261,7 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
         else if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
 			factory.AddLocationBelief("AtHomeBase", 10f, AiDirector.instance.greenTeamHomeBase.transform.position);
 
-		factory.AddTargetBelief("FoundFriendlyPoi", entitySensors[2]);
+		factory.AddTargetBelief("FoundFriendlyPoi", entitySensors[3]);
 		factory.AddBelief("AtFriendlyPoi", () => entityBrain.InRangeOf(beliefs["FoundFriendlyPoi"].TargetLocation, 10f));
 
 		factory.AddBelief("FriendlyPoiNeedsResTransfer", () =>
@@ -246,7 +269,7 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			beliefs["FoundFriendlyPoi"].TargetData.poi.PoiNeedsResourceTransfer());
 		factory.AddBelief("TransferResourceToHomeBase", () => entityStats.carriedResources != 0);
 
-		factory.AddTargetBelief("FoundEnemyPoi", entitySensors[3]);
+		factory.AddTargetBelief("FoundEnemyPoi", entitySensors[4]);
 		factory.AddBelief("AtEnemyPoi", () => entityBrain.InRangeOf(beliefs["FoundEnemyPoi"].TargetLocation, 10f));
 		factory.AddBelief("EnemyPoiCapturable", () => 
 			beliefs["FoundEnemyPoi"].TargetData.poi != null &&

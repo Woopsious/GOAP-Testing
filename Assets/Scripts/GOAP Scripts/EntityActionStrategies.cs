@@ -165,6 +165,8 @@ public class CallForHelpStrategy : IActionStrategy
 	public bool CanPerform => true;
 	public bool Complete => finishedCallForHelp;
 
+	readonly EntitySensor friendlySensor;
+
 	bool finishedCallForHelp;
 
 	public CallForHelpStrategy(EntityStats entity, int entitiesToTryAndFind, float maxSearchDistance)
@@ -174,8 +176,52 @@ public class CallForHelpStrategy : IActionStrategy
 		this.maxSearchDistance = maxSearchDistance;
 	}
 
-	public void Start() => FindEntitiesToCallForHelp();
+	public CallForHelpStrategy(EntityStats entity, int entitiesToTryAndFind, EntitySensor friendlySensor)
+	{
+		this.entity = entity;
+		this.entitiesToTryAndFind = entitiesToTryAndFind;
+		this.friendlySensor = friendlySensor;
+	}
 
+	public void Start() => RequestAvailableFriendliesForHelp();
+
+	void RequestAvailableFriendliesForHelp()
+	{
+		Debug.LogError("Entity Requested help");
+
+		finishedCallForHelp = false;
+		int entitiesFoundToCall = 0;
+
+		List<TargetData> foundEntities = SortEntitiesDistance();
+
+		for (int i = 0; i < foundEntities.Count; i++)
+		{
+			if (foundEntities[i].entity.entityBrain.CanAnswerRequestHelp())
+			{
+				foundEntities[i].entity.entityBrain.UpdateRecievedHelpRequest(true);
+				entitiesFoundToCall++;
+			}
+
+			if (entitiesFoundToCall >= entitiesToTryAndFind)
+				return;
+		}
+
+		entity.entityBrain.RequestHelpTimer.Start();
+		finishedCallForHelp = true;
+	}
+	List<TargetData> SortEntitiesDistance()
+	{
+		List<TargetData> foundEntities = friendlySensor.targetsInRange;
+
+		for (int i = 0; i < foundEntities.Count; i++)
+			foundEntities[i].UpdateTargetDistance(entity.transform.position);
+
+		foundEntities.Sort((a, b) => a.targetDistance.CompareTo(b.targetDistance));
+
+		return foundEntities;
+	}
+
+	//old code
 	void FindEntitiesToCallForHelp()
 	{
 		finishedCallForHelp = false;
