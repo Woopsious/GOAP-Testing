@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
-using static InteractStrategy;
 
 public interface IEntityBrainStrategies
 {
@@ -55,8 +54,8 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		factory.AddTargetBelief("TargetInChaseRange", entitySensors[1]);
 		factory.AddBelief("ChasingTarget", () => false);
 
-		factory.AddTargetBelief("TargetInAttackOneRange", entitySensors[3]);
-		factory.AddTargetBelief("TargetInAttackTwoRange", entitySensors[4]);
+		factory.AddTargetBelief("TargetInAttackOneRange", () => entitySensors[1].GetClosestAttackableTarget(entityStats._Data.attackData[0]));
+		factory.AddTargetBelief("TargetInAttackTwoRange", () => entitySensors[1].GetClosestAttackableTarget(entityStats._Data.attackData[1]));
 
 		factory.AddBelief("AllAttacksOnCooldown", () => attackBools[0]());
 		factory.AddBelief("AttackOneReady", () => attackBools[1]());
@@ -120,14 +119,14 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("AttackOne")
-			.WithStrategy(new BasicAttackStrategy(entityBrain, 1, beliefs["TargetInAttackOneRange"].TargetData))
+			.WithStrategy(new BasicAttackStrategy(entityBrain, 1, beliefs["TargetInAttackOneRange"].EntityTarget))
 			.AddPrecondition(beliefs["TargetInAttackOneRange"])
 			.AddPrecondition(beliefs["AttackOneReady"])
 			.AddEffect(beliefs["Attack"])
 			.Build(),
 
 			new EntityActions.Builder("AttackTwo")
-			.WithStrategy(new BasicAttackStrategy(entityBrain, 2, beliefs["TargetInAttackTwoRange"].TargetData))
+			.WithStrategy(new BasicAttackStrategy(entityBrain, 2, beliefs["TargetInAttackTwoRange"].EntityTarget))
 			.AddPrecondition(beliefs["TargetInAttackTwoRange"])
 			.AddPrecondition(beliefs["AttackTwoReady"])
 			.AddEffect(beliefs["Attack"])

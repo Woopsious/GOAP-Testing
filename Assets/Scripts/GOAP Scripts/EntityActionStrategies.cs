@@ -262,12 +262,12 @@ public class BasicAttackStrategy : IActionStrategy
 {
 	readonly EntityBrain entityBrain;
 	readonly int attackToUse;
-	readonly TargetData target;
+	readonly EntityStats target;
 
-	public bool CanPerform => target.obj != null; // Agent can always attack
-	public bool Complete => target.obj == null;
+	public bool CanPerform => target != null; // Agent can always attack
+	public bool Complete => target == null;
 
-	public BasicAttackStrategy(EntityBrain entityBrain, int attackToUse, TargetData target)
+	public BasicAttackStrategy(EntityBrain entityBrain, int attackToUse, EntityStats target)
 	{
 		this.entityBrain = entityBrain;
 		this.attackToUse = attackToUse;

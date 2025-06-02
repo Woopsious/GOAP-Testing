@@ -183,13 +183,15 @@ public class EntityBrain : MonoBehaviour
 	public void UseAttackOne()
 	{
 		attackOneReady = false;
-		targetOne.entity.RecieveDamage(entityStats._Data.attackData[0].attackDamage);
+		Debug.LogError("attack target ref: " + beliefs["TargetInAttackOneRange"].EntityTarget);
+
+		beliefs["TargetInAttackOneRange"].EntityTarget.RecieveDamage(entityStats._Data.attackData[0].attackDamage);
 		attackOneTimer.Start();
 	}
 	public void UseAttackTwo()
 	{
 		attackTwoReady = false;
-		targetTwo.entity.RecieveDamage(entityStats._Data.attackData[1].attackDamage);
+		beliefs["TargetInAttackTwoRange"].EntityTarget.RecieveDamage(entityStats._Data.attackData[1].attackDamage);
 		attackTwoTimer.Start();
 	}
 

@@ -110,6 +110,23 @@ public class EntitySensor : MonoBehaviour
 		targetsInRange.Sort((a, b) => a.targetDistance.CompareTo(b.targetDistance));
 	}
 
+	//new fetch target
+	public EntityStats GetClosestAttackableTarget(EntityAttackData attackData)
+	{
+		EntityStats foundTarget = null;
+
+		for (int i = 0; i < targetsInRange.Count; i++)
+		{
+			if (targetsInRange[i].targetDistance >= attackData.attackMinRange && targetsInRange[i].targetDistance <= attackData.attackMaxRange)
+			{
+				foundTarget = targetsInRange[i].entity;
+
+				Debug.LogError("found target entity: " + foundTarget);
+			}
+		}
+		return foundTarget;
+	}
+
 	//sensor type target logic
 	void UpdateSensorTargets()
 	{

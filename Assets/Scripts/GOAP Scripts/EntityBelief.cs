@@ -37,6 +37,15 @@ public class BeliefFactory
 			.Build());
 	}
 
+	public void AddTargetBelief(string key, Func<EntityStats> entity)
+	{
+		beliefs.Add(key, new EntityBeliefs.Builder(key)
+			.WithCondition(() => entity())
+			.WithTargetLocation(() => entity().transform.position)
+			.WithEntityTargetRef(() => entity())
+			.Build());
+	}
+
 	public void AddLocationBelief(string key, float distance, Vector3 locationCondition)
 	{
 		beliefs.Add(key, new EntityBeliefs.Builder(key)
@@ -62,6 +71,9 @@ public class EntityBeliefs
 
 	Func<TargetData> targetData = () => null;
 	public TargetData TargetData => targetData();
+
+	Func<EntityStats> entityTarget = () => null;
+	public EntityStats EntityTarget => entityTarget();
 
 	EntityBeliefs(string name)
 	{
@@ -100,6 +112,12 @@ public class EntityBeliefs
 		public Builder WithTargetRef(Func<TargetData> target)
 		{
 			belief.targetData = target;
+			return this;
+		}
+
+		public Builder WithEntityTargetRef(Func<EntityStats> target)
+		{
+			belief.entityTarget = target;
 			return this;
 		}
 
