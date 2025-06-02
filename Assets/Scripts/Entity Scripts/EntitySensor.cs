@@ -1,16 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
 
 public class EntitySensor : MonoBehaviour
 {
-	/// <summary>
-	/// ISSUES:
-	/// possibly rework pois so entities always know where they are
-	/// use TargetData's targetDistance variable as a way to control if entity should care about poi or not
-	/// </summary>
-
 	private EntityStats entityStats;
 
 	[Header("Sensor Info")]
@@ -30,6 +23,7 @@ public class EntitySensor : MonoBehaviour
 
 	[Header("Target Info")]
 	public List<TargetData> targetsInRange = new List<TargetData>();
+	public List<TargetData> friendliesInRange = new List<TargetData>();
 
 	public TargetData target;
 	Vector3 lastKnownPosition;
@@ -236,17 +230,22 @@ public class EntitySensor : MonoBehaviour
 		if (sensorType == SensorType.friendlyPoiSensor || sensorType == SensorType.enemyPoiSensor)
 		{
 			if (other.GetComponent<PoIController>() == null) return;
-			AddTargetToList(other.gameObject, TargetData.TargetType.poi);
+			AddTargetToList(targetsInRange, other.gameObject, TargetData.TargetType.poi);
 		}
 		else
 		{
 			if (other.GetComponent<EntityStats>() == null) return;
 			EntityStats entity = other.GetComponent<EntityStats>();
 
-			if (sensorType == SensorType.friendlySensor && entityTeam == entity._Data.team)
-				AddTargetToList(entity.gameObject, TargetData.TargetType.entity);
-			else if (sensorType != SensorType.friendlySensor && entityTeam != entity._Data.team)
-				AddTargetToList(entity.gameObject, TargetData.TargetType.entity);
+            if (entityTeam == entity._Data.team)
+            {
+				if (sensorType == SensorType.chaseSensor)
+					AddTargetToList(friendliesInRange, entity.gameObject, TargetData.TargetType.entity);
+				else if (sensorType == SensorType.friendlySensor)
+					AddTargetToList(targetsInRange, entity.gameObject, TargetData.TargetType.entity);
+			}
+			else if (sensorType != SensorType.friendlySensor)
+				AddTargetToList(targetsInRange, entity.gameObject, TargetData.TargetType.entity);
 		}
 	}
 	void OnTriggerExit(Collider other)
@@ -254,42 +253,47 @@ public class EntitySensor : MonoBehaviour
 		if (sensorType == SensorType.friendlyPoiSensor || sensorType == SensorType.enemyPoiSensor)
 		{
 			if (other.GetComponent<PoIController>() == null) return;
-			RemoveTargetFromList(other.gameObject);
+			RemoveTargetFromList(targetsInRange, other.gameObject);
 		}
 		else
 		{
 			if (other.GetComponent<EntityStats>() == null) return;
 			EntityStats entity = other.GetComponent<EntityStats>();
 
-			if (sensorType == SensorType.friendlySensor && entityTeam == entity._Data.team)
-				RemoveTargetFromList(entity.gameObject);
-			else if (sensorType != SensorType.friendlySensor && entityTeam != entity._Data.team)
-				RemoveTargetFromList(entity.gameObject);
+			if (entityTeam == entity._Data.team)
+			{
+				if (sensorType == SensorType.chaseSensor)
+					RemoveTargetFromList(friendliesInRange, entity.gameObject);
+				else if (sensorType == SensorType.friendlySensor)
+					RemoveTargetFromList(targetsInRange, entity.gameObject);
+			}
+			else if (sensorType != SensorType.friendlySensor)
+				RemoveTargetFromList(targetsInRange, entity.gameObject);
 		}
 	}
 
-	void AddTargetToList(GameObject obj, TargetData.TargetType targetType)
+	void AddTargetToList(List<TargetData> list, GameObject obj, TargetData.TargetType targetType)
 	{
-		if (targetsInRange.Count == 0) //list empty no need to check
+		if (list.Count == 0) //list empty no need to check
 		{
-			targetsInRange.Add(new(targetType, obj, transform.position));
+			list.Add(new(targetType, obj, transform.position));
 			return;
 		}
 
-		for (int i = 0; i < targetsInRange.Count; i++)
+		for (int i = 0; i < list.Count; i++)
 		{
-			if (targetsInRange[i].obj == obj)
+			if (list[i].obj == obj)
 				continue;
 			else
-				targetsInRange.Add(new(targetType, obj, transform.position));
+				list.Add(new(targetType, obj, transform.position));
 		}
 	}
-	void RemoveTargetFromList(GameObject obj)
+	void RemoveTargetFromList(List<TargetData> list, GameObject obj)
 	{
-		for (int i = targetsInRange.Count - 1; i >= 0; i--)
+		for (int i = list.Count - 1; i >= 0; i--)
 		{
-			if (targetsInRange[i].obj == obj)
-				targetsInRange.RemoveAt(i);
+			if (list[i].obj == obj)
+				list.RemoveAt(i);
 		}
 	}
 
@@ -299,6 +303,12 @@ public class EntitySensor : MonoBehaviour
 		{
 			if (targetsInRange[i].obj == entity.gameObject || targetsInRange[i].obj == null)
 				targetsInRange.RemoveAt(i); //also remove possible null refs
+		}
+
+		for (int i = friendliesInRange.Count - 1; i >= 0; i--)
+		{
+			if (friendliesInRange[i].obj == entity.gameObject || friendliesInRange[i].obj == null)
+				friendliesInRange.RemoveAt(i); //also remove possible null refs
 		}
 	}
 

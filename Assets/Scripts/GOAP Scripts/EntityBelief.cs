@@ -37,11 +37,6 @@ public class BeliefFactory
 			.Build());
 	}
 
-	public void AddLocationBelief(string key, float distance, Transform locationCondition)
-	{
-		AddLocationBelief(key, distance, locationCondition.position);
-	}
-
 	public void AddLocationBelief(string key, float distance, Vector3 locationCondition)
 	{
 		beliefs.Add(key, new EntityBeliefs.Builder(key)

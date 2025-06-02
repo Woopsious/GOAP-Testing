@@ -62,27 +62,14 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		factory.AddBelief("AttackOneReady", () => attackBools[1]());
 		factory.AddBelief("AttackTwoReady", () => attackBools[2]());
 
-		/// <summary>
-		/// FOR REQUEST HELP BELIEF:
-		/// consider adding friendly sensor that detects all friendly in range so i can compare friendlies count vs enemies count
-		/// (this will make getting entities in range in CallForHelpStrategy much simpler and no longer rely on AiDirector)
-		/// then based on this decide if entity should call for help + set up a cooldown timer (set to 15s or 60s etc...)
-		/// 
-		/// FOR ANSWER REQUEST HELP BELIEF:
-		/// set up cooldown timer (set to 15s or 60s etc...) consider checking if entity is currenly doing a goal with a higher priority then
-		/// its answer call to help goal priority, if it is ignore this. or figure out a way to include this in CallForHelpStrategy
-		/// should be simple as i already have the EntityStats ref and beliefs are public.
-		/// </summary>
-
-		//check if targets in chase range > friendlies in change range
-		factory.AddBelief("NeedsHelp", () => entityBrain.EntityNeedsHelp(entitySensors[1], entitySensors[2]));
+		factory.AddBelief("NeedsHelp", () => entityBrain.EntityNeedsHelp(entitySensors[1])); //compare friendlies/enemies in chase range sensor
 		factory.AddBelief("CanRequestHelp", () => entityBrain.RequestHelpTimer.IsFinished);
-
-		factory.AddBelief("AnswerRequestForHelp", () => entityBrain.RecievedHelpRequest);
+		factory.AddBelief("AnswerRequestForHelp", () => entityBrain.RequestHelpOriginPos != Vector3.zero);
 
 		factory.AddBelief("MoveToAttack", () => false);
 		factory.AddBelief("Attack", () => false);
 		factory.AddBelief("RequestHelp", () => false);
+		factory.AddBelief("AnsweringRequestHelp", () => false);
 
 		return beliefs;
 	}
@@ -147,9 +134,15 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("RequestHelp")
-			.WithStrategy(new CallForHelpStrategy(entityBrain.entityStats, 3, entitySensors[2]))
+			.WithStrategy(new CallForHelpStrategy(entityBrain.entityStats, entitySensors[2], 3))
 			.AddPrecondition(beliefs["NeedsHelp"])
 			.AddPrecondition(beliefs["CanRequestHelp"])
+			.AddEffect(beliefs["RequestHelp"])
+			.Build(),
+
+			new EntityActions.Builder("AnswerRequestHelp")
+			.WithStrategy(new MoveStrategy(navMeshAgent, entityStats._Data.chaseRange - 5, () => entityBrain.RequestHelpOriginPos))
+			.AddPrecondition(beliefs["AnswerRequestForHelp"])
 			.AddEffect(beliefs["RequestHelp"])
 			.Build(),
 		};
@@ -158,8 +151,6 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 	}
 	public HashSet<EntityGoals> SetupGoals()
 	{
-		entityBrain.answerRequestHelpGoalPriority = 50;
-
 		goals = new HashSet<EntityGoals>
 		{
 			new EntityGoals.Builder("Idle")
@@ -183,8 +174,8 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityGoals.Builder("AnswerRequstForHelp")
-			.WithPriority(50)
-			.WithDesiredEffect(beliefs["AnswerRequestForHelp"])
+			.WithPriority(entityBrain.answerRequestHelpGoalPriority)
+			.WithDesiredEffect(beliefs["AnsweringRequestHelp"])
 			.Build(),
 
 			new EntityGoals.Builder("ChaseTarget")

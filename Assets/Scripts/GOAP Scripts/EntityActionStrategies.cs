@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Unity.Multiplayer.Center.Common.Analytics;
 using UnityEngine;
 using UnityEngine.AI;
+using static UnityEngine.EventSystems.EventTrigger;
 using Random = UnityEngine.Random;
 
 // TODO Migrate Strategies, Beliefs, Actions and Goals to Scriptable Objects and create Node Editor for them
@@ -77,6 +78,7 @@ public class WanderStrategy : IActionStrategy
 
 public class MoveStrategy : IActionStrategy
 {
+	readonly EntityStats entity;
 	readonly NavMeshAgent agent;
 	readonly float minMoveDistance;
 	readonly Func<Vector3> destination;
@@ -86,6 +88,7 @@ public class MoveStrategy : IActionStrategy
 
 	public MoveStrategy(NavMeshAgent agent, float minMoveDistance, Func<Vector3> destination)
 	{
+		entity = agent.GetComponent<EntityStats>();
 		this.agent = agent;
 		this.destination = destination;
 		this.minMoveDistance = minMoveDistance;
@@ -96,7 +99,11 @@ public class MoveStrategy : IActionStrategy
 	{
 		//Debug.LogError("move distance: " + agent.remainingDistance + " distance to meet: " + minMoveDistance);
 	}
-	public void Stop() => agent.SetDestination(agent.transform.position);
+	public void Stop()
+	{
+		entity.entityBrain.UpdateRecievedHelpRequest(Vector3.zero);
+		agent.SetDestination(agent.transform.position);
+	}
 }
 
 public class FleeStrategy : IActionStrategy
@@ -160,27 +167,17 @@ public class InteractStrategy : IActionStrategy
 public class CallForHelpStrategy : IActionStrategy
 {
 	readonly EntityStats entity;
-	readonly int entitiesToTryAndFind;
-	readonly float maxSearchDistance;
-	public bool CanPerform => true;
-	public bool Complete => finishedCallForHelp;
-
 	readonly EntitySensor friendlySensor;
+	readonly int entitiesToTryAndFind;
 
-	bool finishedCallForHelp;
+	public bool CanPerform => entity.entityBrain.RequestHelpTimer.IsFinished;
+	public bool Complete => entity.entityBrain.RequestHelpTimer.IsRunning;
 
-	public CallForHelpStrategy(EntityStats entity, int entitiesToTryAndFind, float maxSearchDistance)
+	public CallForHelpStrategy(EntityStats entity, EntitySensor friendlySensor, int entitiesToTryAndFind)
 	{
 		this.entity = entity;
-		this.entitiesToTryAndFind = entitiesToTryAndFind;
-		this.maxSearchDistance = maxSearchDistance;
-	}
-
-	public CallForHelpStrategy(EntityStats entity, int entitiesToTryAndFind, EntitySensor friendlySensor)
-	{
-		this.entity = entity;
-		this.entitiesToTryAndFind = entitiesToTryAndFind;
 		this.friendlySensor = friendlySensor;
+		this.entitiesToTryAndFind = entitiesToTryAndFind;
 	}
 
 	public void Start() => RequestAvailableFriendliesForHelp();
@@ -189,25 +186,25 @@ public class CallForHelpStrategy : IActionStrategy
 	{
 		Debug.LogError("Entity Requested help");
 
-		finishedCallForHelp = false;
 		int entitiesFoundToCall = 0;
-
 		List<TargetData> foundEntities = SortEntitiesDistance();
 
 		for (int i = 0; i < foundEntities.Count; i++)
 		{
 			if (foundEntities[i].entity.entityBrain.CanAnswerRequestHelp())
 			{
-				foundEntities[i].entity.entityBrain.UpdateRecievedHelpRequest(true);
+				foundEntities[i].entity.entityBrain.UpdateRecievedHelpRequest(entity.transform.position);
 				entitiesFoundToCall++;
+				i++;
+
+				Debug.LogError("entity at pos: " + foundEntities[i].obj.transform.position + " called for help");
 			}
 
-			if (entitiesFoundToCall >= entitiesToTryAndFind)
-				return;
+            if (entitiesFoundToCall >= entitiesToTryAndFind)
+				break;
 		}
 
 		entity.entityBrain.RequestHelpTimer.Start();
-		finishedCallForHelp = true;
 	}
 	List<TargetData> SortEntitiesDistance()
 	{
@@ -220,75 +217,6 @@ public class CallForHelpStrategy : IActionStrategy
 
 		return foundEntities;
 	}
-
-	//old code
-	void FindEntitiesToCallForHelp()
-	{
-		finishedCallForHelp = false;
-
-		Dictionary<EntityStats, float> foundEntities = GetClosestEntitiesWithinLimit();
-
-		List<EntityStats> entitiesToCall = new List<EntityStats>();
-
-		for (int i = 0; i < entitiesToTryAndFind; i++)
-		{
-			EntityStats closestEntity = GetClosestEntity(foundEntities);
-
-			if (closestEntity == null) return; //no more entities to find
-			else
-			{
-				entitiesToCall.Add(closestEntity); //add to call list + remove from dict so its not selected again
-				foundEntities.Remove(closestEntity);
-			}
-		}
-
-		foreach (EntityStats entity in entitiesToCall)
-		{
-			//update some sort of bool in entity brain to get them to answer call for help
-		}
-
-		finishedCallForHelp = true;
-	}
-	Dictionary<EntityStats, float> GetClosestEntitiesWithinLimit()
-	{
-		Dictionary<EntityStats, float> foundEntities = new Dictionary<EntityStats, float>();
-
-		List<EntityStats> teamToSearch = new List<EntityStats>();
-
-		if (entity._Data.team == EntityData.EntityTeam.redTeam)
-			teamToSearch = AiDirector.instance.RedTeamEntities;
-		else if (entity._Data.team == EntityData.EntityTeam.greenTeam)
-			teamToSearch = AiDirector.instance.GreenTeamEntities;
-		else
-			Debug.LogError("no team matching entity found");
-
-		for (int i = 0; i < teamToSearch.Count; i++)
-		{
-			float distance = Vector3.Distance(entity.transform.position, teamToSearch[i].transform.position);
-			if (distance > maxSearchDistance) continue;
-
-			foundEntities.Add(teamToSearch[i], distance);
-		}
-
-		return foundEntities;
-	}
-	EntityStats GetClosestEntity(Dictionary<EntityStats, float> foundEntities)
-	{
-		EntityStats closestEntity = null;
-		float distance = maxSearchDistance;
-
-        foreach (var foundEntity in foundEntities)
-        {
-			if (foundEntity.Key == null) continue;
-			if (foundEntity.Value < distance)
-			{
-				closestEntity = foundEntity.Key;
-				distance = foundEntity.Value;
-			}
-        }
-
-		return closestEntity;
-    }
 }
 
 public class MoveIntoAttackRange : IActionStrategy

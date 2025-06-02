@@ -7,13 +7,6 @@ public class GameManager : MonoBehaviour
 	public static GameManager instance;
 
 	/// <summary> IDEAS TO TRY AND IMPLEMENT
-	/// ENTITIY REQUEST/ANSWER HELP CALL BEHAVIOUR:
-	/// add a way for entities to call for help from surrounding ones as a RequestHelpCall strategy
-	/// add a way for entities to answer a call for help as a AnswerHelpCall strategy
-	/// need beliefs for it to trigger these things like getting attacked by too many enemies or low on health etc..
-	/// a way to filter out too many entities answering a call or none answering a call, possibly via checking current goals
-	/// adding a sensor to detect friendlies in call range
-	/// 
 	/// POI RELATED IDEAS:
 	/// resoure nodes for worker entities to 'mine' extra resource from.
 	/// different resource types to use on better entity types.

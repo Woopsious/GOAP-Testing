@@ -27,20 +27,21 @@ public class EntityBrain : MonoBehaviour
 	bool attackOneReady;
 	bool attackTwoReady;
 
-	//timers
-	public CountdownTimer RequestHelpTimer { get; private set; }
-
-	CountdownTimer attackOneTimer;
-	CountdownTimer attackTwoTimer;
-
-	[Header("Bool Checks")]
-	public bool RecievedHelpRequest { get; private set; }
+	//Request/Answer Help
+	public Vector3 RequestHelpOriginPos { get; private set; }
 
 	[Header("Entity Targets")]
 	[SerializeField] TargetData chaseTarget;
 	[SerializeField] TargetData targetOne;
 	[SerializeField] TargetData targetTwo;
 
+	//timers
+	public CountdownTimer RequestHelpTimer { get; private set; }
+
+	CountdownTimer attackOneTimer;
+	CountdownTimer attackTwoTimer;
+
+	//GOAP
 	public EntityGoals lastGoal;
 	public EntityGoals currentGoal;
 	public ActionPlan actionPlan;
@@ -107,7 +108,7 @@ public class EntityBrain : MonoBehaviour
 	{
 		fleeSensor.UpdateSensorSettings(SensorType.fleeSensor, entityStats._Data.fleeRange);
 		chaseSensor.UpdateSensorSettings(SensorType.chaseSensor, entityStats._Data.chaseRange);
-		friendlySensor.UpdateSensorSettings(SensorType.friendlySensor, entityStats._Data.chaseRange * 1.5f);
+		friendlySensor.UpdateSensorSettings(SensorType.friendlySensor, entityStats._Data.chaseRange * 2f);
 
 		if (entityStats._Data.brainType == EntityBrainType.combat)
 		{
@@ -165,7 +166,7 @@ public class EntityBrain : MonoBehaviour
 	}
 	void SetupTimers()
 	{
-		RequestHelpTimer = new CountdownTimer(10f);
+		RequestHelpTimer = new CountdownTimer(5f);
 
 		if (entityStats._Data.brainType != EntityBrainType.combat) return; //workers have no attacks atm
 
@@ -193,23 +194,25 @@ public class EntityBrain : MonoBehaviour
 	}
 
 	//request/answer help funcs
-	public bool EntityNeedsHelp(EntitySensor chaseSensor, EntitySensor friendlySensor)
+	public bool EntityNeedsHelp(EntitySensor chaseSensor)
 	{
-		if (chaseSensor.targetsInRange.Count > friendlySensor.targetsInRange.Count)
+		if (chaseSensor.targetsInRange.Count > chaseSensor.friendliesInRange.Count)
 			return true;
 		else
 			return false;
 	}
 	public bool CanAnswerRequestHelp()
 	{
-		if (currentGoal.Priority <= answerRequestHelpGoalPriority)
+		if (RequestHelpOriginPos != Vector3.zero) return false; //has existing call for help
+		if (currentGoal == null || currentGoal.Priority < answerRequestHelpGoalPriority)
 			return true;
 		else
 			return false;
 	}
-	public void UpdateRecievedHelpRequest(bool RecievedHelpRequest)
+	public void UpdateRecievedHelpRequest(Vector3 RequestHelpOriginPos)
 	{
-		this.RecievedHelpRequest = RecievedHelpRequest;
+		this.RequestHelpOriginPos = RequestHelpOriginPos;
+		ResetPlan();
 	}
 
 	void TickAllTimers()
@@ -246,8 +249,7 @@ public class EntityBrain : MonoBehaviour
 			case SensorType.chaseSensor:
 			// Force the planner to re-evaluate the plan
 			chaseTarget = target;
-			currentAction = null;
-			currentGoal = null;
+			ResetPlan();
 			break;
 
 			case SensorType.attackSensorOne:
@@ -262,16 +264,14 @@ public class EntityBrain : MonoBehaviour
 			if (targetOne.obj != target.obj)//recalc goal when poi changes
 			{
 				targetOne = target;
-				currentAction = null;
-				currentGoal = null;
+				ResetPlan();
 			}
 			break;
 			case SensorType.enemyPoiSensor:
 			if (targetTwo.obj != target.obj)//recalc goal when poi changes
 			{
 				targetTwo = target;
-				currentAction = null;
-				currentGoal = null;
+				ResetPlan();
 			}
 			break;
 		}
@@ -348,6 +348,11 @@ public class EntityBrain : MonoBehaviour
 				currentGoal = null;
 			}
 		}
+	}
+	void ResetPlan()
+	{
+		currentAction = null;
+		currentGoal = null;
 	}
 
 	public bool InRangeOf(Vector3 pos, float range) => Vector3.Distance(transform.position, pos) < range;
