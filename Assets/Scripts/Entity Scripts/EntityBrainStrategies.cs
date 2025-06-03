@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -18,6 +19,7 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 
 	readonly EntitySensor[] entitySensors;
 	readonly Transform[] knownLocations;
+	readonly EntityAttackData[] attackData;
 	readonly Func<bool>[] attackBools;
 
 	public Dictionary<string, EntityBeliefs> beliefs;
@@ -25,7 +27,7 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 	public HashSet<EntityGoals> goals;
 
 	public CombatBrainStrategy(EntityBrain entityBrain, EntityStats entityStats, NavMeshAgent navMeshAgent,
-		EntitySensor[] entitySensors, Transform[] knownLocations, Func<bool>[] attackBools)
+		EntitySensor[] entitySensors, Transform[] knownLocations, EntityAttackData[] attackData, Func<bool>[] attackBools)
 	{
 		this.entityBrain = entityBrain;
 		this.entityStats = entityStats;
@@ -33,6 +35,7 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 
 		this.entitySensors = entitySensors;
 		this.knownLocations = knownLocations;
+		this.attackData = attackData;
 		this.attackBools = attackBools;
 	}
 
@@ -54,8 +57,8 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		factory.AddTargetBelief("TargetInChaseRange", entitySensors[1]);
 		factory.AddBelief("ChasingTarget", () => false);
 
-		factory.AddTargetBelief("TargetInAttackOneRange", () => entitySensors[1].GetClosestAttackableTarget(entityStats._Data.attackData[0]));
-		factory.AddTargetBelief("TargetInAttackTwoRange", () => entitySensors[1].GetClosestAttackableTarget(entityStats._Data.attackData[1]));
+		factory.AddTargetBelief("TargetInAttackOneRange", () => entitySensors[1].GetClosestEntityWithinRange(attackData[0]));
+		factory.AddTargetBelief("TargetInAttackTwoRange", () => entitySensors[1].GetClosestEntityWithinRange(attackData[1]));
 
 		factory.AddBelief("AllAttacksOnCooldown", () => attackBools[0]());
 		factory.AddBelief("AttackOneReady", () => attackBools[1]());

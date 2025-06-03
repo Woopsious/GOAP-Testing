@@ -149,7 +149,11 @@ public class EntityBrain : MonoBehaviour
 			attackBools[1] = () => attackOneReady;
 			attackBools[2] = () => attackTwoReady;
 
-			entityBrainStrategy = new CombatBrainStrategy(this, entityStats, navMeshAgent, sensors, knownLocations, attackBools);
+			EntityAttackData[] attackData = new EntityAttackData[2];
+			attackData[0] = entityStats._Data.attackData[0];
+			attackData[1] = entityStats._Data.attackData[1];
+
+			entityBrainStrategy = new CombatBrainStrategy(this, entityStats, navMeshAgent, sensors, knownLocations, attackData, attackBools);
 
 			beliefs = entityBrainStrategy.SetupBeliefs();
 			actions = entityBrainStrategy.SetupActions();

@@ -111,7 +111,7 @@ public class EntitySensor : MonoBehaviour
 	}
 
 	//new fetch target
-	public EntityStats GetClosestAttackableTarget(EntityAttackData attackData)
+	public EntityStats GetClosestEntityWithinRange(EntityAttackData attackData)
 	{
 		EntityStats foundTarget = null;
 
