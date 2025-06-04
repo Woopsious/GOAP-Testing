@@ -37,12 +37,12 @@ public class BeliefFactory
 			.Build());
 	}
 
-	public void AddTargetBelief(string key, Func<EntityStats> entity)
+	public void AddTargetBelief(string key, Func<TargetData> target)
 	{
 		beliefs.Add(key, new EntityBeliefs.Builder(key)
-			.WithCondition(() => entity())
-			.WithTargetLocation(() => entity().transform.position)
-			.WithEntityTargetRef(() => entity())
+			.WithCondition(() => target().obj != null)
+			.WithTargetLocation(() => target().obj.transform.position)
+			.WithEntityTargetRef(() => target().entity)
 			.Build());
 	}
 

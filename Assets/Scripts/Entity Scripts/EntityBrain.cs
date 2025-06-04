@@ -13,11 +13,9 @@ public class EntityBrain : MonoBehaviour
 	Rigidbody rb;
 
 	[Header("Sensors")]
-	[SerializeField] EntitySensor fleeSensor;
 	[SerializeField] EntitySensor chaseSensor;
-	[SerializeField] EntitySensor friendlySensor;
-	[SerializeField] EntitySensor targetSensorOne;
-	[SerializeField] EntitySensor targetSensorTwo;
+	[SerializeField] EntitySensor longRangeSensor;
+	[SerializeField] EntitySensor poiSensor;
 
 	[Header("Known Locations")]
 	public Transform HomeBase { get; private set; }
@@ -29,11 +27,6 @@ public class EntityBrain : MonoBehaviour
 
 	//Request/Answer Help
 	public Vector3 RequestHelpOriginPos { get; private set; }
-
-	[Header("Entity Targets")]
-	[SerializeField] TargetData chaseTarget;
-	[SerializeField] TargetData targetOne;
-	[SerializeField] TargetData targetTwo;
 
 	//timers
 	public CountdownTimer RequestHelpTimer { get; private set; }
@@ -71,6 +64,38 @@ public class EntityBrain : MonoBehaviour
 		Initilize();
 	}
 
+	void OnEnable()
+	{
+		chaseSensor.OnTargetChanged += OnTargetChanges;
+		longRangeSensor.OnTargetChanged += OnTargetChanges;
+		poiSensor.OnTargetChanged += OnTargetChanges;
+	}
+	void OnDisable()
+	{
+		chaseSensor.OnTargetChanged -= OnTargetChanges;
+		longRangeSensor.OnTargetChanged -= OnTargetChanges;
+		poiSensor.OnTargetChanged -= OnTargetChanges;
+	}
+
+	void OnTargetChanges(SensorType sensorType)
+	{
+		switch (sensorType)
+		{
+			case SensorType.chaseSensor:
+			ResetPlan();
+			break;
+
+			case SensorType.longRangeSensor:
+
+			break;
+
+			case SensorType.poiSensor:
+
+			break;
+		}
+	}
+
+
 	void Update()
 	{
 		TickAllTimers();
@@ -106,38 +131,16 @@ public class EntityBrain : MonoBehaviour
 
 	void SetupSensors()
 	{
-		fleeSensor.UpdateSensorSettings(SensorType.fleeSensor, entityStats._Data.fleeRange);
-		chaseSensor.UpdateSensorSettings(SensorType.chaseSensor, entityStats._Data.chaseRange);
-		friendlySensor.UpdateSensorSettings(SensorType.friendlySensor, entityStats._Data.chaseRange * 2f);
-
-		if (entityStats._Data.brainType == EntityBrainType.combat)
-		{
-			float fleeRange = 1;
-			foreach (EntityAttackData attackData in entityStats._Data.attackData)
-			{
-				if (attackData.attackMinRange > fleeRange)
-					fleeRange = attackData.attackMinRange;
-			}
-
-			fleeSensor.UpdateSensorSettings(SensorType.fleeSensor, fleeRange);
-
-			targetSensorOne.UpdateSensorSettings(SensorType.attackSensorOne, entityStats._Data.attackData[0]);
-			targetSensorTwo.UpdateSensorSettings(SensorType.attackSensorTwo, entityStats._Data.attackData[1]);
-		}
-        else if (entityStats._Data.brainType == EntityBrainType.worker)
-        {
-			targetSensorOne.UpdateSensorSettings(SensorType.friendlyPoiSensor, entityStats._Data.chaseRange);
-			targetSensorTwo.UpdateSensorSettings(SensorType.enemyPoiSensor, entityStats._Data.chaseRange);
-		}
+		chaseSensor.UpdateSensorSettings(SensorType.chaseSensor, entityStats._Data.chaseRange, entityStats._Data.attackData);
+		longRangeSensor.UpdateSensorSettings(SensorType.longRangeSensor, entityStats._Data.chaseRange * 2f, entityStats._Data.attackData);
+		poiSensor.UpdateSensorSettings(SensorType.poiSensor, entityStats._Data.chaseRange, entityStats._Data.attackData);
     }
 	void SetupBrainType()
 	{
-		EntitySensor[] sensors = new EntitySensor[5];
-		sensors[0] = fleeSensor;
-		sensors[1] = chaseSensor;
-		sensors[2] = friendlySensor;
-		sensors[3] = targetSensorOne;
-		sensors[4] = targetSensorTwo;
+		EntitySensor[] sensors = new EntitySensor[3];
+		sensors[0] = chaseSensor;
+		sensors[1] = longRangeSensor;
+		sensors[2] = poiSensor;
 
 		Transform[] knownLocations = new Transform[1];
 		knownLocations[0] = HomeBase;
@@ -200,9 +203,9 @@ public class EntityBrain : MonoBehaviour
 	}
 
 	//request/answer help funcs
-	public bool EntityNeedsHelp(EntitySensor chaseSensor)
+	public bool EntityNeedsHelp()
 	{
-		if (chaseSensor.targetsInRange.Count > chaseSensor.friendliesInRange.Count)
+		if (chaseSensor.targetsInRange.Count > chaseSensor.friendliesInRange.Count + 1)
 			return true;
 		else
 			return false;
@@ -232,54 +235,6 @@ public class EntityBrain : MonoBehaviour
         {
 			attackOneTimer?.Tick(Time.deltaTime);
 			attackTwoTimer?.Tick(Time.deltaTime);
-		}
-	}
-
-	void OnEnable()
-	{
-		chaseSensor.OnTargetChanged += OnTargetChanges;
-		targetSensorOne.OnTargetChanged += OnTargetChanges;
-		targetSensorTwo.OnTargetChanged += OnTargetChanges;
-	}
-	void OnDisable()
-	{
-		chaseSensor.OnTargetChanged -= OnTargetChanges;
-		targetSensorOne.OnTargetChanged -= OnTargetChanges;
-		targetSensorTwo.OnTargetChanged -= OnTargetChanges;
-	}
-
-	void OnTargetChanges(TargetData target, SensorType sensorType)
-	{
-		switch (sensorType)
-		{
-			case SensorType.chaseSensor:
-			// Force the planner to re-evaluate the plan
-			chaseTarget = target;
-			ResetPlan();
-			break;
-
-			case SensorType.attackSensorOne:
-			targetOne = target;
-			break;
-
-			case SensorType.attackSensorTwo:
-			targetTwo = target;
-			break;
-
-			case SensorType.friendlyPoiSensor:
-			if (targetOne.obj != target.obj)//recalc goal when poi changes
-			{
-				targetOne = target;
-				ResetPlan();
-			}
-			break;
-			case SensorType.enemyPoiSensor:
-			if (targetTwo.obj != target.obj)//recalc goal when poi changes
-			{
-				targetTwo = target;
-				ResetPlan();
-			}
-			break;
 		}
 	}
 

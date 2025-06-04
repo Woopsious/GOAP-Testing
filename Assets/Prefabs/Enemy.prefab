@@ -1,5 +1,85 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &433928966597907366
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 492963540404046801}
+  - component: {fileID: 4805028033321146201}
+  - component: {fileID: 8777531979938876476}
+  m_Layer: 6
+  m_Name: PoiSensor
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &492963540404046801
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433928966597907366}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 538383744467613240}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!135 &4805028033321146201
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433928966597907366}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 192
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 55
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Radius: 0.5
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &8777531979938876476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 433928966597907366}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  sensorType: 5
+  targetsInRange: []
+  friendliesInRange: []
+  target:
+    obj: {fileID: 0}
+    poi: {fileID: 0}
+    entity: {fileID: 0}
+    type: 0
+  attackData:
+    attackType: 0
+    attackDamage: 0
+    attackCooldown: 0
+    attackMinRange: 0
+    attackMaxRange: 0
 --- !u!1 &607502371065325158
 GameObject:
   m_ObjectHideFlags: 0
@@ -12,7 +92,7 @@ GameObject:
   - component: {fileID: 707758993078979847}
   - component: {fileID: 7657770429896562121}
   m_Layer: 6
-  m_Name: FriendlySensor
+  m_Name: LongRangeSensor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -68,252 +148,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sensorType: 2
   targetsInRange: []
+  friendliesInRange: []
   target:
     obj: {fileID: 0}
     poi: {fileID: 0}
     entity: {fileID: 0}
     type: 0
-    targetDistance: 0
-  attackData:
-    attackType: 0
-    attackDamage: 0
-    attackCooldown: 0
-    attackMinRange: 0
-    attackMaxRange: 0
---- !u!1 &667493416353041563
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3473255358023357217}
-  - component: {fileID: 515924525347073205}
-  - component: {fileID: 8933791809597984084}
-  m_Layer: 6
-  m_Name: TargetSensorTwo
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3473255358023357217
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 667493416353041563}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 538383744467613240}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &515924525347073205
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 667493416353041563}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 192
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 55
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &8933791809597984084
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 667493416353041563}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sensorType: 4
-  targetsInRange: []
-  target:
-    obj: {fileID: 0}
-    poi: {fileID: 0}
-    entity: {fileID: 0}
-    type: 0
-    targetDistance: 0
-  attackData:
-    attackType: 0
-    attackDamage: 0
-    attackCooldown: 0
-    attackMinRange: 0
-    attackMaxRange: 0
---- !u!1 &1850757724687073674
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7911888664233030472}
-  - component: {fileID: 6228863282757288370}
-  - component: {fileID: 6024228860040524787}
-  m_Layer: 6
-  m_Name: FleeSensor
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7911888664233030472
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1850757724687073674}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 538383744467613240}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &6228863282757288370
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1850757724687073674}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 192
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 55
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &6024228860040524787
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1850757724687073674}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sensorType: 0
-  targetsInRange: []
-  target:
-    obj: {fileID: 0}
-    poi: {fileID: 0}
-    entity: {fileID: 0}
-    type: 0
-    targetDistance: 0
-  attackData:
-    attackType: 0
-    attackDamage: 0
-    attackCooldown: 0
-    attackMinRange: 0
-    attackMaxRange: 0
---- !u!1 &4132808136157353397
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 60718108651283027}
-  - component: {fileID: 4456792336311181943}
-  - component: {fileID: 8565384823491112431}
-  m_Layer: 6
-  m_Name: TargetSensorOne
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &60718108651283027
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4132808136157353397}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 538383744467613240}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!135 &4456792336311181943
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4132808136157353397}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 192
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 55
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 0.5
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &8565384823491112431
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4132808136157353397}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  sensorType: 3
-  targetsInRange: []
-  target:
-    obj: {fileID: 0}
-    poi: {fileID: 0}
-    entity: {fileID: 0}
-    type: 0
-    targetDistance: 0
   attackData:
     attackType: 0
     attackDamage: 0
@@ -388,12 +228,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sensorType: 1
   targetsInRange: []
+  friendliesInRange: []
   target:
     obj: {fileID: 0}
     poi: {fileID: 0}
     entity: {fileID: 0}
     type: 0
-    targetDistance: 0
   attackData:
     attackType: 0
     attackDamage: 0
@@ -436,11 +276,9 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7911888664233030472}
   - {fileID: 3818468417507857389}
   - {fileID: 7740848286407822981}
-  - {fileID: 60718108651283027}
-  - {fileID: 3473255358023357217}
+  - {fileID: 492963540404046801}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &4371271922995540430
@@ -527,29 +365,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   entityStats: {fileID: 0}
-  fleeSensor: {fileID: 6024228860040524787}
   chaseSensor: {fileID: 3851985788758652946}
-  friendlySensor: {fileID: 7657770429896562121}
-  targetSensorOne: {fileID: 8565384823491112431}
-  targetSensorTwo: {fileID: 8933791809597984084}
+  poiSensor: {fileID: 8777531979938876476}
+  longRangeSensor: {fileID: 7657770429896562121}
   chaseTarget:
     obj: {fileID: 0}
     poi: {fileID: 0}
     entity: {fileID: 0}
     type: 0
-    targetDistance: 0
   targetOne:
     obj: {fileID: 0}
     poi: {fileID: 0}
     entity: {fileID: 0}
     type: 0
-    targetDistance: 0
   targetTwo:
     obj: {fileID: 0}
     poi: {fileID: 0}
     entity: {fileID: 0}
     type: 0
-    targetDistance: 0
+  answerRequestHelpGoalPriority: 0
 --- !u!195 &5829567236386544650
 NavMeshAgent:
   m_ObjectHideFlags: 0

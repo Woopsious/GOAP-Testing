@@ -197,7 +197,7 @@ public class CallForHelpStrategy : IActionStrategy
 				entitiesFoundToCall++;
 				i++;
 
-				Debug.LogError("entity at pos: " + foundEntities[i].obj.transform.position + " called for help");
+				//Debug.LogError("entity at pos: " + foundEntities[i].obj.transform.position + " called for help");
 			}
 
             if (entitiesFoundToCall >= entitiesToTryAndFind)
@@ -213,7 +213,7 @@ public class CallForHelpStrategy : IActionStrategy
 		for (int i = 0; i < foundEntities.Count; i++)
 			foundEntities[i].UpdateTargetDistance(entity.transform.position);
 
-		foundEntities.Sort((a, b) => a.targetDistance.CompareTo(b.targetDistance));
+		foundEntities.Sort((a, b) => a.TargetDistance.CompareTo(b.TargetDistance));
 
 		return foundEntities;
 	}
@@ -262,12 +262,12 @@ public class BasicAttackStrategy : IActionStrategy
 {
 	readonly EntityBrain entityBrain;
 	readonly int attackToUse;
-	readonly EntityStats target;
+	readonly Func<EntityStats> target;
 
-	public bool CanPerform => target != null; // Agent can always attack
-	public bool Complete => target == null;
+	public bool CanPerform => true; // Agent can always attack
+	public bool Complete => false;
 
-	public BasicAttackStrategy(EntityBrain entityBrain, int attackToUse, EntityStats target)
+	public BasicAttackStrategy(EntityBrain entityBrain, int attackToUse, Func<EntityStats> target)
 	{
 		this.entityBrain = entityBrain;
 		this.attackToUse = attackToUse;
@@ -276,6 +276,9 @@ public class BasicAttackStrategy : IActionStrategy
 
 	public void Start()
 	{
+
+		Debug.LogError("target: " + target().name);
+
 		switch (attackToUse)
 		{
 			case 1:

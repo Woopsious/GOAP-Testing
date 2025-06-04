@@ -21,7 +21,7 @@ MonoBehaviour:
   resourceCost: 100
   speed: 6
   angularSpeed: 120
-  acceleration: 8
+  acceleration: 10
   stoppingDistance: 1.5
   chaseRange: 25
   fleeRange: 1
