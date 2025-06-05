@@ -20,23 +20,6 @@ public class BeliefFactory
 			.Build());
 	}
 
-	public void AddSensorBelief(string key, EntitySensor sensor)
-	{
-		beliefs.Add(key, new EntityBeliefs.Builder(key)
-			.WithCondition(() => sensor.IsTargetInRange)
-			.WithLocation(() => sensor.TargetPosition)
-			.Build());
-	}
-
-	public void AddTargetBelief(string key, EntitySensor sensor)
-	{
-		beliefs.Add(key, new EntityBeliefs.Builder(key)
-			.WithCondition(() => sensor.IsTargetInRange)
-			.WithTargetLocation(() => sensor.TargetPosition)
-			.WithTargetRef(() => sensor.target)
-			.Build());
-	}
-
 	public void AddTargetBelief(string key, Func<TargetData> target)
 	{
 		beliefs.Add(key, new EntityBeliefs.Builder(key)

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Unity.Multiplayer.Center.Common.Analytics;
 using UnityEngine;
 using UnityEngine.AI;
-using static UnityEngine.EventSystems.EventTrigger;
 using Random = UnityEngine.Random;
 
 // TODO Migrate Strategies, Beliefs, Actions and Goals to Scriptable Objects and create Node Editor for them
@@ -264,8 +263,8 @@ public class BasicAttackStrategy : IActionStrategy
 	readonly int attackToUse;
 	readonly Func<EntityStats> target;
 
-	public bool CanPerform => true; // Agent can always attack
-	public bool Complete => false;
+	public bool CanPerform => target != null;
+	public bool Complete => true;
 
 	public BasicAttackStrategy(EntityBrain entityBrain, int attackToUse, Func<EntityStats> target)
 	{
@@ -276,9 +275,6 @@ public class BasicAttackStrategy : IActionStrategy
 
 	public void Start()
 	{
-
-		Debug.LogError("target: " + target().name);
-
 		switch (attackToUse)
 		{
 			case 1:

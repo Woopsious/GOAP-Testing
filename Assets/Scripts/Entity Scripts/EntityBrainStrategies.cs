@@ -56,11 +56,11 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		factory.AddTargetBelief("TargetInFleeRange", () => entitySensors[0].GetClosestEntityInFleeRange());
 		factory.AddBelief("FleeingFromTarget", () => false);
 
-		factory.AddTargetBelief("TargetInChaseRange", () => entitySensors[0].GetClosestEntity());
+		factory.AddTargetBelief("TargetInChaseRange", () => entitySensors[0].sensorBehaviours[0].FoundTarget());
 		factory.AddBelief("ChasingTarget", () => false);
 
-		factory.AddTargetBelief("TargetInAttackOneRange", () => entitySensors[0].GetClosestTargetWithinRange(attackData[0]));
-		factory.AddTargetBelief("TargetInAttackTwoRange", () => entitySensors[0].GetClosestTargetWithinRange(attackData[1]));
+		factory.AddTargetBelief("TargetInAttackOneRange", () => entitySensors[0].sensorBehaviours[1].FoundTarget());
+		factory.AddTargetBelief("TargetInAttackTwoRange", () => entitySensors[0].sensorBehaviours[2].FoundTarget());
 
 		factory.AddBelief("AllAttacksOnCooldown", () => attackBools[0]());
 		factory.AddBelief("AttackOneReady", () => attackBools[1]());
@@ -103,12 +103,6 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.AddEffect(beliefs["ChasingTarget"])
 			.Build(),
 
-			new EntityActions.Builder("WaitForAttacks")
-			.WithStrategy(new IdleStrategy(0.5f))
-			.AddPrecondition(beliefs["AllAttacksOnCooldown"])
-			.AddEffect(beliefs["Nothing"])
-			.Build(),
-
 			new EntityActions.Builder("MoveToUseAttackOne")
 			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[0]))
 			.AddPrecondition(beliefs["TargetInChaseRange"])
@@ -119,6 +113,12 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[1]))
 			.AddPrecondition(beliefs["TargetInChaseRange"])
 			.AddEffect(beliefs["MoveToAttack"])
+			.Build(),
+
+			new EntityActions.Builder("WaitForAttacks")
+			.WithStrategy(new IdleStrategy(0.5f))
+			.AddPrecondition(beliefs["AllAttacksOnCooldown"])
+			.AddEffect(beliefs["Attack"])
 			.Build(),
 
 			new EntityActions.Builder("AttackOne")

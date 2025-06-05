@@ -1,6 +1,103 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.GraphicsBuffer;
+
+public interface ISensorStrategy
+{
+	public TargetData FoundTarget();
+
+	public void EvaluateTargets();
+
+	public event Action OnTargetChanged;
+}
+
+public class ClosestEntityStrategy : ISensorStrategy
+{
+	readonly EntitySensor sensor;
+
+	TargetData foundTarget;
+	public event Action OnTargetChanged;
+
+	public Vector3 TargetPosition => foundTarget.obj ? foundTarget.obj.transform.position : Vector3.zero;
+	public bool IsTargetInRange => TargetPosition != Vector3.zero;
+
+	public ClosestEntityStrategy(EntitySensor sensor)
+	{
+		this.sensor = sensor;
+		foundTarget = new(TargetData.TargetType.nullRef);
+	}
+
+	public TargetData FoundTarget()
+	{
+		return foundTarget;
+	}
+
+	public void EvaluateTargets()
+	{
+		TargetData foundTarget = GetClosestEntity();
+
+		if (foundTarget.obj != null)
+			OnTargetChanged?.Invoke();
+
+		this.foundTarget = foundTarget;
+	}
+
+	public TargetData GetClosestEntity()
+	{
+		TargetData foundTarget = new(TargetData.TargetType.nullRef);
+
+		if (sensor.targetsInRange.Count > 0)
+			foundTarget = sensor.targetsInRange[0];
+
+		return foundTarget;
+	}
+}
+
+public class ClosestEntityWithinAttackRange : ISensorStrategy
+{
+	readonly EntitySensor sensor;
+	readonly EntityAttackData attackData;
+
+	TargetData foundTarget;
+	public event Action OnTargetChanged;
+
+	public ClosestEntityWithinAttackRange(EntitySensor sensor, EntityAttackData attackData)
+	{
+		this.sensor = sensor;
+		this.attackData = attackData;
+		foundTarget = new(TargetData.TargetType.nullRef);
+	}
+
+	public TargetData FoundTarget()
+	{
+		return foundTarget;
+	}
+
+	public void EvaluateTargets()
+	{
+		TargetData foundTarget = GetClosestEntityWithinRange();
+		this.foundTarget = foundTarget;
+	}
+
+	public TargetData GetClosestEntityWithinRange()
+	{
+		TargetData foundTarget = new(TargetData.TargetType.nullRef);
+
+		if (sensor.targetsInRange.Count > 0)
+			foundTarget = sensor.targetsInRange[0];
+
+		if (foundTarget.TargetDistance >= attackData.attackMinRange && foundTarget.TargetDistance <= attackData.attackMaxRange)
+		{
+			return foundTarget;
+		}
+		else
+		{
+			foundTarget = new(TargetData.TargetType.nullRef);
+			return foundTarget;
+		}
+	}
+}
 
 public class EntitySensor : MonoBehaviour
 {
@@ -25,16 +122,12 @@ public class EntitySensor : MonoBehaviour
 	public List<TargetData> targetsInRange = new List<TargetData>();
 	public List<TargetData> friendliesInRange = new List<TargetData>();
 
-	public TargetData target;
-	Vector3 lastKnownPosition;
 	CountdownTimer timer;
+
+	public ISensorStrategy[] sensorBehaviours;
 
 	List<EntityAttackData> attackData;
 	float fleeDistance;
-
-	//logic for beliefs
-	public Vector3 TargetPosition => target.obj ? target.obj.transform.position : Vector3.zero;
-	public bool IsTargetInRange => TargetPosition != Vector3.zero;
 
 	void Awake()
 	{
@@ -76,6 +169,8 @@ public class EntitySensor : MonoBehaviour
 				fleeDistance = attackData[i].attackMinRange;
 		}
 
+		SetupSensorBehaviour();
+
 		timer = new CountdownTimer(timerInterval);
 		timer.OnTimerStop += () => {
 			UpdateSensorLogic();
@@ -83,13 +178,37 @@ public class EntitySensor : MonoBehaviour
 		};
 		timer.Start();
 	}
+	void SetupSensorBehaviour()
+	{
+		if (sensorType == SensorType.chaseSensor)
+		{
+			sensorBehaviours = new ISensorStrategy[3];
+			sensorBehaviours[0] = new ClosestEntityStrategy(this);
+			sensorBehaviours[1] = new ClosestEntityWithinAttackRange(this, attackData[0]);
+			sensorBehaviours[2] = new ClosestEntityWithinAttackRange(this, attackData[1]);
+
+			sensorBehaviours[0].OnTargetChanged += TargetChangedFromSensorBehaviour;
+			sensorBehaviours[1].OnTargetChanged += TargetChangedFromSensorBehaviour;
+			sensorBehaviours[2].OnTargetChanged += TargetChangedFromSensorBehaviour;
+		}
+	}
+
+	void TargetChangedFromSensorBehaviour()
+	{
+		OnTargetChanged?.Invoke(sensorType);
+	}
 
 	void UpdateSensorLogic()
 	{
 		SortTargetsInSensorRange();
 		SortFriendliesInSensorRange();
 
-		OnTargetChanged?.Invoke(sensorType);
+		if (sensorBehaviours == null) return;
+
+		foreach (var sensorBehaviour in sensorBehaviours)
+		{
+			sensorBehaviour.EvaluateTargets();
+		}
 	}
 	void SortTargetsInSensorRange()
 	{
@@ -266,13 +385,23 @@ public class EntitySensor : MonoBehaviour
 
 	void OnDrawGizmos()
 	{
-		Gizmos.color = IsTargetInRange ? Color.red : Color.green;
+		Gizmos.color = Color.green;
 		Gizmos.DrawWireSphere(transform.position, detectionRadius);
 
 		if (attackData == null || attackData.Count == 0) return;
 
-		Gizmos.color = Color.blue;
+		if (targetsInRange.Count != 0 && targetsInRange[0].TargetDistance <= attackData[0].attackMinRange)
+			Gizmos.color = Color.red;
+		else
+			Gizmos.color = Color.blue;
+
 		Gizmos.DrawWireSphere(transform.position, attackData[0].attackMaxRange);
+
+		if (targetsInRange.Count != 0 && targetsInRange[0].TargetDistance <= attackData[1].attackMinRange)
+			Gizmos.color = Color.red;
+		else
+			Gizmos.color = Color.blue;
+
 		Gizmos.DrawWireSphere(transform.position, attackData[1].attackMaxRange);
 	}
 }
@@ -300,12 +429,13 @@ public class TargetData
 		else if (type == TargetType.entity)
 			entity = obj.GetComponent<EntityStats>();
 
-		this.obj = obj;
 		this.type = type;
+		this.obj = obj;
 		UpdateTargetDistance(position);
 	}
 	public TargetData(TargetType type)
 	{
+		this.type = type;
 		ClearTarget();
 		TargetDistance = 0f;
 	}
@@ -320,5 +450,6 @@ public class TargetData
 		obj = null;
 		poi = null;
 		entity = null;
+		TargetDistance = 0f;
 	}
 }

@@ -190,8 +190,6 @@ public class EntityBrain : MonoBehaviour
 	public void UseAttackOne()
 	{
 		attackOneReady = false;
-		Debug.LogError("attack target ref: " + beliefs["TargetInAttackOneRange"].EntityTarget);
-
 		beliefs["TargetInAttackOneRange"].EntityTarget.RecieveDamage(entityStats._Data.attackData[0].attackDamage);
 		attackOneTimer.Start();
 	}
