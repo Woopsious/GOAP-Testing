@@ -218,7 +218,7 @@ public class CallForHelpStrategy : IActionStrategy
 	}
 }
 
-public class MoveIntoAttackRange : IActionStrategy
+public class MoveToAttackStrategy : IActionStrategy
 {
 	readonly NavMeshAgent agent;
 	readonly EntityAttackData attackData;
@@ -227,7 +227,7 @@ public class MoveIntoAttackRange : IActionStrategy
 	public bool CanPerform => !Complete;
 	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending;
 
-	public MoveIntoAttackRange(NavMeshAgent agent, Func<Vector3> destination, EntityAttackData attackData)
+	public MoveToAttackStrategy(NavMeshAgent agent, Func<Vector3> destination, EntityAttackData attackData)
 	{
 		this.agent = agent;
 		this.attackData = attackData;
@@ -257,16 +257,16 @@ public class MoveIntoAttackRange : IActionStrategy
 	public void Stop() => agent.SetDestination(agent.transform.position);
 }
 
-public class BasicAttackStrategy : IActionStrategy
+public class AttackStrategy : IActionStrategy
 {
 	readonly EntityBrain entityBrain;
 	readonly int attackToUse;
-	readonly Func<EntityStats> target;
+	readonly Func<TargetData> target;
 
 	public bool CanPerform => target != null;
 	public bool Complete => true;
 
-	public BasicAttackStrategy(EntityBrain entityBrain, int attackToUse, Func<EntityStats> target)
+	public AttackStrategy(EntityBrain entityBrain, int attackToUse, Func<TargetData> target)
 	{
 		this.entityBrain = entityBrain;
 		this.attackToUse = attackToUse;
@@ -289,21 +289,14 @@ public class BasicAttackStrategy : IActionStrategy
 
 public class FindPoiStrategy : IActionStrategy
 {
-	readonly EntityBrain entityBrain;
 	readonly NavMeshAgent agent;
 	readonly float wanderRadius;
 
-
 	public bool CanPerform => !Complete;
-	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending;
+	public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending && !agent.pathPending;
 
-	//public bool CanPerform => !Complete;
-	//public bool Complete => agent.remainingDistance <= 2f && !agent.pathPending || 
-		//entityBrain.beliefs["FoundEnemyPoi"].Evaluate() && entityBrain.beliefs["FoundFriendlyPoi"].Evaluate();
-
-	public FindPoiStrategy(EntityBrain entity, NavMeshAgent agent, float wanderRadius)
+	public FindPoiStrategy(NavMeshAgent agent, float wanderRadius)
 	{
-		this.entityBrain = entity;
 		this.agent = agent;
 		this.wanderRadius = wanderRadius;
 	}

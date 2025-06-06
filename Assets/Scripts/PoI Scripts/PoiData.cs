@@ -22,6 +22,4 @@ public class PoiData : ScriptableObject
 	[Header("Healing Settings")]
 	public float HealAmount;
 	public float HealTimerCooldown;
-
-	public float PoiDetectionRadius;
 }

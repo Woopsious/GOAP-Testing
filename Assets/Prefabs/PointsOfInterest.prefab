@@ -11,8 +11,8 @@ GameObject:
   - component: {fileID: 5631940097731418315}
   - component: {fileID: 4698864659737212271}
   - component: {fileID: 2322527452375616421}
+  - component: {fileID: 690230942195833938}
   - component: {fileID: 5717374160951434148}
-  - component: {fileID: 3732694443863648908}
   - component: {fileID: 5555359492249666467}
   m_Layer: 7
   m_Name: PointsOfInterest
@@ -89,6 +89,29 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!136 &690230942195833938
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5687726939992160149}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 1.5
+  m_Height: 5
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &5717374160951434148
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -115,27 +138,6 @@ MonoBehaviour:
   redTeamMaterial: {fileID: 2100000, guid: 9c3ad97b0bc85fc43b742b9992c52755, type: 2}
   greenTeamMaterial: {fileID: 2100000, guid: d3c784064aacc7a4fb05fde26fc3385d, type: 2}
   playerTeamMaterial: {fileID: 0}
---- !u!135 &3732694443863648908
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5687726939992160149}
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_IsTrigger: 0
-  m_ProvidesContacts: 0
-  m_Enabled: 1
-  serializedVersion: 3
-  m_Radius: 1
-  m_Center: {x: 0.000000059604645, y: 0, z: -0.00000008940697}
 --- !u!208 &5555359492249666467
 NavMeshObstacle:
   m_ObjectHideFlags: 0

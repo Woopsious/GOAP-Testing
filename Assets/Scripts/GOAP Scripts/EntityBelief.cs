@@ -25,7 +25,7 @@ public class BeliefFactory
 		beliefs.Add(key, new EntityBeliefs.Builder(key)
 			.WithCondition(() => target().obj != null)
 			.WithTargetLocation(() => target().obj.transform.position)
-			.WithEntityTargetRef(() => target().entity)
+			.WithTargetRef(() => target())
 			.Build());
 	}
 
@@ -54,9 +54,6 @@ public class EntityBeliefs
 
 	Func<TargetData> targetData = () => null;
 	public TargetData TargetData => targetData();
-
-	Func<EntityStats> entityTarget = () => null;
-	public EntityStats EntityTarget => entityTarget();
 
 	EntityBeliefs(string name)
 	{
@@ -95,12 +92,6 @@ public class EntityBeliefs
 		public Builder WithTargetRef(Func<TargetData> target)
 		{
 			belief.targetData = target;
-			return this;
-		}
-
-		public Builder WithEntityTargetRef(Func<EntityStats> target)
-		{
-			belief.entityTarget = target;
 			return this;
 		}
 

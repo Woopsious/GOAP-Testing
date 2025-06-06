@@ -48,7 +48,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 55
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -66,20 +66,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sensorType: 5
+  sensorType: 2
   targetsInRange: []
   friendliesInRange: []
-  target:
-    obj: {fileID: 0}
-    poi: {fileID: 0}
-    entity: {fileID: 0}
-    type: 0
-  attackData:
-    attackType: 0
-    attackDamage: 0
-    attackCooldown: 0
-    attackMinRange: 0
-    attackMaxRange: 0
 --- !u!1 &607502371065325158
 GameObject:
   m_ObjectHideFlags: 0
@@ -128,7 +117,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 55
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -146,20 +135,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sensorType: 2
+  sensorType: 1
   targetsInRange: []
   friendliesInRange: []
-  target:
-    obj: {fileID: 0}
-    poi: {fileID: 0}
-    entity: {fileID: 0}
-    type: 0
-  attackData:
-    attackType: 0
-    attackDamage: 0
-    attackCooldown: 0
-    attackMinRange: 0
-    attackMaxRange: 0
 --- !u!1 &4185409361200469531
 GameObject:
   m_ObjectHideFlags: 0
@@ -208,7 +186,7 @@ SphereCollider:
     serializedVersion: 2
     m_Bits: 55
   m_LayerOverridePriority: 0
-  m_IsTrigger: 0
+  m_IsTrigger: 1
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
@@ -226,20 +204,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cafe70a6ee9bfa94cb221c81aa85fe90, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  sensorType: 1
+  sensorType: 0
   targetsInRange: []
   friendliesInRange: []
-  target:
-    obj: {fileID: 0}
-    poi: {fileID: 0}
-    entity: {fileID: 0}
-    type: 0
-  attackData:
-    attackType: 0
-    attackDamage: 0
-    attackCooldown: 0
-    attackMinRange: 0
-    attackMaxRange: 0
 --- !u!1 &8151942388671483916
 GameObject:
   m_ObjectHideFlags: 0
@@ -366,23 +333,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   entityStats: {fileID: 0}
   chaseSensor: {fileID: 3851985788758652946}
-  poiSensor: {fileID: 8777531979938876476}
   longRangeSensor: {fileID: 7657770429896562121}
-  chaseTarget:
-    obj: {fileID: 0}
-    poi: {fileID: 0}
-    entity: {fileID: 0}
-    type: 0
-  targetOne:
-    obj: {fileID: 0}
-    poi: {fileID: 0}
-    entity: {fileID: 0}
-    type: 0
-  targetTwo:
-    obj: {fileID: 0}
-    poi: {fileID: 0}
-    entity: {fileID: 0}
-    type: 0
+  poiSensor: {fileID: 8777531979938876476}
   answerRequestHelpGoalPriority: 0
 --- !u!195 &5829567236386544650
 NavMeshAgent:

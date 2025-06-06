@@ -8,7 +8,7 @@ public class PoIController : MonoBehaviour
 {
 	public PoiData _PoiData;
 	private MeshRenderer meshRenderer;
-	private SphereCollider entityDetection;
+	private CapsuleCollider capsuleCollider;
 
 	public EntityTeam previousPoiOwner;
 	public EntityTeam poiOwner;
@@ -38,9 +38,7 @@ public class PoIController : MonoBehaviour
 
 		name = _PoiData.PoiName;
 		meshRenderer = GetComponent<MeshRenderer>();
-		entityDetection = GetComponent<SphereCollider>();
-		entityDetection.isTrigger = true;
-		entityDetection.radius = _PoiData.PoiDetectionRadius;
+		capsuleCollider = GetComponent<CapsuleCollider>();
 	}
 	private void Start()
 	{
@@ -94,7 +92,9 @@ public class PoIController : MonoBehaviour
 	}
 	void UpdatePoiOwner(EntityTeam newOwner)
 	{
+		capsuleCollider.enabled = false;
 		poiOwner = newOwner;
+		capsuleCollider.enabled = true;
 
 		switch (newOwner)
 		{
@@ -108,6 +108,7 @@ public class PoIController : MonoBehaviour
 			meshRenderer.sharedMaterial = greenTeamMaterial;
 			break;
 		}
+
 		AiDirector.OnPoiCapture(this);
 	}
 

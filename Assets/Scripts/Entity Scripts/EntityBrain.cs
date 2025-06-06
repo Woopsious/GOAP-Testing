@@ -79,20 +79,7 @@ public class EntityBrain : MonoBehaviour
 
 	void OnTargetChanges(SensorType sensorType)
 	{
-		switch (sensorType)
-		{
-			case SensorType.chaseSensor:
-			ResetPlan();
-			break;
-
-			case SensorType.longRangeSensor:
-
-			break;
-
-			case SensorType.poiSensor:
-
-			break;
-		}
+		ResetPlan();
 	}
 
 
@@ -131,9 +118,9 @@ public class EntityBrain : MonoBehaviour
 
 	void SetupSensors()
 	{
-		chaseSensor.UpdateSensorSettings(SensorType.chaseSensor, entityStats._Data.chaseRange, entityStats._Data.attackData);
-		longRangeSensor.UpdateSensorSettings(SensorType.longRangeSensor, entityStats._Data.chaseRange * 2f, entityStats._Data.attackData);
-		poiSensor.UpdateSensorSettings(SensorType.poiSensor, entityStats._Data.chaseRange, entityStats._Data.attackData);
+		chaseSensor.UpdateSensorSettings(entityStats._Data.chaseRange, entityStats._Data.attackData);
+		longRangeSensor.UpdateSensorSettings(entityStats._Data.chaseRange * 2f, entityStats._Data.attackData);
+		poiSensor.UpdateSensorSettings(entityStats._Data.chaseRange, entityStats._Data.attackData);
     }
 	void SetupBrainType()
 	{
@@ -190,13 +177,13 @@ public class EntityBrain : MonoBehaviour
 	public void UseAttackOne()
 	{
 		attackOneReady = false;
-		beliefs["TargetInAttackOneRange"].EntityTarget.RecieveDamage(entityStats._Data.attackData[0].attackDamage);
+		beliefs["TargetInAttackOneRange"].TargetData.entity.RecieveDamage(entityStats._Data.attackData[0].attackDamage);
 		attackOneTimer.Start();
 	}
 	public void UseAttackTwo()
 	{
 		attackTwoReady = false;
-		beliefs["TargetInAttackTwoRange"].EntityTarget.RecieveDamage(entityStats._Data.attackData[1].attackDamage);
+		beliefs["TargetInAttackTwoRange"].TargetData.entity.RecieveDamage(entityStats._Data.attackData[1].attackDamage);
 		attackTwoTimer.Start();
 	}
 

@@ -41,9 +41,9 @@ public class TeamInfoUi : MonoBehaviour
 	void UpdatePoiCounter()
 	{
 		if (teamToTrack == EntityData.EntityTeam.redTeam)
-			ownedPois.text = "Owned Pois: " + AiDirector.instance.RedTeamCapturedPois;
+			ownedPois.text = "Owned Pois: " + AiDirector.instance.RedTeamCapturedPois.Count;
 		else if (teamToTrack == EntityData.EntityTeam.greenTeam)
-			ownedPois.text = "Owned Pois: " + AiDirector.instance.GreenTeamCapturedPois;
+			ownedPois.text = "Owned Pois: " + AiDirector.instance.GreenTeamCapturedPois.Count;
 	}
 
 	void UpdateResourceCounter(EntityData.EntityTeam team, int resourceAmount)

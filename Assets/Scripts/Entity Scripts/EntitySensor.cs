@@ -1,103 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.GraphicsBuffer;
-
-public interface ISensorStrategy
-{
-	public TargetData FoundTarget();
-
-	public void EvaluateTargets();
-
-	public event Action OnTargetChanged;
-}
-
-public class ClosestEntityStrategy : ISensorStrategy
-{
-	readonly EntitySensor sensor;
-
-	TargetData foundTarget;
-	public event Action OnTargetChanged;
-
-	public Vector3 TargetPosition => foundTarget.obj ? foundTarget.obj.transform.position : Vector3.zero;
-	public bool IsTargetInRange => TargetPosition != Vector3.zero;
-
-	public ClosestEntityStrategy(EntitySensor sensor)
-	{
-		this.sensor = sensor;
-		foundTarget = new(TargetData.TargetType.nullRef);
-	}
-
-	public TargetData FoundTarget()
-	{
-		return foundTarget;
-	}
-
-	public void EvaluateTargets()
-	{
-		TargetData foundTarget = GetClosestEntity();
-
-		if (foundTarget.obj != null)
-			OnTargetChanged?.Invoke();
-
-		this.foundTarget = foundTarget;
-	}
-
-	public TargetData GetClosestEntity()
-	{
-		TargetData foundTarget = new(TargetData.TargetType.nullRef);
-
-		if (sensor.targetsInRange.Count > 0)
-			foundTarget = sensor.targetsInRange[0];
-
-		return foundTarget;
-	}
-}
-
-public class ClosestEntityWithinAttackRange : ISensorStrategy
-{
-	readonly EntitySensor sensor;
-	readonly EntityAttackData attackData;
-
-	TargetData foundTarget;
-	public event Action OnTargetChanged;
-
-	public ClosestEntityWithinAttackRange(EntitySensor sensor, EntityAttackData attackData)
-	{
-		this.sensor = sensor;
-		this.attackData = attackData;
-		foundTarget = new(TargetData.TargetType.nullRef);
-	}
-
-	public TargetData FoundTarget()
-	{
-		return foundTarget;
-	}
-
-	public void EvaluateTargets()
-	{
-		TargetData foundTarget = GetClosestEntityWithinRange();
-		this.foundTarget = foundTarget;
-	}
-
-	public TargetData GetClosestEntityWithinRange()
-	{
-		TargetData foundTarget = new(TargetData.TargetType.nullRef);
-
-		if (sensor.targetsInRange.Count > 0)
-			foundTarget = sensor.targetsInRange[0];
-
-		if (foundTarget.TargetDistance >= attackData.attackMinRange && foundTarget.TargetDistance <= attackData.attackMaxRange)
-		{
-			return foundTarget;
-		}
-		else
-		{
-			foundTarget = new(TargetData.TargetType.nullRef);
-			return foundTarget;
-		}
-	}
-}
 
 public class EntitySensor : MonoBehaviour
 {
@@ -110,11 +13,9 @@ public class EntitySensor : MonoBehaviour
 		chaseSensor, longRangeSensor, poiSensor
 	}
 
-	float detectionRadius;
+	SphereCollider sphereCollider;
+	float detectionRadius = 0;
 	float timerInterval;
-
-	EntityData.EntityTeam entityTeam;
-	SphereCollider detectionRange;
 
 	public event Action<SensorType> OnTargetChanged = delegate { };
 
@@ -132,13 +33,7 @@ public class EntitySensor : MonoBehaviour
 	void Awake()
 	{
 		entityStats = GetComponentInParent<EntityStats>();
-		detectionRange = GetComponent<SphereCollider>();
-	}
-	void Start()
-	{
-		entityTeam = entityStats._Data.team;
-		detectionRange.isTrigger = true;
-		detectionRange.radius = detectionRadius;
+		sphereCollider = GetComponent<SphereCollider>();
 	}
 
 	void OnEnable()
@@ -155,11 +50,11 @@ public class EntitySensor : MonoBehaviour
 		timer.Tick(Time.deltaTime);
 	}
 
-	public void UpdateSensorSettings(SensorType sensorType, float detectionRadius, List<EntityAttackData> attackData)
+	public void UpdateSensorSettings(float detectionRadius, List<EntityAttackData> attackData)
 	{
-		this.sensorType = sensorType;
 		timerInterval = 0.25f;
-		detectionRange.radius = detectionRadius;
+		sphereCollider.radius = detectionRadius;
+		this.detectionRadius = detectionRadius;
 		this.attackData = attackData;
 		fleeDistance = entityStats._Data.fleeRange;
 
@@ -182,14 +77,30 @@ public class EntitySensor : MonoBehaviour
 	{
 		if (sensorType == SensorType.chaseSensor)
 		{
-			sensorBehaviours = new ISensorStrategy[3];
-			sensorBehaviours[0] = new ClosestEntityStrategy(this);
-			sensorBehaviours[1] = new ClosestEntityWithinAttackRange(this, attackData[0]);
-			sensorBehaviours[2] = new ClosestEntityWithinAttackRange(this, attackData[1]);
+			sensorBehaviours = new ISensorStrategy[4];
+			sensorBehaviours[0] = new FleeClosestEnemyEntityStrategy(this, entityStats._Data);
+			sensorBehaviours[1] = new ClosestEnemyEntityStrategy(this);
 
 			sensorBehaviours[0].OnTargetChanged += TargetChangedFromSensorBehaviour;
 			sensorBehaviours[1].OnTargetChanged += TargetChangedFromSensorBehaviour;
-			sensorBehaviours[2].OnTargetChanged += TargetChangedFromSensorBehaviour;
+
+			if (attackData.Count > 0)
+			{
+				sensorBehaviours[2] = new ClosestEntityToAttackStrategy(this, attackData[0]);
+				sensorBehaviours[3] = new ClosestEntityToAttackStrategy(this, attackData[1]);
+
+				sensorBehaviours[2].OnTargetChanged += TargetChangedFromSensorBehaviour;
+				sensorBehaviours[3].OnTargetChanged += TargetChangedFromSensorBehaviour;
+			}
+		}
+		else if (sensorType == SensorType.poiSensor)
+		{
+			sensorBehaviours = new ISensorStrategy[2];
+			sensorBehaviours[0] = new ClosestEnemyPoiStrategy(this);
+			sensorBehaviours[1] = new ClosestFriendlyPoiStrategy(this);
+
+			sensorBehaviours[0].OnTargetChanged += TargetChangedFromSensorBehaviour;
+			sensorBehaviours[1].OnTargetChanged += TargetChangedFromSensorBehaviour;
 		}
 	}
 
@@ -206,94 +117,63 @@ public class EntitySensor : MonoBehaviour
 		if (sensorBehaviours == null) return;
 
 		foreach (var sensorBehaviour in sensorBehaviours)
-		{
 			sensorBehaviour.EvaluateTargets();
-		}
 	}
 	void SortTargetsInSensorRange()
 	{
-		for (int i = targetsInRange.Count - 1; i >= 0; i--)
+		if (sensorType == SensorType.poiSensor)
 		{
-			if (targetsInRange[i].obj == null)
-				targetsInRange.RemoveAt(i);
-			else
-				targetsInRange[i].UpdateTargetDistance(transform.position);
+			for (int i = targetsInRange.Count - 1; i >= 0; i--)
+			{
+				if (targetsInRange[i].obj == null || targetsInRange[i].poi.poiOwner == entityStats._Data.team)
+				{
+					targetsInRange.RemoveAt(i);
+					friendliesInRange.Add(targetsInRange[i]);
+				}
+				else
+					targetsInRange[i].UpdateTargetDistance(transform.position);
+			}
+		}
+		else
+		{
+			for (int i = targetsInRange.Count - 1; i >= 0; i--)
+			{
+				if (targetsInRange[i].obj == null)
+					targetsInRange.RemoveAt(i);
+				else
+					targetsInRange[i].UpdateTargetDistance(transform.position);
+			}
 		}
 
 		targetsInRange.Sort((a, b) => a.TargetDistance.CompareTo(b.TargetDistance));
 	}
 	void SortFriendliesInSensorRange()
 	{
-		for (int i = friendliesInRange.Count - 1; i >= 0; i--)
+		if (sensorType == SensorType.poiSensor)
 		{
-			if (friendliesInRange[i].obj == null)
-				friendliesInRange.RemoveAt(i);
-			else
-				friendliesInRange[i].UpdateTargetDistance(transform.position);
-		}
-
-		friendliesInRange.Sort((a, b) => a.TargetDistance.CompareTo(b.TargetDistance));
-	}
-
-	//fetch targets based on whats needed
-	public TargetData GetClosestEntityInFleeRange()
-	{
-		TargetData foundTarget = new(TargetData.TargetType.nullRef);
-
-		for (int i = 0; i < targetsInRange.Count; i++)
-		{
-			if (targetsInRange[i].TargetDistance < entityStats._Data.fleeRange)
+			for (int i = friendliesInRange.Count - 1; i >= 0; i--)
 			{
-				foundTarget = targetsInRange[i];
+				if (friendliesInRange[i].obj == null || friendliesInRange[i].poi.poiOwner != entityStats._Data.team)
+				{
+					friendliesInRange.RemoveAt(i);
+					targetsInRange.Add(friendliesInRange[i]);
+				}
+				else
+					friendliesInRange[i].UpdateTargetDistance(transform.position);
+			}
+		}
+		else
+		{
+			for (int i = friendliesInRange.Count - 1; i >= 0; i--)
+			{
+				if (friendliesInRange[i].obj == null)
+					friendliesInRange.RemoveAt(i);
+				else
+					friendliesInRange[i].UpdateTargetDistance(transform.position);
 			}
 		}
 
-		return foundTarget;
-	}
-	public TargetData GetClosestEntity()
-	{
-		TargetData foundTarget = new(TargetData.TargetType.nullRef);
-
-		if (targetsInRange.Count > 0)
-			foundTarget = targetsInRange[0];
-
-		return foundTarget;
-	}
-	public TargetData GetClosestTargetWithinRange(EntityAttackData attackData)
-	{
-		TargetData foundTarget = GetClosestEntity();
-
-		if (foundTarget.TargetDistance >= attackData.attackMinRange && foundTarget.TargetDistance <= attackData.attackMaxRange)
-			return foundTarget;
-		else
-		{
-			foundTarget = new(TargetData.TargetType.nullRef);
-			return foundTarget;
-		}
-	}
-	public TargetData GetClosestEnemyPoi()
-	{
-		TargetData foundTarget = new(TargetData.TargetType.nullRef);
-
-		for (int i = 0; i < targetsInRange.Count; i++)
-		{
-			if (foundTarget.poi.poiOwner != entityTeam)
-				foundTarget = targetsInRange[i];
-		}
-
-		return foundTarget;
-	}
-	public TargetData GetClosestFriendlyPoi()
-	{
-		TargetData foundTarget = new(TargetData.TargetType.nullRef);
-
-		for (int i = 0; i < targetsInRange.Count; i++)
-		{
-			if (foundTarget.poi.poiOwner == entityTeam)
-				foundTarget = targetsInRange[i];
-		}
-
-		return foundTarget;
+		friendliesInRange.Sort((a, b) => a.TargetDistance.CompareTo(b.TargetDistance));
 	}
 
 	void OnTriggerEnter(Collider other)
@@ -303,7 +183,7 @@ public class EntitySensor : MonoBehaviour
 			if (other.GetComponent<PoIController>() == null) return;
 			PoIController poi = other.GetComponent<PoIController>();
 
-			if (poi.poiOwner == entityTeam)
+			if (poi.poiOwner == entityStats._Data.team)
 				AddTargetToList(friendliesInRange, other.gameObject, TargetData.TargetType.poi);
 			else
 				AddTargetToList(targetsInRange, other.gameObject, TargetData.TargetType.poi);
@@ -313,7 +193,7 @@ public class EntitySensor : MonoBehaviour
 			if (other.GetComponent<EntityStats>() == null) return;
 			EntityStats entity = other.GetComponent<EntityStats>();
 
-			if (entity._Data.team == entityTeam)
+			if (entity._Data.team == entityStats._Data.team)
 				AddTargetToList(friendliesInRange, other.gameObject, TargetData.TargetType.entity);
 			else
 				AddTargetToList(targetsInRange, other.gameObject, TargetData.TargetType.entity);
@@ -326,7 +206,7 @@ public class EntitySensor : MonoBehaviour
 			if (other.GetComponent<PoIController>() == null) return;
 			PoIController poi = other.GetComponent<PoIController>();
 
-			if (poi.poiOwner == entityTeam)
+			if (poi.poiOwner == entityStats._Data.team)
 				RemoveTargetFromList(friendliesInRange, other.gameObject);
 			else
 				RemoveTargetFromList(targetsInRange, other.gameObject);
@@ -336,7 +216,7 @@ public class EntitySensor : MonoBehaviour
 			if (other.GetComponent<EntityStats>() == null) return;
 			EntityStats entity = other.GetComponent<EntityStats>();
 
-			if (entity._Data.team == entityTeam)
+			if (entity._Data.team == entityStats._Data.team)
 				RemoveTargetFromList(friendliesInRange, other.gameObject);
 			else
 				RemoveTargetFromList(targetsInRange, other.gameObject);

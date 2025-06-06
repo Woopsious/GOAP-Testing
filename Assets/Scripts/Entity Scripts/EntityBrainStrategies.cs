@@ -46,30 +46,34 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		beliefs = new Dictionary<string, EntityBeliefs>();
 		BeliefFactory factory = new(entityBrain, beliefs);
 
+		//basic beliefs
 		factory.AddBelief("Nothing", () => false);
-
 		factory.AddBelief("AgentIdle", () => !navMeshAgent.hasPath);
 		factory.AddBelief("AgentMoving", () => navMeshAgent.hasPath);
 		factory.AddBelief("AgentHealthLow", () => entityStats.currentHealth < 40);
 		factory.AddBelief("AgentIsHealthy", () => entityStats.currentHealth >= 60);
 
-		factory.AddTargetBelief("TargetInFleeRange", () => entitySensors[0].GetClosestEntityInFleeRange());
+		//flee beliefs
+		factory.AddTargetBelief("TargetInFleeRange", () => entitySensors[0].sensorBehaviours[0].FoundTarget());
 		factory.AddBelief("FleeingFromTarget", () => false);
 
-		factory.AddTargetBelief("TargetInChaseRange", () => entitySensors[0].sensorBehaviours[0].FoundTarget());
+		//target beliefs
+		factory.AddTargetBelief("TargetInChaseRange", () => entitySensors[0].sensorBehaviours[1].FoundTarget());
 		factory.AddBelief("ChasingTarget", () => false);
+		factory.AddTargetBelief("TargetInAttackOneRange", () => entitySensors[0].sensorBehaviours[2].FoundTarget());
+		factory.AddTargetBelief("TargetInAttackTwoRange", () => entitySensors[0].sensorBehaviours[3].FoundTarget());
 
-		factory.AddTargetBelief("TargetInAttackOneRange", () => entitySensors[0].sensorBehaviours[1].FoundTarget());
-		factory.AddTargetBelief("TargetInAttackTwoRange", () => entitySensors[0].sensorBehaviours[2].FoundTarget());
-
+		//attack beliefs
 		factory.AddBelief("AllAttacksOnCooldown", () => attackBools[0]());
 		factory.AddBelief("AttackOneReady", () => attackBools[1]());
 		factory.AddBelief("AttackTwoReady", () => attackBools[2]());
 
+		//help beliefs
 		factory.AddBelief("NeedsHelp", () => entityBrain.EntityNeedsHelp()); //compare friendlies/enemies in chase range sensor
 		factory.AddBelief("CanRequestHelp", () => entityBrain.RequestHelpTimer.IsFinished);
 		factory.AddBelief("AnswerRequestForHelp", () => entityBrain.RequestHelpOriginPos != Vector3.zero);
 
+		//goal beliefs
 		factory.AddBelief("MoveToAttack", () => false);
 		factory.AddBelief("Attack", () => false);
 		factory.AddBelief("RequestHelp", () => false);
@@ -104,13 +108,13 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("MoveToUseAttackOne")
-			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[0]))
+			.WithStrategy(new MoveToAttackStrategy(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[0]))
 			.AddPrecondition(beliefs["TargetInChaseRange"])
 			.AddEffect(beliefs["MoveToAttack"])
 			.Build(),
 
 			new EntityActions.Builder("MoveToUseAttackTwo")
-			.WithStrategy(new MoveIntoAttackRange(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[1]))
+			.WithStrategy(new MoveToAttackStrategy(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[1]))
 			.AddPrecondition(beliefs["TargetInChaseRange"])
 			.AddEffect(beliefs["MoveToAttack"])
 			.Build(),
@@ -122,14 +126,14 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("AttackOne")
-			.WithStrategy(new BasicAttackStrategy(entityBrain, 1, () => beliefs["TargetInAttackOneRange"].EntityTarget))
+			.WithStrategy(new AttackStrategy(entityBrain, 1, () => beliefs["TargetInAttackOneRange"].TargetData))
 			.AddPrecondition(beliefs["TargetInAttackOneRange"])
 			.AddPrecondition(beliefs["AttackOneReady"])
 			.AddEffect(beliefs["Attack"])
 			.Build(),
 
 			new EntityActions.Builder("AttackTwo")
-			.WithStrategy(new BasicAttackStrategy(entityBrain, 2, () => beliefs["TargetInAttackTwoRange"].EntityTarget))
+			.WithStrategy(new AttackStrategy(entityBrain, 2, () => beliefs["TargetInAttackTwoRange"].TargetData))
 			.AddPrecondition(beliefs["TargetInAttackTwoRange"])
 			.AddPrecondition(beliefs["AttackTwoReady"])
 			.AddEffect(beliefs["Attack"])
@@ -234,35 +238,48 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 		beliefs = new Dictionary<string, EntityBeliefs>();
 		BeliefFactory factory = new(entityBrain, beliefs);
 
+		//basic beliefs
 		factory.AddBelief("Nothing", () => false);
-
 		factory.AddBelief("AgentIdle", () => !navMeshAgent.hasPath);
 		factory.AddBelief("AgentMoving", () => navMeshAgent.hasPath);
 		factory.AddBelief("AgentHealthLow", () => entityStats.currentHealth < 30);
 		factory.AddBelief("AgentIsHealthy", () => entityStats.currentHealth >= 40);
 
-		factory.AddTargetBelief("TargetInFleeRange", () => entitySensors[0].GetClosestEntityInFleeRange());
+		//flee beliefs
+		factory.AddTargetBelief("TargetInFleeRange", () => entitySensors[0].sensorBehaviours[0].FoundTarget());
 		factory.AddBelief("FleeingFromTarget", () => false);
 
+		//at home base beliefs
 		if (entityStats._Data.team == EntityData.EntityTeam.redTeam)
 			factory.AddLocationBelief("AtHomeBase", 10f, AiDirector.instance.redTeamHomeBase.transform.position);
         else if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
 			factory.AddLocationBelief("AtHomeBase", 10f, AiDirector.instance.greenTeamHomeBase.transform.position);
 
-		factory.AddTargetBelief("FoundFriendlyPoi", () => entitySensors[2].GetClosestFriendlyPoi());
-		factory.AddBelief("AtFriendlyPoi", () => entityBrain.InRangeOf(beliefs["FoundFriendlyPoi"].TargetLocation, 10f));
+		//enemy poi beliefs
+		factory.AddTargetBelief("FoundEnemyPoi", () => entitySensors[2].sensorBehaviours[0].FoundTarget());
 
-		factory.AddBelief("FriendlyPoiNeedsResTransfer", () =>
-			beliefs["FoundFriendlyPoi"].TargetData.poi != null &&
-			beliefs["FoundFriendlyPoi"].TargetData.poi.PoiNeedsResourceTransfer());
-		factory.AddBelief("TransferResourceToHomeBase", () => entityStats.carriedResources != 0);
+		factory.AddBelief("AtEnemyPoi", () => 
+			beliefs["FoundEnemyPoi"].TargetData.obj != null && 
+			entityBrain.InRangeOf(beliefs["FoundEnemyPoi"].TargetLocation, 10f));
 
-		factory.AddTargetBelief("FoundEnemyPoi", () => entitySensors[2].GetClosestEnemyPoi());
-		factory.AddBelief("AtEnemyPoi", () => entityBrain.InRangeOf(beliefs["FoundEnemyPoi"].TargetLocation, 10f));
 		factory.AddBelief("EnemyPoiCapturable", () => 
 			beliefs["FoundEnemyPoi"].TargetData.poi != null &&
 			beliefs["FoundEnemyPoi"].TargetData.poi.PoiCapturable(entityStats));
 
+		//friendly poi beliefs
+		factory.AddTargetBelief("FoundFriendlyPoi", () => entitySensors[2].sensorBehaviours[1].FoundTarget());
+
+		factory.AddBelief("AtFriendlyPoi", () => 
+			beliefs["FoundFriendlyPoi"].TargetData.obj != null &&
+			entityBrain.InRangeOf(beliefs["FoundFriendlyPoi"].TargetLocation, 10f));
+
+		factory.AddBelief("FriendlyPoiNeedsResTransfer", () => 
+			beliefs["FoundFriendlyPoi"].TargetData.poi != null &&
+			beliefs["FoundFriendlyPoi"].TargetData.poi.PoiNeedsResourceTransfer());
+
+		factory.AddBelief("TransferResourceToHomeBase", () => entityStats.carriedResources != 0);
+
+		//goal beliefs
 		factory.AddBelief("FindPois", () => false);
 		factory.AddBelief("CapturePoi", () => false);
 		factory.AddBelief("PickUpResources", () => false);
@@ -286,7 +303,7 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("FindPois")
-			.WithStrategy(new FindPoiStrategy(entityBrain, navMeshAgent, 50))
+			.WithStrategy(new FindPoiStrategy(navMeshAgent, 50))
 			.AddEffect(beliefs["AgentMoving"])
 			.AddEffect(beliefs["FindPois"])
 			.Build(),

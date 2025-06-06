@@ -49,6 +49,8 @@ public class AiDirector : MonoBehaviour
 			instance.GreenTeamEntities.Add(entity);
 		else
 			Debug.LogError("no matching team found");
+
+		UpdateUiPopDataEvent?.Invoke(entity._Data.team);
 	}
 
 	public static void OnEntityDeath(EntityStats entity)
@@ -64,6 +66,8 @@ public class AiDirector : MonoBehaviour
 			instance.GreenTeamEntities.Remove(entity);
 		else
 			Debug.LogError("no matching team found");
+
+		UpdateUiPopDataEvent?.Invoke(entity._Data.team);
 	}
 
 	public static void UpdateTeamResourceCounter(EntityData.EntityTeam team, int resourceAmount)
