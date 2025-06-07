@@ -23,9 +23,8 @@ public class EntitySensor : MonoBehaviour
 	public List<TargetData> targetsInRange = new List<TargetData>();
 	public List<TargetData> friendliesInRange = new List<TargetData>();
 
-	CountdownTimer timer;
-
-	public ISensorStrategy[] sensorBehaviours;
+	public ISensorStrategy[] sensorBehaviours = new ISensorStrategy[0];
+	CountdownTimer sensorBehaviourstimer;
 
 	List<EntityAttackData> attackData;
 	float fleeDistance;
@@ -47,9 +46,10 @@ public class EntitySensor : MonoBehaviour
 
 	void Update()
 	{
-		timer.Tick(Time.deltaTime);
+		sensorBehaviourstimer.Tick(Time.deltaTime);
 	}
 
+	//sensor setup
 	public void UpdateSensorSettings(float detectionRadius, List<EntityAttackData> attackData)
 	{
 		timerInterval = 0.25f;
@@ -66,12 +66,12 @@ public class EntitySensor : MonoBehaviour
 
 		SetupSensorBehaviour();
 
-		timer = new CountdownTimer(timerInterval);
-		timer.OnTimerStop += () => {
+		sensorBehaviourstimer = new CountdownTimer(timerInterval);
+		sensorBehaviourstimer.OnTimerStop += () => {
 			UpdateSensorLogic();
-			timer.Start();
+			sensorBehaviourstimer.Start();
 		};
-		timer.Start();
+		sensorBehaviourstimer.Start();
 	}
 	void SetupSensorBehaviour()
 	{
@@ -93,6 +93,10 @@ public class EntitySensor : MonoBehaviour
 				sensorBehaviours[3].OnTargetChanged += TargetChangedFromSensorBehaviour;
 			}
 		}
+		else if (sensorType == SensorType.longRangeSensor)
+		{
+			//noop
+		}
 		else if (sensorType == SensorType.poiSensor)
 		{
 			sensorBehaviours = new ISensorStrategy[2];
@@ -102,22 +106,21 @@ public class EntitySensor : MonoBehaviour
 			sensorBehaviours[0].OnTargetChanged += TargetChangedFromSensorBehaviour;
 			sensorBehaviours[1].OnTargetChanged += TargetChangedFromSensorBehaviour;
 		}
+		else
+			Debug.LogError("sensor type has no sensor behaviour logic set up");
 	}
 
-	void TargetChangedFromSensorBehaviour()
-	{
-		OnTargetChanged?.Invoke(sensorType);
-	}
-
+	//sensor logic
 	void UpdateSensorLogic()
 	{
 		SortTargetsInSensorRange();
 		SortFriendliesInSensorRange();
 
-		if (sensorBehaviours == null) return;
-
-		foreach (var sensorBehaviour in sensorBehaviours)
+		foreach (ISensorStrategy sensorBehaviour in sensorBehaviours)
+		{
+			if (sensorBehaviour == null) return;
 			sensorBehaviour.EvaluateTargets();
+		}
 	}
 	void SortTargetsInSensorRange()
 	{
@@ -176,6 +179,7 @@ public class EntitySensor : MonoBehaviour
 		friendliesInRange.Sort((a, b) => a.TargetDistance.CompareTo(b.TargetDistance));
 	}
 
+	//target trigger colliders
 	void OnTriggerEnter(Collider other)
 	{
 		if (sensorType == SensorType.poiSensor)
@@ -222,7 +226,6 @@ public class EntitySensor : MonoBehaviour
 				RemoveTargetFromList(targetsInRange, other.gameObject);
 		}
 	}
-
 	void AddTargetToList(List<TargetData> list, GameObject obj, TargetData.TargetType targetType)
 	{
 		if (list.Count == 0) //list empty no need to check
@@ -248,6 +251,11 @@ public class EntitySensor : MonoBehaviour
 		}
 	}
 
+	//events
+	void TargetChangedFromSensorBehaviour()
+	{
+		OnTargetChanged?.Invoke(sensorType);
+	}
 	void ClearDeadEntitiesFromTargetList(EntityStats entity)
 	{
 		for (int i = targetsInRange.Count - 1; i >= 0; i--)

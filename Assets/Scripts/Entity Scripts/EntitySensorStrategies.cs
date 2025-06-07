@@ -75,7 +75,10 @@ public class FleeClosestEnemyEntityStrategy : ISensorStrategy
 	public void EvaluateTargets()
 	{
 		TargetData foundTarget = GetClosestEntityInFleeRange();
-		//target change event here if needed
+
+		if (this.foundTarget.obj != foundTarget.obj)
+			OnTargetChanged?.Invoke();
+
 		this.foundTarget = foundTarget;
 	}
 
@@ -86,7 +89,9 @@ public class FleeClosestEnemyEntityStrategy : ISensorStrategy
 		if (sensor.targetsInRange.Count > 0)
 			foundTarget = sensor.targetsInRange[0];
 
-		if (foundTarget.TargetDistance < entityData.fleeRange)
+		if (foundTarget.entity == null) return foundTarget;
+
+		if (foundTarget.TargetDistance < entityData.fleeRange && foundTarget.entity._Data.brainType != EntityData.EntityBrainType.worker)
 		{
 			return foundTarget;
 		}
@@ -121,7 +126,10 @@ public class ClosestEntityToAttackStrategy : ISensorStrategy
 	public void EvaluateTargets()
 	{
 		TargetData foundTarget = GetClosestEntityWithinRange();
-		//target change event here if needed
+
+		if (this.foundTarget.obj != foundTarget.obj)
+			OnTargetChanged?.Invoke();
+
 		this.foundTarget = foundTarget;
 	}
 
@@ -166,12 +174,8 @@ public class ClosestEnemyPoiStrategy : ISensorStrategy
 	{
 		TargetData foundTarget = GetClosestEnemyPoi();
 
-		if (this.foundTarget.obj == null && foundTarget.obj != null)
-		{
-			Debug.LogError("cur target obj null and new one is not");
-
+		if (this.foundTarget.obj != foundTarget.obj)
 			OnTargetChanged?.Invoke();
-		}
 
 		this.foundTarget = foundTarget;
 	}
@@ -209,11 +213,7 @@ public class ClosestFriendlyPoiStrategy : ISensorStrategy
 		TargetData foundTarget = GetClosestEnemyPoi();
 
 		if (this.foundTarget.obj == null && foundTarget.obj != null)
-		{
-			Debug.LogError("cur target obj null and new one is not");
-
 			OnTargetChanged?.Invoke();
-		}
 
 		this.foundTarget = foundTarget;
 	}

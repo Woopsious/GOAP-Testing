@@ -53,6 +53,12 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		factory.AddBelief("AgentHealthLow", () => entityStats.currentHealth < 40);
 		factory.AddBelief("AgentIsHealthy", () => entityStats.currentHealth >= 60);
 
+		//at home base beliefs
+		if (entityStats._Data.team == EntityData.EntityTeam.redTeam)
+			factory.AddLocationBelief("AtHomeBase", 10f, AiDirector.instance.redTeamHomeBase.transform.position);
+		else if (entityStats._Data.team == EntityData.EntityTeam.greenTeam)
+			factory.AddLocationBelief("AtHomeBase", 10f, AiDirector.instance.greenTeamHomeBase.transform.position);
+
 		//flee beliefs
 		factory.AddTargetBelief("TargetInFleeRange", () => entitySensors[0].sensorBehaviours[0].FoundTarget());
 		factory.AddBelief("FleeingFromTarget", () => false);
@@ -67,6 +73,12 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		factory.AddBelief("AllAttacksOnCooldown", () => attackBools[0]());
 		factory.AddBelief("AttackOneReady", () => attackBools[1]());
 		factory.AddBelief("AttackTwoReady", () => attackBools[2]());
+
+		//enemy poi beliefs
+		factory.AddTargetBelief("FoundEnemyPoi", () => entitySensors[2].sensorBehaviours[0].FoundTarget());
+
+		//friendly poi beliefs
+		factory.AddTargetBelief("FoundFriendlyPoi", () => entitySensors[2].sensorBehaviours[1].FoundTarget());
 
 		//help beliefs
 		factory.AddBelief("NeedsHelp", () => entityBrain.EntityNeedsHelp()); //compare friendlies/enemies in chase range sensor
@@ -140,7 +152,7 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.Build(),
 
 			new EntityActions.Builder("RequestHelp")
-			.WithStrategy(new CallForHelpStrategy(entityBrain.entityStats, entitySensors[2], 3))
+			.WithStrategy(new CallForHelpStrategy(entityBrain.entityStats, entitySensors[1], 3))
 			.AddPrecondition(beliefs["NeedsHelp"])
 			.AddPrecondition(beliefs["CanRequestHelp"])
 			.AddEffect(beliefs["RequestHelp"])
@@ -279,11 +291,17 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 
 		factory.AddBelief("TransferResourceToHomeBase", () => entityStats.carriedResources != 0);
 
+		//help beliefs
+		factory.AddBelief("NeedsHelp", () => entityBrain.EntityNeedsHelp()); //compare friendlies/enemies in chase range sensor
+		factory.AddBelief("CanRequestHelp", () => entityBrain.RequestHelpTimer.IsFinished);
+		factory.AddBelief("AnswerRequestForHelp", () => entityBrain.RequestHelpOriginPos != Vector3.zero);
+
 		//goal beliefs
 		factory.AddBelief("FindPois", () => false);
 		factory.AddBelief("CapturePoi", () => false);
 		factory.AddBelief("PickUpResources", () => false);
 		factory.AddBelief("DropOffResources", () => false);
+		factory.AddBelief("RequestHelp", () => false);
 
 		return beliefs;
 	}
@@ -360,6 +378,13 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			.AddPrecondition(beliefs["EnemyPoiCapturable"])
 			.AddEffect(beliefs["CapturePoi"])
 			.Build(),
+
+			new EntityActions.Builder("RequestHelp")
+			.WithStrategy(new CallForHelpStrategy(entityBrain.entityStats, entitySensors[1], 3))
+			.AddPrecondition(beliefs["NeedsHelp"])
+			.AddPrecondition(beliefs["CanRequestHelp"])
+			.AddEffect(beliefs["RequestHelp"])
+			.Build(),
 		};
 
 		return actions;
@@ -401,6 +426,11 @@ public class WorkerBrainStrategy : IEntityBrainStrategies
 			new EntityGoals.Builder("KeepHealthUp")
 			.WithPriority(90)
 			.WithDesiredEffect(beliefs["AgentIsHealthy"])
+			.Build(),
+
+			new EntityGoals.Builder("RequstForHelp")
+			.WithPriority(100)
+			.WithDesiredEffect(beliefs["RequestHelp"])
 			.Build(),
 		};
 

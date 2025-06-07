@@ -166,16 +166,16 @@ public class InteractStrategy : IActionStrategy
 public class CallForHelpStrategy : IActionStrategy
 {
 	readonly EntityStats entity;
-	readonly EntitySensor friendlySensor;
+	readonly EntitySensor longRangeSensor;
 	readonly int entitiesToTryAndFind;
 
 	public bool CanPerform => entity.entityBrain.RequestHelpTimer.IsFinished;
 	public bool Complete => entity.entityBrain.RequestHelpTimer.IsRunning;
 
-	public CallForHelpStrategy(EntityStats entity, EntitySensor friendlySensor, int entitiesToTryAndFind)
+	public CallForHelpStrategy(EntityStats entity, EntitySensor longRangeSensor, int entitiesToTryAndFind)
 	{
 		this.entity = entity;
-		this.friendlySensor = friendlySensor;
+		this.longRangeSensor = longRangeSensor;
 		this.entitiesToTryAndFind = entitiesToTryAndFind;
 	}
 
@@ -183,20 +183,15 @@ public class CallForHelpStrategy : IActionStrategy
 
 	void RequestAvailableFriendliesForHelp()
 	{
-		Debug.LogError("Entity Requested help");
-
 		int entitiesFoundToCall = 0;
-		List<TargetData> foundEntities = SortEntitiesDistance();
 
-		for (int i = 0; i < foundEntities.Count; i++)
+		for (int i = 0; i < longRangeSensor.friendliesInRange.Count; i++)
 		{
-			if (foundEntities[i].entity.entityBrain.CanAnswerRequestHelp())
+			if (longRangeSensor.friendliesInRange[i].entity.entityBrain.CanAnswerRequestHelp())
 			{
-				foundEntities[i].entity.entityBrain.UpdateRecievedHelpRequest(entity.transform.position);
+				longRangeSensor.friendliesInRange[i].entity.entityBrain.UpdateRecievedHelpRequest(entity.transform.position);
 				entitiesFoundToCall++;
 				i++;
-
-				//Debug.LogError("entity at pos: " + foundEntities[i].obj.transform.position + " called for help");
 			}
 
             if (entitiesFoundToCall >= entitiesToTryAndFind)
@@ -204,17 +199,6 @@ public class CallForHelpStrategy : IActionStrategy
 		}
 
 		entity.entityBrain.RequestHelpTimer.Start();
-	}
-	List<TargetData> SortEntitiesDistance()
-	{
-		List<TargetData> foundEntities = friendlySensor.targetsInRange;
-
-		for (int i = 0; i < foundEntities.Count; i++)
-			foundEntities[i].UpdateTargetDistance(entity.transform.position);
-
-		foundEntities.Sort((a, b) => a.TargetDistance.CompareTo(b.TargetDistance));
-
-		return foundEntities;
 	}
 }
 
