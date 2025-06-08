@@ -65,7 +65,6 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 
 		//target beliefs
 		factory.AddTargetBelief("TargetInChaseRange", () => entitySensors[0].sensorBehaviours[1].FoundTarget());
-		factory.AddBelief("ChasingTarget", () => false);
 		factory.AddTargetBelief("TargetInAttackOneRange", () => entitySensors[0].sensorBehaviours[2].FoundTarget());
 		factory.AddTargetBelief("TargetInAttackTwoRange", () => entitySensors[0].sensorBehaviours[3].FoundTarget());
 
@@ -86,7 +85,6 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 		factory.AddBelief("AnswerRequestForHelp", () => entityBrain.RequestHelpOriginPos != Vector3.zero);
 
 		//goal beliefs
-		factory.AddBelief("MoveToAttack", () => false);
 		factory.AddBelief("Attack", () => false);
 		factory.AddBelief("RequestHelp", () => false);
 		factory.AddBelief("AnsweringRequestHelp", () => false);
@@ -113,27 +111,23 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.AddEffect(beliefs["FleeingFromTarget"])
 			.Build(),
 
-			new EntityActions.Builder("ChaseTarget")
-			.WithStrategy(new MoveStrategy(navMeshAgent, 3, () => beliefs["TargetInChaseRange"].TargetLocation))
-			.AddPrecondition(beliefs["TargetInChaseRange"])
-			.AddEffect(beliefs["ChasingTarget"])
-			.Build(),
-
 			new EntityActions.Builder("MoveToUseAttackOne")
 			.WithStrategy(new MoveToAttackStrategy(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[0]))
 			.AddPrecondition(beliefs["TargetInChaseRange"])
-			.AddEffect(beliefs["MoveToAttack"])
+			.AddEffect(beliefs["TargetInAttackOneRange"])
 			.Build(),
 
 			new EntityActions.Builder("MoveToUseAttackTwo")
 			.WithStrategy(new MoveToAttackStrategy(navMeshAgent, () => beliefs["TargetInChaseRange"].TargetLocation, entityStats._Data.attackData[1]))
 			.AddPrecondition(beliefs["TargetInChaseRange"])
-			.AddEffect(beliefs["MoveToAttack"])
+			.AddEffect(beliefs["TargetInAttackTwoRange"])
 			.Build(),
 
 			new EntityActions.Builder("WaitForAttacks")
 			.WithStrategy(new IdleStrategy(0.5f))
 			.AddPrecondition(beliefs["AllAttacksOnCooldown"])
+			.AddPrecondition(beliefs["TargetInAttackOneRange"])
+			.AddPrecondition(beliefs["TargetInAttackTwoRange"])
 			.AddEffect(beliefs["Attack"])
 			.Build(),
 
@@ -196,18 +190,8 @@ public class CombatBrainStrategy : IEntityBrainStrategies
 			.WithDesiredEffect(beliefs["AnsweringRequestHelp"])
 			.Build(),
 
-			new EntityGoals.Builder("ChaseTarget")
-			.WithPriority(50)
-			.WithDesiredEffect(beliefs["ChasingTarget"])
-			.Build(),
-
-			new EntityGoals.Builder("MoveToAttack")
-			.WithPriority(80)
-			.WithDesiredEffect(beliefs["MoveToAttack"])
-			.Build(),
-
 			new EntityGoals.Builder("Attack")
-			.WithPriority(90)
+			.WithPriority(80)
 			.WithDesiredEffect(beliefs["Attack"])
 			.Build(),
 

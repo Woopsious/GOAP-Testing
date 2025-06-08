@@ -118,6 +118,11 @@ public class EntityPopManager : MonoBehaviour
 		redDualistPopData.CalculatePopNeeds();
 		redMeleePopData.CalculatePopNeeds();
 		redRangedPopData.CalculatePopNeeds();
+
+		redWorkerPopData.DebugPopData(false);
+		redDualistPopData.DebugPopData(false);
+		redMeleePopData.DebugPopData(false);
+		redRangedPopData.DebugPopData(false);
 	}
 	EntityPopData GetMostNeededRedTeamPop()
 	{
@@ -174,6 +179,11 @@ public class EntityPopManager : MonoBehaviour
 		greenDualistPopData.CalculatePopNeeds();
 		greenMeleePopData.CalculatePopNeeds();
 		greenRangedPopData.CalculatePopNeeds();
+
+		greenWorkerPopData.DebugPopData(false);
+		greenDualistPopData.DebugPopData(false);
+		greenMeleePopData.DebugPopData(false);
+		greenRangedPopData.DebugPopData(false);
 	}
 	EntityPopData GetMostNeededGreenTeamPop()
 	{

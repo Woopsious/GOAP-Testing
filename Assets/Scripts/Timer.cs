@@ -95,11 +95,6 @@ public class CountdownTimer : Timer
 
 	public void Reset(float newTime, EntityBrain entity)
 	{
-		if (entity.entityStats._Data.team == EntityData.EntityTeam.redTeam)
-			Debug.LogError("red entity timer reset: " + Time);
-		else if (entity.entityStats._Data.team == EntityData.EntityTeam.greenTeam)
-			Debug.LogError("green entity timer reset: " + Time);
-
 		initialTime = newTime;
 		Reset();
 	}

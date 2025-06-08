@@ -130,8 +130,8 @@ public class EntitySensor : MonoBehaviour
 			{
 				if (targetsInRange[i].obj == null || targetsInRange[i].poi.poiOwner == entityStats._Data.team)
 				{
-					targetsInRange.RemoveAt(i);
 					friendliesInRange.Add(targetsInRange[i]);
+					targetsInRange.RemoveAt(i);
 				}
 				else
 					targetsInRange[i].UpdateTargetDistance(transform.position);
@@ -158,8 +158,8 @@ public class EntitySensor : MonoBehaviour
 			{
 				if (friendliesInRange[i].obj == null || friendliesInRange[i].poi.poiOwner != entityStats._Data.team)
 				{
-					friendliesInRange.RemoveAt(i);
 					targetsInRange.Add(friendliesInRange[i]);
+					friendliesInRange.RemoveAt(i);
 				}
 				else
 					friendliesInRange[i].UpdateTargetDistance(transform.position);

@@ -92,9 +92,7 @@ public class PoIController : MonoBehaviour
 	}
 	void UpdatePoiOwner(EntityTeam newOwner)
 	{
-		capsuleCollider.enabled = false;
 		poiOwner = newOwner;
-		capsuleCollider.enabled = true;
 
 		switch (newOwner)
 		{
