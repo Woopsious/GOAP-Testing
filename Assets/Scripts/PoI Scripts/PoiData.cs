@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[CreateAssetMenu(fileName = "EntityData", menuName = "ScriptableObjects/PoIData")]
+[CreateAssetMenu(fileName = "PoiData", menuName = "ScriptableObjects/PoIData")]
 public class PoiData : ScriptableObject
 {
 	[Header("Ownership")]
